@@ -73,7 +73,7 @@ class Cache():
             entry = DownloadEntry.get_by_id(key)
             if entry and entry.blob_key:
                 return entry
-        if dataset == 'forma':
+        if dataset == 'forma' and 'iso' in params:  # Don't cache geom
             return cls.forma(key, params, fmt)
 
 
