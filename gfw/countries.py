@@ -74,7 +74,8 @@ GET = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
   ORDER BY countries.name {order}"""
 
 
-RELATED_STORIES = """SELECT * FROM community_stories
+RELATED_STORIES = """SELECT *, ST_Y(the_geom) || ',' || ST_X(the_geom) AS coordinates 
+    FROM community_stories
     WHERE ST_contains(
         (SELECT the_geom FROM world_countries
          WHERE iso3='{iso}' LIMIT 1),the_geom)"""
@@ -106,5 +107,7 @@ def get(params):
             story_result = cdb.execute(query)
             story = json.loads(story_result.content)['rows']
             if story:
-                countries[0]['story'] = story[0]
+                story = story[0]
+                story['media'] = json.loads(story['media'])
+                countries[0]['story'] = story
     return dict(countries=countries)
