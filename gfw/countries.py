@@ -74,6 +74,12 @@ GET = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
   ORDER BY countries.name {order}"""
 
 
+RELATED_STORIES = """SELECT * FROM community_stories
+    WHERE ST_contains(
+        (SELECT the_geom FROM world_countries
+         WHERE iso3='{iso}' LIMIT 1),the_geom)"""
+
+
 def has_alerts(params):
     return json.loads(
         cdb.execute(
@@ -81,11 +87,6 @@ def has_alerts(params):
 
 
 def get(params):
-    # query = ALERTS_ALL_COUNT.format(**params)
-    # import logging
-    # logging.info(query)
-    # alerts_count = json.loads(
-    #     cdb.execute(query, params).content)['rows'][0]['alerts_count']
     if not 'order' in params:
         params['order'] = ''
     if 'iso' in params:
@@ -96,9 +97,14 @@ def get(params):
         params['and'] = ''
         params['join'] = 'LEFT'
         query = GET.format(**params)
-    import logging
-    logging.info(query)
     result = cdb.execute(query, params)
     if result:
         countries = json.loads(result.content)['rows']
+        if countries and 'iso' in params:
+            iso = params.get('iso').upper()
+            query = RELATED_STORIES.format(iso=iso)
+            story_result = cdb.execute(query)
+            story = json.loads(story_result.content)['rows']
+            if story:
+                countries[0]['story'] = story[0]
     return dict(countries=countries)
