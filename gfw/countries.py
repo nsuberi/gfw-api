@@ -35,6 +35,27 @@ HAS_ALERTS = """SELECT COUNT(*)
   WHERE date >= now() - INTERVAL '12 Months'
   AND iso = upper('{iso}')"""
 
+GET_COUNTRY = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
+  countries.lng, countries.extent, countries.gva, countries.gva_percent,
+  countries.employment, countries.indepth, countries.national_policy_link,
+  countries.national_policy_title, countries.convention_cbd,
+  countries.convention_unfccc, countries.convention_kyoto,
+  countries.convention_unccd, countries.convention_itta,
+  countries.convention_cites, countries.convention_ramsar,
+  countries.convention_world_heritage, countries.convention_nlbi,
+  countries.convention_ilo, countries.ministry_link, countries.external_links,
+  countries.dataset_link, countries.emissions, countries.carbon_stocks,
+  coalesce((
+      SELECT COUNT(*) AS count
+      FROM forma_api
+      WHERE date >= now() - INTERVAL '{interval}'
+      AND iso = countries.iso
+      GROUP BY iso
+  ),0) as alerts_count
+  FROM gfw2_countries AS countries
+  WHERE countries.iso = upper('{iso}')
+  ORDER BY countries.name """
+
 
 GET_NO_ALERTS = GET = """SELECT countries.iso, countries.name, countries.enabled,
   countries.lat, countries.lng, countries.extent, countries.gva,
@@ -93,11 +114,13 @@ def get(params):
     if 'iso' in params:
         params['and'] = "AND iso = upper('%s')" % params['iso']
         params['join'] = 'RIGHT'
-        query = GET.format(**params)
+        query = GET_COUNTRY.format(**params)
     else:  # List all countries:
         params['and'] = ''
         params['join'] = 'LEFT'
         query = GET.format(**params)
+    import logging
+    logging.info(query)
     result = cdb.execute(query, params)
     if result:
         countries = json.loads(result.content)['rows']
