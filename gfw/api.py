@@ -25,6 +25,7 @@ import re
 import webapp2
 import monitor
 import logging
+import traceback
 
 from gfw import common
 from gfw import countries
@@ -207,10 +208,12 @@ class CountryApi(BaseApi):
                     entry = Entry(id=rid, value=json.dumps(result))
                     entry.put()
             self._send_response(entry.value if entry else None)
-        except Exception, e:
-            name = e.__class__.__name__
-            msg = 'Error: Countries API (%s)' % name
-            monitor.log(self.request.url, msg, error=e,
+        except Exception, error:
+            name = error.__class__.__name__
+            trace = traceback.format_exc()
+            msg = 'Publish failure: %s: %s' % \
+                (name, error)
+            monitor.log(self.request.url, msg, error=trace,
                         headers=self.request.headers)
 
 
@@ -240,15 +243,18 @@ class PubSubApi(BaseApi):
                         headers=self.request.headers)
 
     def publish(self):
+        params = self._get_params(body=True)
         try:
-            params = self._get_params(body=True)
             pubsub.publish(params)
             self._send_response(json.dumps(dict(publish=True)))
-        except Exception, e:
-            name = e.__class__.__name__
-            msg = 'Error: PubSub API (%s)' % name
-            monitor.log(self.request.url, msg, error=e,
+        except Exception, error:
+            name = error.__class__.__name__
+            trace = traceback.format_exc()
+            msg = 'Publish failure: %s: %s' % \
+                (name, error)
+            monitor.log(self.request.url, msg, error=trace,
                         headers=self.request.headers)
+            self._send_error()
 
 
 routes = [

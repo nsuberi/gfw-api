@@ -28,6 +28,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
+import logging
 
 
 class Subscription(ndb.Model):
@@ -148,7 +149,7 @@ You will receive a separate e-mail for each distinct polygon, country, or shape 
 <p>
 Please note that this information is subject to the Global Forest Watch <a href='http://globalforestwatch.com/terms'>Terms of Service</a>.
 """
-
+        logging.info('HEY')
         alert['interval'] = 'month'
         if not alert['value']:
             alert['value'] = 0
@@ -162,6 +163,7 @@ Please note that this information is subject to the Global Forest Watch <a href=
         else:
             alert['aoi'] = 'a country (%s)' % s['iso']
             sql = "SELECT ST_AsGeoJSON(ST_ConvexHull(the_geom)) FROM world_countries where iso3 = upper('%s')" % s['iso']
+            logging.info('SQL %s' % sql)
             response = cdb.execute(sql)
             if response.status_code == 200:
                 result = json.loads(response.content)

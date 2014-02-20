@@ -24,14 +24,14 @@ ALERTS_ALL_COUNT = """SELECT sum(alerts.count) AS alerts_count
   FROM gfw2_countries AS countries
   LEFT OUTER JOIN (
     SELECT COUNT(*) AS count, iso
-      FROM cdm_latest
+      FROM forma_api
       WHERE date >= now() - INTERVAL '12 Months'
       GROUP BY iso)
   AS alerts ON alerts.iso = countries.iso"""
 
 
 HAS_ALERTS = """SELECT COUNT(*)
-  FROM cdm_latest
+  FROM forma_api
   WHERE date >= now() - INTERVAL '12 Months'
   AND iso = upper('{iso}')"""
 
@@ -66,7 +66,7 @@ GET = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
   FROM gfw2_countries AS countries
   {join} OUTER JOIN (
       SELECT COUNT(*) AS count, iso
-      FROM cdm_latest
+      FROM forma_api
       WHERE date >= now() - INTERVAL '{interval}'
       {and}
       GROUP BY iso)
@@ -81,23 +81,24 @@ def has_alerts(params):
 
 
 def get(params):
-    query = ALERTS_ALL_COUNT.format(**params)
-    alerts_count = json.loads(
-        cdb.execute(query, params).content)['rows'][0]['alerts_count']
+    # query = ALERTS_ALL_COUNT.format(**params)
+    # import logging
+    # logging.info(query)
+    # alerts_count = json.loads(
+    #     cdb.execute(query, params).content)['rows'][0]['alerts_count']
     if not 'order' in params:
         params['order'] = ''
     if 'iso' in params:
-        if has_alerts(params):  # Has forma alerts:
-            params['and'] = "AND iso = upper('%s')" % params['iso']
-            params['join'] = 'RIGHT'
-            query = GET.format(**params)
-        else:  # No forma alerts:
-            query = GET_NO_ALERTS.format(**params)
+        params['and'] = "AND iso = upper('%s')" % params['iso']
+        params['join'] = 'RIGHT'
+        query = GET.format(**params)
     else:  # List all countries:
         params['and'] = ''
         params['join'] = 'LEFT'
         query = GET.format(**params)
+    import logging
+    logging.info(query)
     result = cdb.execute(query, params)
     if result:
         countries = json.loads(result.content)['rows']
-    return dict(total_count=alerts_count, countries=countries)
+    return dict(countries=countries)
