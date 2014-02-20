@@ -97,8 +97,7 @@ def subscribe(params):
         to=email,
         reply_to=reply_to,
         subject='You subscribed to Global Forest Watch',
-        body="""To receive updates for %s just reply to this email or click
-here:\n%s""" % (topic, conf_url))
+        body="""To receive monthly FORMA updates please confirm your subscription by replying to this email or by clicking here:\n%s""" % conf_url)
 
 
 def unsubscribe(params):
