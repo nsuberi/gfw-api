@@ -117,6 +117,7 @@ def analyze(params):
     iso = params.get('iso', None)
     if geom:
         ee.Initialize(config.EE_CREDENTIALS, config.EE_URL)
+        ee.data.setDeadline(60000)
         geom = json.loads(geom)
         gain = _ee(params, 'hansen_all')['gain']
         loss_results = _ee(params, 'hansen_loss')
