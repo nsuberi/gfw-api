@@ -44,7 +44,8 @@ class Monitor(webapp2.RequestHandler):
             country=headers.get('X-Appengine-Country'),
             region=headers.get('X-Appengine-Region'),
             city=headers.get('X-Appengine-City'),
-            loc=loc)
+            loc=loc,
+            headers=headers)
         vals = json.dumps(vals, sort_keys=True, indent=4,
                           separators=(',', ': '))
         if error:
