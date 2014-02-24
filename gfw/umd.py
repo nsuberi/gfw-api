@@ -81,7 +81,7 @@ def _ee(urlparams, asset_id):
         'geometry': region
     }
     reduce_args.update(params)
-    area_stats = loss_by_year.divide(100000 * 10 * 255.0) \
+    area_stats = loss_by_year.divide(10000 * 255.0) \
         .multiply(ee.Image.pixelArea()) \
         .reduceRegion(**reduce_args)
     area_results = area_stats.getInfo()
@@ -118,7 +118,6 @@ def analyze(params):
     if geom:
         ee.Initialize(config.EE_CREDENTIALS, config.EE_URL)
         ee.data.setDeadline(60000)
-        geom = json.loads(geom)
         gain = _ee(params, 'hansen_all')['gain']
         loss_results = _ee(params, 'hansen_loss')
         loss = _sum_range(loss_results, params.get('begin'), params.get('end'))
