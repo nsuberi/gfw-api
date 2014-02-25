@@ -39,9 +39,11 @@ def download(params):
     geom = params.get('geom')
     if geom:
         query = ANALYSIS_GEOM.format(**params)
+        params['filename'] = 'gfw_quicc_{date}'.format(**params)
     else:
         query = ANALYSIS.format(**params)
-    return cdb.get_url(query, params=dict(format=params['format']))
+        params['filename'] = 'gfw_quicc_{iso}_{date}'.format(**params)
+    return cdb.get_url(query, params)
 
 
 def analyze(params):
