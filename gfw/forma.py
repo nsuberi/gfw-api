@@ -54,7 +54,8 @@ FROM
    GROUP BY date, iso
    ORDER BY iso, date) AS alias""" % FORMA_TABLE
 
-ISO_GEOM_SQL = """SELECT *
+ISO_GEOM_SQL = """SELECT iso country_iso_code,
+   to_char(date, 'YYYY-MM-DD') as year_month_day, lat, lon {select}
    FROM %s
    WHERE iso = upper('{iso}')
          AND date >= '{begin}'
@@ -72,7 +73,8 @@ FROM
    GROUP BY date, iso
    ORDER BY iso, date) AS alias""" % FORMA_TABLE
 
-GEOJSON_GEOM_SQL = """SELECT *
+GEOJSON_GEOM_SQL = """SELECT iso country_iso_code,
+   to_char(date, 'YYYY-MM-DD') as year_month_day, lat, lon {select}
    FROM %s
    WHERE date >= '{begin}'
      AND date <= '{end}'
@@ -149,13 +151,19 @@ def alerts(params):
 
 def download(params):
     """Return CartoDB download URL for supplied parameters."""
+    if 'format' in params and params.get('format') != 'csv':
+        params['select'] = ', the_geom'
+    else:
+        params['select'] = ''
     if 'geom' in params:
         query = GEOJSON_GEOM_SQL.format(**params)
+        params['filename'] = 'gfw_forma_{begin}_to_{end}'.format(**params)
     elif 'iso' in params:
         query = ISO_GEOM_SQL.format(**params)
+        params['filename'] = 'gfw_forma_{iso}_{begin}_to_{end}'.format(**params)
     else:
         raise ValueError('FORMA download expects geom or iso parameter')
-    return cdb.get_url(query, params=dict(format=params['format']))
+    return cdb.get_url(query, params)
 
 
 def analyze(params):

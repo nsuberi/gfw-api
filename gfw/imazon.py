@@ -61,6 +61,7 @@ def download(params):
         query = DOWNLOAD_GEOM.format(**params)
     else:
         query = DOWNLOAD.format(**params)
+    params['filename'] = 'gfw_imazon_{begin}_to_{end}'.format(**params)
     return cdb.get_url(query, params)
 
 
