@@ -24,21 +24,18 @@ import time
 import math
 import webapp2
 import jinja2
-import httplib2
 import json
 from oauth2client.appengine import AppAssertionCredentials
 from google.appengine.api import memcache
-import urllib
 from google.appengine.api import urlfetch
 import config
 import logging
 from google.appengine.ext import ndb
 
+
 class TileEntry(ndb.Model):
     value = ndb.BlobProperty()
 
-class MapIdEntry(ndb.Model):
-    value = ndb.TextProperty()
 
 jinja_environment = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -50,6 +47,7 @@ EE_URL = 'https://earthengine.googleapis.com'
 GEE_SCOPE = 'https://www.googleapis.com/auth/earthengine.readonly'
 SCOPES = (GEE_SCOPE)
 credentials = AppAssertionCredentials(scope=SCOPES)
+
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -76,11 +74,6 @@ class MapInit():
         key = reqid
 
       self.mapid = memcache.get(key)
-      if not self.mapid: # cache miss
-        self.mapid = MapIdEntry.get_by_id(key)
-        if self.mapid: # datastore hit, update cache
-          memcache.put(key, self.mapid)          
-
       if self.mapid is None:
         
         retry_count = 0
@@ -148,8 +141,7 @@ class MapInit():
               self.mapid = forestCarbon.mask(forestCarbon).getMapId({'opacity': 0.5, 'min':1, 'max':200, 'palette':"FFFFD4,FED98E,FE9929,dd8653"})
 
             # update cache and datastore
-            memcache.set(key, self.mapid)
-            MapIdEntry(id=key, value=self.mapid).put()
+            memcache.set(key, self.mapid, time=82800)  # 23 hours
 
             break
           except:
@@ -171,7 +163,7 @@ class TilesGFW(webapp2.RequestHandler):
           if entry:
             # logging.info('DATASTORE HIT %s' % key)
             cached_image = entry.value
-            memcache.set(key, cached_image, 90000)
+            memcache.set(key, cached_image)
           else:
             # logging.info('DATASTORE MISS %s' % key)
             pass
@@ -206,14 +198,13 @@ class TilesGFW(webapp2.RequestHandler):
             return
 
           if result.status_code == 200:
-            memcache.set(key,result.content,90000)
+            memcache.set(key,result.content)
             TileEntry(id=key, value=result.content).put()
             self.response.headers["Content-Type"] = "image/png"
             self.response.headers.add_header("Expires", "Thu, 01 Dec 1994 16:00:00 GMT")
             self.response.out.write(result.content)
           elif result.status_code == 404:
-            # hhh!!!
-            self.redirect('http://downloads2.esri.com/support/TechArticles/blank256.png')
+            self.error(404)
             return
           else:
             self.response.set_status(result.status_code)
