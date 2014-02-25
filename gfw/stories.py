@@ -28,11 +28,11 @@ TABLE = 'stories_dev' if runtime_config.get('IS_DEV') else 'community_stories'
 
 INSERT = """INSERT INTO {table}
   (details, email, featured, name, title, token, visible, date, location,
-   the_geom, media, featured)
+   the_geom, media)
   VALUES
   ('{details!s}', '{email!s}', {featured}::boolean, '{name!s}', '{title!s}',
    '{token!s}', {visible}::boolean, '{date}'::date, '{location!s}',
-   ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}', True::boolean)
+   ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}')
   RETURNING details, email, featured, name, title, visible, date,
     location, cartodb_id as id, ST_AsGeoJSON(the_geom) as geom, media, token"""
 
