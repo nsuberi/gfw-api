@@ -60,7 +60,7 @@ def _prep_story(story):
 
 def create(params):
     """Create new story with params."""
-    props = dict(details='', email='', featured='False', name='',
+    props = dict(details='', email='', featured='True', name='',
                  title='', token='', visible='True', date='',
                  location='', geom='', media='[]', table=TABLE)
     props.update(params)
