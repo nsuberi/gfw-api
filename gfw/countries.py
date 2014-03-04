@@ -131,6 +131,6 @@ def get(params):
             story = json.loads(story_result.content)['rows']
             if story:
                 story = story[0]
-                story['media'] = json.loads(story['media'])
+                story['media'] = json.loads(story['media'] or '""')
                 countries[0]['story'] = story
     return dict(countries=countries)
