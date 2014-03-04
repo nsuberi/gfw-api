@@ -131,7 +131,6 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
             url = None
             try:
                 url = _download(dataset, params)
-                urlfetch.fetch(url, method='HEAD', deadline=50)
             except Exception, error:
                 name = error.__class__.__name__
                 trace = traceback.format_exc()
