@@ -23,7 +23,7 @@ from gfw import cdb
 import datetime
 
 
-TABLE = 'stories_dev' if runtime_config.get('IS_DEV') else 'community_stories'
+TABLE = 'stories_dev_copy' if runtime_config.get('IS_DEV') else 'community_stories'
 
 
 INSERT = """INSERT INTO {table}
