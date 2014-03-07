@@ -142,7 +142,7 @@ class StoriesApi(BaseApi):
 
     def create(self):
         params = self._get_params(body=True)
-        required = ['title', 'email', 'name', 'geom']
+        required = ['title', 'email', 'geom']
         if not all(x in params and params.get(x) for x in required):
             self.response.set_status(400)
             self._send_response(json.dumps(dict(required=required)))
@@ -153,9 +153,11 @@ class StoriesApi(BaseApi):
             if result:
                 story = json.loads(result.content)['rows'][0]
                 story['media'] = json.loads(story['media'])
+                story['geom'] = json.loads(story['geom'])
                 self.response.set_status(201)
                 taskqueue.add(url='/stories/email', params=story,
                               queue_name="story-new-emails")
+                logging.info(story)
                 self._send_response(json.dumps(story))
             else:
                 story = None

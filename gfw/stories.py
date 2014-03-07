@@ -37,15 +37,15 @@ INSERT = """INSERT INTO {table}
     location, cartodb_id as id, ST_AsGeoJSON(the_geom) as geom, media, token"""
 
 
-LIST = """SELECT details, email, featured, name, title, visible, date,
+LIST = """SELECT details, email, name, title, visible, date,
     location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng, media
 FROM {table}
 WHERE visible = True {and_where}"""
 
 
-GET = """SELECT details, email, featured, name, title, visible, date,
+GET = """SELECT details, email, name, title, visible, date,
     location, cartodb_id as id, ST_Y(the_geom) || ',' || ST_X(the_geom) AS coordinates, media,
-    ST_AsGeoJSON(the_geom) as the_geom, when_did_it_happen, where_did_it_happen
+    ST_AsGeoJSON(the_geom) as the_geom
 FROM {table}
 WHERE cartodb_id = {id}"""
 
@@ -69,7 +69,10 @@ def create(params):
     props['geom'] = json.dumps(props['geom'])
     if 'media' in props:
         props['media'] = json.dumps(props['media'])
-    return cdb.execute(INSERT.format(**props), auth=True)
+    import logging
+    sql = INSERT.format(**props)
+    logging.info(sql)
+    return cdb.execute(sql, auth=True)
 
 
 def list(params):
