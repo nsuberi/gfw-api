@@ -146,19 +146,31 @@ class StoriesApi(BaseApi):
         if not all(x in params and params.get(x) for x in required):
             self.response.set_status(400)
             self._send_response(json.dumps(dict(required=required)))
-        params['token'] = self._gen_token()
-        result = stories.create(params)
-        if result:
-            story = json.loads(result.content)['rows'][0]
-            story['media'] = json.loads(story['media'])
-            self.response.set_status(201)
-        else:
-            story = None
-            self.response.set_status(400)
             return
-        taskqueue.add(url='/stories/email', params=story,
-                      queue_name="story-new-emails")
-        self._send_response(json.dumps(story))
+        params['token'] = self._gen_token()
+        try:
+            result = stories.create(params)
+            if result:
+                story = json.loads(result.content)['rows'][0]
+                story['media'] = json.loads(story['media'])
+                self.response.set_status(201)
+                taskqueue.add(url='/stories/email', params=story,
+                              queue_name="story-new-emails")
+                self._send_response(json.dumps(story))
+            else:
+                story = None
+                self.response.set_status(400)
+                return
+        except Exception, e:
+                error = e
+                name = error.__class__.__name__
+                trace = traceback.format_exc()
+                payload = self.request.headers
+                payload.update(params)
+                msg = 'Story submit failure: %s: %s' % (name, error)
+                monitor.log(self.request.url, msg, error=trace,
+                            headers=payload)
+                self.error(400)
 
     def get(self, id):
         try:

@@ -27,10 +27,10 @@ TABLE = 'stories_dev_copy' if runtime_config.get('IS_DEV') else 'community_stori
 
 
 INSERT = """INSERT INTO {table}
-  (details, email, featured, name, title, token, visible, date, location,
+  (details, email, name, title, token, visible, date, location,
    the_geom, media)
   VALUES
-  ('{details!s}', '{email!s}', {featured}::boolean, '{name!s}', '{title!s}',
+  ('{details!s}', '{email!s}', '{name!s}', '{title!s}',
    '{token!s}', {visible}::boolean, '{date}'::date, '{location!s}',
    ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}')
   RETURNING details, email, featured, name, title, visible, date,
@@ -60,7 +60,7 @@ def _prep_story(story):
 
 def create(params):
     """Create new story with params."""
-    props = dict(details='', email='', featured='True', name='',
+    props = dict(details='', email='', name='',
                  title='', token='', visible='True', date='',
                  location='', geom='', media='[]', table=TABLE)
     props.update(params)
