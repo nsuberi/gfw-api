@@ -34,18 +34,19 @@ INSERT = """INSERT INTO {table}
    '{token!s}', {visible}::boolean, '{date}'::date, '{location!s}',
    ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}')
   RETURNING details, email, name, title, visible, date,
-    location, cartodb_id as id, media"""
+    location, cartodb_id as id, media, ST_AsGeoJSON(the_geom) as the_geom"""
 
 
 LIST = """SELECT details, email, name, title, visible, date,
-    location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng, media
+    location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng,
+    media
 FROM {table}
 WHERE visible = True {and_where}"""
 
 
 GET = """SELECT details, email, name, title, visible, date,
-    location, cartodb_id as id, ST_Y(the_geom) || ',' || ST_X(the_geom) AS coordinates, media,
-    ST_AsGeoJSON(the_geom) as the_geom
+    location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng,
+    media, ST_AsGeoJSON(the_geom) as the_geom
 FROM {table}
 WHERE cartodb_id = {id}"""
 
