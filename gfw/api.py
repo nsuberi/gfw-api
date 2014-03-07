@@ -166,7 +166,6 @@ class StoriesApi(BaseApi):
                 self.response.set_status(201)
                 taskqueue.add(url='/stories/email', params=data,
                               queue_name="story-new-emails")
-                logging.info(story)
                 self._send_response(json.dumps(story))
             else:
                 story = None

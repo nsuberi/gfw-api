@@ -70,9 +70,7 @@ def create(params):
     props['geom'] = json.dumps(props['geom'])
     if 'media' in props:
         props['media'] = json.dumps(props['media'])
-    import logging
     sql = INSERT.format(**props)
-    logging.info(sql)
     return cdb.execute(sql, auth=True)
 
 
