@@ -33,8 +33,8 @@ INSERT = """INSERT INTO {table}
   ('{details!s}', '{email!s}', '{name!s}', '{title!s}',
    '{token!s}', {visible}::boolean, '{date}'::date, '{location!s}',
    ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}')
-  RETURNING details, email, featured, name, title, visible, date,
-    location, cartodb_id as id, ST_AsGeoJSON(the_geom) as geom, media, token"""
+  RETURNING details, email, name, title, visible, date,
+    location, cartodb_id as id, media"""
 
 
 LIST = """SELECT details, email, name, title, visible, date,

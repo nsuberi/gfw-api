@@ -22,6 +22,8 @@ import hashlib
 import json
 import random
 import re
+import os
+import copy
 import webapp2
 import monitor
 import logging
@@ -141,21 +143,28 @@ class StoriesApi(BaseApi):
                         headers=self.request.headers)
 
     def create(self):
+        host = os.environ['HTTP_HOST']
+        logging.info(host)
+        if 'globalforestwatch' not in host and 'localhost' not in host:
+            self.error(404)
+            return
         params = self._get_params(body=True)
         required = ['title', 'email', 'geom']
         if not all(x in params and params.get(x) for x in required):
             self.response.set_status(400)
             self._send_response(json.dumps(dict(required=required)))
             return
-        params['token'] = self._gen_token()
+        token = self._gen_token()
         try:
+            params['token'] = token
             result = stories.create(params)
             if result:
                 story = json.loads(result.content)['rows'][0]
                 story['media'] = json.loads(story['media'])
-                story['geom'] = json.loads(story['geom'])
+                data = copy.copy(story)
+                data['token'] = token
                 self.response.set_status(201)
-                taskqueue.add(url='/stories/email', params=story,
+                taskqueue.add(url='/stories/email', params=data,
                               queue_name="story-new-emails")
                 logging.info(story)
                 self._send_response(json.dumps(story))
