@@ -143,11 +143,11 @@ class StoriesApi(BaseApi):
                         headers=self.request.headers)
 
     def create(self):
-        host = os.environ['HTTP_HOST']
-        logging.info(host)
-        if 'globalforestwatch' not in host and 'localhost' not in host:
-            self.error(404)
-            return
+        # host = os.environ['HTTP_HOST']
+        # logging.info(os.environ)
+        # if 'globalforestwatch' not in host and 'localhost' not in host:
+        #     self.error(404)
+        #     return
         params = self._get_params(body=True)
         required = ['title', 'email', 'geom']
         if not all(x in params and params.get(x) for x in required):

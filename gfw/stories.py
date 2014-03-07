@@ -30,8 +30,8 @@ INSERT = """INSERT INTO {table}
   (details, email, name, title, token, visible, date, location,
    the_geom, media)
   VALUES
-  ('{details!s}', '{email!s}', '{name!s}', '{title!s}',
-   '{token!s}', {visible}::boolean, '{date}'::date, '{location!s}',
+  ('{details}', '{email}', '{name}', '{title}',
+   '{token}', {visible}::boolean, '{date}'::date, '{location}',
    ST_SetSRID(ST_GeomFromGeoJSON('{geom}'), 4326), '{media}')
   RETURNING details, email, name, title, visible, date,
     location, cartodb_id as id, media, ST_AsGeoJSON(the_geom) as the_geom"""
@@ -65,6 +65,8 @@ def create(params):
                  title='', token='', visible='True', date='',
                  location='', geom='', media='[]', table=TABLE)
     props.update(params)
+    for key in ['details', 'title', 'name', 'email', 'location']:
+        props[key] = props[key].encode('utf-8')
     if not props.get('date'):
         props['date'] = str(datetime.datetime.now())
     props['geom'] = json.dumps(props['geom'])
