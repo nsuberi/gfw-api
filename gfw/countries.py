@@ -45,6 +45,7 @@ GET_COUNTRY = """SELECT countries.iso, countries.name, countries.enabled, countr
   countries.convention_world_heritage, countries.convention_nlbi,
   countries.convention_ilo, countries.ministry_link, countries.external_links,
   countries.dataset_link, countries.emissions, countries.carbon_stocks,
+  countries.country_alt,
   coalesce((
       SELECT COUNT(*) AS count
       FROM forma_api
@@ -67,7 +68,7 @@ GET_NO_ALERTS = GET = """SELECT countries.iso, countries.name, countries.enabled
   countries.convention_ramsar, countries.convention_world_heritage,
   countries.convention_nlbi, countries.convention_ilo, countries.ministry_link,
   countries.external_links, countries.dataset_link, countries.emissions,
-  countries.carbon_stocks
+  countries.carbon_stocks, countries.country_alt
   FROM gfw2_countries AS countries
   WHERE iso = upper('{iso}')
   ORDER BY countries.name {order}"""
@@ -83,7 +84,7 @@ GET = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
   countries.convention_world_heritage, countries.convention_nlbi,
   countries.convention_ilo, countries.ministry_link, countries.external_links,
   countries.dataset_link, countries.emissions, countries.carbon_stocks,
-  alerts.count AS alerts_count
+  countries.country_alt, alerts.count AS alerts_count
   FROM gfw2_countries AS countries
   {join} OUTER JOIN (
       SELECT COUNT(*) AS count, iso
@@ -95,7 +96,7 @@ GET = """SELECT countries.iso, countries.name, countries.enabled, countries.lat,
   ORDER BY countries.name {order}"""
 
 
-RELATED_STORIES = """SELECT *, ST_Y(the_geom) || ',' || ST_X(the_geom) AS coordinates 
+RELATED_STORIES = """SELECT *, ST_Y(the_geom) || ',' || ST_X(the_geom) AS coordinates
     FROM community_stories
     WHERE ST_contains(
         (SELECT the_geom FROM world_countries
