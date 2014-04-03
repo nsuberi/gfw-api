@@ -35,7 +35,6 @@ SUM = """SELECT iso, sum(loss_gt_0) loss, avg(gain) gain
 
 
 def _get_coords(geojson):
-    logging.info(geojson.keys())
     return geojson.get('coordinates')
 
 
