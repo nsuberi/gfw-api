@@ -57,7 +57,13 @@ def _get_range(result, begin, end):
 def _ee(urlparams, asset_id):
     params = copy.copy(urlparams)
     loss_by_year = ee.Image(config.assets[asset_id])
-    poly = _get_coords(json.loads(params.get('geom')))
+    geom = json.loads(params.get('geom'))
+    poly = _get_coords(geom)
+    ptype = geom.get('type')
+    if ptype.lower() == 'multipolygon':
+        region = ee.Geometry.MultiPolygon(poly)
+    else:
+        region = ee.Geometry.Polygon(poly)
     params.pop('geom')
     if 'begin' in params:
         params.pop('begin')
@@ -75,7 +81,6 @@ def _ee(urlparams, asset_id):
         params['bestEffort'] = bool(params['bestEffort'])
     else:
         params['bestEffort'] = True
-    region = ee.Geometry.Polygon(poly)
     reduce_args = {
         'reducer': ee.Reducer.sum(),
         'geometry': region
