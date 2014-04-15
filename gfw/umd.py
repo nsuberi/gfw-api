@@ -30,7 +30,7 @@ from gfw import cdb
 
 SUM = """SELECT iso, sum(loss_gt_0) loss, avg(gain) gain
          FROM umd
-         WHERE year >= {begin} AND year <= {end} AND iso = upper('{iso}')
+         WHERE year >= {begin} AND year < {end} AND iso = upper('{iso}')
          GROUP BY iso"""
 
 
@@ -41,7 +41,7 @@ def _get_coords(geojson):
 def _sum_range(data, begin, end):
     return sum(
         [value for key, value in data.iteritems()
-            if (int(key) >= int(begin)) and (int(key) <= int(end))])
+            if (int(key) >= int(begin)) and (int(key) < int(end))])
 
 
 def _get_umd_range(result, begin, end):
