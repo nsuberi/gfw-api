@@ -2,6 +2,8 @@
 
 This document describes the official Global Forest Watch API which is currently in beta. Interested in being a trusted tester? Contact the Data Lab (datalab@wri.org) at World Resources Institute.
 
+![](http://i.imgur.com/P26FPQ4.jpg)
+
 # Overview
 
 The API currently focuses on:
