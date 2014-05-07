@@ -52,7 +52,7 @@ class FORMAHandler(CORSRequestHandler):
         """Query world for FORMA alerts with supplied period and geojson."""
         try:
             params = self.world_params()
-            result = forma.query_world(**params)
+            result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
         except Exception, e:
             logging.exception(e)
@@ -67,12 +67,26 @@ class FORMAHandler(CORSRequestHandler):
                 msg = e.message
             self.write(msg)
 
-    def iso(self, dataid, iso):
-        logging.info('dataid=%s, iso=%s' % (dataid, iso))
+    def iso(self, iso):
+        try:
+            params = self.world_params()
+            params['iso'] = iso
+            result = forma.query(**params)
+            self.write(json.dumps(result, sort_keys=True))
+        except Exception, e:
+            logging.exception(e)
+            self.write(e.message)
 
-    def iso1(self, dataid, iso, id1):
-        logging.info('dataid=%s, iso=%s, id1=%s' % (dataid, iso, id1))
-
+    def iso1(self, iso, id1):
+        try:
+            params = self.world_params()
+            params['iso'] = iso
+            params['id1'] = id1
+            result = forma.query(**params)
+            self.write(json.dumps(result, sort_keys=True))
+        except Exception, e:
+            logging.exception(e)
+            self.write(e.message)
 
 FOREST_CHANGE_ROUTE = r'/forest-change/forma'
 
@@ -86,7 +100,7 @@ handlers = webapp2.WSGIApplication([
         r'/forest-change/forma/<iso:[A-z]{3,3}>',  # country
         handler=FORMAHandler, handler_method='iso'),
     webapp2.Route(
-        r'/forest-change/forma//<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
+        r'/forest-change/forma/<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
         handler=FORMAHandler, handler_method='iso1')],
 
 

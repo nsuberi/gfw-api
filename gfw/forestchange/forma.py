@@ -41,6 +41,10 @@ def _world_args(params):
     if 'geojson' in params:
         filters.append("""ST_INTERSECTS(ST_SetSRID(
             ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % params['geojson'])
+    if 'iso' in params:
+        filters.append("iso = upper('%s')" % params['iso'])
+    if 'id1' in params:
+        filters.append("gadm2 = '%s'" % params['id1'])
     if 'begin' in params:
         filters.append("date >= '%s'" % params['begin'])
     if 'end' in params:
@@ -64,10 +68,17 @@ def _world_response(response, params):
         raise Exception(response.content)
 
 
-def query_world(**params):
+def query(**params):
     """Query the world with supplied API parameter dictionary."""
     args = _world_args(params)
     query = sql.FORMA_ANALYSIS.format(**args)
     response = cdb.execute(query)
     return _world_response(response, params)
+
+
+
+
+
+
+
 
