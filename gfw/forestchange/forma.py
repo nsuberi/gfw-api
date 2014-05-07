@@ -34,19 +34,40 @@ META = {
 }
 
 
-def query_world(**params):
+def _world_args(params):
+    """Return prepared query args from supplied API params."""
     args = {}
-    args['location'] = """ST_INTERSECTS(ST_SetSRID(
-        ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % params['geojson']
-    args['begin'] = params['begin']
-    args['end'] = params['end']
-    query = sql.FORMA_ANALYSIS.format(**args)
-    response = cdb.execute(query)
+    filters = []
+    if 'geojson' in params:
+        filters.append("""ST_INTERSECTS(ST_SetSRID(
+            ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % params['geojson'])
+    if 'begin' in params:
+        filters.append("date >= '%s'" % params['begin'])
+    if 'end' in params:
+        filters.append("date <= '%s'" % params['end'])
+    args['where'] = ' AND '.join(filters)
+    if args['where']:
+        args['where'] = ' WHERE ' + args['where']
+    return args
+
+
+def _world_response(response, params):
+    """Return world response."""
     if response.status_code == 200:
         result = json.loads(response.content)['rows'][0]
         result.update(META)
         result.update(params)
-        result['geojson'] = json.loads(result['geojson'])
+        if 'geojson' in params:
+            result['geojson'] = json.loads(params['geojson'])
         return result
     else:
         raise Exception(response.content)
+
+
+def query_world(**params):
+    """Query the world with supplied API parameter dictionary."""
+    args = _world_args(params)
+    query = sql.FORMA_ANALYSIS.format(**args)
+    response = cdb.execute(query)
+    return _world_response(response, params)
+

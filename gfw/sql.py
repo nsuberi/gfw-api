@@ -6,10 +6,7 @@ SELECT SUM(COUNT) AS value
 FROM
   (SELECT COUNT(*), iso, date
    FROM %s
-   WHERE
-     {location}
-     AND date >= '{begin}'
-     AND date <= '{end}'
+     {where}
    GROUP BY date, iso
    ORDER BY iso, date) AS ALIAS""" % FORMA_TABLE
 

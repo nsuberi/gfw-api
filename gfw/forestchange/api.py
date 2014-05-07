@@ -31,17 +31,28 @@ from gfw.common import CORSRequestHandler
 class FORMAHandler(CORSRequestHandler):
     """Handler for FORMA requests."""
 
+    def world_params(self):
+        """Return prepared params from supplied GET request args."""
+        args = self.args()
+        if not args:
+            return {}
+        params = {}
+        period = args.get('period')
+        if period:
+            begin, end = period.split(',')
+            if begin:
+                params['begin'] = begin
+            if end:
+                params['end'] = end
+        if 'geojson' in args:
+            params['geojson'] = args['geojson']
+        return params
+
     def world(self):
         """Query world for FORMA alerts with supplied period and geojson."""
         try:
-            args = self.args()
-            if not args:
-                result = forma.META
-            else:
-                begin, end = args['period'].split(',')
-                geojson = args['geojson']
-                result = forma.query_world(
-                    begin=begin, end=end, geojson=geojson)
+            params = self.world_params()
+            result = forma.query_world(**params)
             self.write(json.dumps(result, sort_keys=True))
         except Exception, e:
             logging.exception(e)
