@@ -28,24 +28,11 @@ from gfw.forestchange import forma
 from gfw.common import CORSRequestHandler
 
 
-def handle_forma_world(args):
-    begin, end = args['period'].split(',')
-    geojson = args['geojson']
-    return forma.query_world(begin=begin, end=end, geojson=geojson)
-
-
-def handle_forma_iso(args):
-    pass
-
-
-def handle_forma_iso1(args):
-    pass
-
-
 class FORMAHandler(CORSRequestHandler):
-    """Handler for API requests."""
+    """Handler for FORMA requests."""
 
     def world(self):
+        """Query world for FORMA alerts with supplied period and geojson."""
         try:
             args = self.args()
             if not args:
@@ -60,7 +47,12 @@ class FORMAHandler(CORSRequestHandler):
             logging.exception(e)
             if e.message == 'need more than 1 value to unpack':
                 msg = '{"error": ["Invalid period parameter"]}'
+            elif e.message == 'period':
+                msg = '{"error": ["The period parameter is required"]}'
+            elif e.message == 'geojson':
+                msg = '{"error": ["The geojson parameter is required"]}'
             else:
+                # TODO monitor
                 msg = e.message
             self.write(msg)
 
@@ -77,13 +69,13 @@ handlers = webapp2.WSGIApplication([
 
     # FORMA routes
     webapp2.Route(
-        r'/forest-change/forma',  # World
+        r'/forest-change/forma',  # world
         handler=FORMAHandler, handler_method='world'),
     webapp2.Route(
-        r'/forest-change/forma/<iso:[A-z]{3,3}>',  # Country
+        r'/forest-change/forma/<iso:[A-z]{3,3}>',  # country
         handler=FORMAHandler, handler_method='iso'),
     webapp2.Route(
-        r'/forest-change/forma//<iso:[A-z]{3,3}>/<id1:\d+>',  # Level 1
+        r'/forest-change/forma//<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
         handler=FORMAHandler, handler_method='iso1')],
 
 
