@@ -46,11 +46,11 @@ handlers:
   login: admin
 
 # Download handler:
-- url: /datasets/(imazon|forma|modis).(shp|geojson|kml|svg|csv)
+- url: /analysis/(imazon|forma|modis).(shp|geojson|kml|svg|csv)
   script: download.handlers
 
 # Analysis handler:
-- url: /datasets/(imazon|forma|modis|umd)
+- url: /analysis/(imazon|forma|modis|umd)
   script: analysis.handlers
 
 # Monitor
@@ -64,7 +64,11 @@ handlers:
   script: admin.handlers
   login: admin
 
-- url: /.*
-  script: gfw.api.handlers
+# Forest change handlers
+- url: /forest-change/(forma|umd|imazon|quicc|fires).*
+  script: gfw.forestchange.api.handlers
+
+# - url: /.*
+#   script: gfw.api.handlers
 
 

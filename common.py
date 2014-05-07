@@ -42,6 +42,35 @@ def _get_request_id(request, params):
     return '%s/%s.%s' % (path, md5(params).hexdigest(), fmt)
 
 
+class CORSRequestHandler(webapp2.RequestHandler):
+
+    def options(self, dataset):
+        """Options to support CORS requests."""
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Access-Control-Allow-Headers'] = \
+            'Origin, X-Requested-With, Content-Type, Accept'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+
+    def write(self, data):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(str(data))
+
+    def args(self):
+        if not self.request.arguments():
+            if self.request.body:
+                return json.loads(self.request.body)
+        else:
+            args = self.request.arguments()
+            vals = map(self.request.get, args)
+            return dict(zip(args, vals))
+
+
 class BaseApi(webapp2.RequestHandler):
     """Base request handler for API."""
 

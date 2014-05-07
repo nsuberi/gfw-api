@@ -1,5 +1,5 @@
 # Global Forest Watch API
-# Copyright (C) 2013 World Resource Institute
+# Copyright (C) 2014 World Resource Institute
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ from google.appengine.ext import ndb
 _DATASETS = ['imazon', 'forma', 'modis', 'umd']
 
 # Analysis route.
-_ROUTE = r'/datasets/<dataset:(%s)>' % '|'.join(_DATASETS)
+_ROUTE = r'/analysis/<dataset:(%s)>' % '|'.join(_DATASETS)
 
 
 def _analyze(dataset, params):
@@ -117,7 +117,7 @@ class Analysis(common.BaseApi):
 
     def post(self, dataset):
         params = self._get_params()
-        rid = self._get_id(params)
+        rid = self._get_id(params['q'])
         bust = params.get('bust')
         if bust:
             params.pop('bust')
@@ -129,7 +129,8 @@ class Analysis(common.BaseApi):
             response = None
             error = None
             try:
-                response = _analyze(dataset, params)
+                q = json.loads(params['q'])
+                response = _analyze(dataset, q)
             except Exception, e:
                 error = e
                 name = error.__class__.__name__

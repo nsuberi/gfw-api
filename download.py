@@ -19,6 +19,7 @@ import webapp2
 import monitor
 import common
 import traceback
+import json
 
 from appengine_config import runtime_config
 
@@ -36,7 +37,7 @@ _DATASETS = ['imazon', 'forma', 'modis']
 _FORMATS = ['shp', 'geojson', 'kml', 'svg', 'csv']
 
 # Download route.
-_ROUTE = r'/datasets/<dataset:(%s)>.<fmt:(%s)>' % \
+_ROUTE = r'/analysis/<dataset:(%s)>.<fmt:(%s)>' % \
     ('|'.join(_DATASETS), '|'.join(_FORMATS))
 
 # Download route via backend.
@@ -121,8 +122,10 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         params['format'] = fmt
         rid = common._get_request_id(self.request, params)
         bust = params.get('bust')
+        q = json.loads(params['q'])
+        q['format'] = fmt
 
-        entry = Cache.get(rid, dataset, params, fmt, bust)
+        entry = Cache.get(rid, dataset, q, fmt, bust)
         if entry and entry.blob_key:
             self.send_blob(entry.blob_key)
         elif entry and entry.cdb_url:
@@ -130,7 +133,7 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         else:
             url = None
             try:
-                url = _download(dataset, params)
+                url = _download(dataset, q)
             except Exception, error:
                 name = error.__class__.__name__
                 trace = traceback.format_exc()

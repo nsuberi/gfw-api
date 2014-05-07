@@ -18,6 +18,7 @@
 """This module supports executing CartoDB queries."""
 
 import urllib
+import logging
 
 from appengine_config import runtime_config
 from google.appengine.api import urlfetch
@@ -64,5 +65,8 @@ def execute(query, params={}, auth=False):
     """Exectues supplied query on CartoDB and returns response body as JSON."""
     rpc = urlfetch.create_rpc(deadline=50)
     payload = get_body(query, params, auth=auth)
+    if runtime_config['IS_DEV']:
+        logging.info(query)
+        logging.info(payload)
     urlfetch.make_fetch_call(rpc, ENDPOINT, method='POST', payload=payload)
     return rpc.get_result()

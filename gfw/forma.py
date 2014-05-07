@@ -18,7 +18,7 @@
 """This module supports accessing FORMA data."""
 
 import json
-from gfw import cdb
+from gfw import cdb, sql
 
 FORMA_TABLE = 'forma_api'
 
@@ -149,30 +149,82 @@ def alerts(params):
     return dict(total_count=alerts_count, countries=result)
 
 
+def get_download_args(params):
+    args = {}
+
+    # Set dates
+    args['begin'] = params['begin']
+    args['end'] = params['end']
+
+    # Set the "select" bits
+    if 'format' in params and params.get('format') != 'csv':
+        args['select'] = ', the_geom'
+    else:
+        args['select'] = ''
+
+    args['format'] = params['format'] if 'format' in params else 'json'
+
+    # GeoJSON location (e.g., Polygon, MultiPolygon)
+    if type(params['location']) == dict:
+        geom = json.dumps(params['location'])
+        args['location'] = """ST_INTERSECTS(ST_SetSRID(
+            ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % geom
+        args['filename'] = 'gfw_forma_{begin}_to_{end}'.format(**args)
+
+    # Country ISO location
+    else:
+        iso = params['location']
+        args['location'] = "iso = upper('%s')" % iso
+        args['filename'] = 'gfw_forma_' + iso + '_{begin}_to_{end}'. \
+            format(**args)
+
+    return args
+
+
 def download(params):
     """Return CartoDB download URL for supplied parameters."""
-    if 'format' in params and params.get('format') != 'csv':
-        params['select'] = ', the_geom'
+    args = get_download_args(params)
+    query = sql.FORMA_DOWNLOAD.format(**args)
+    return cdb.get_url(query, args)
+
+
+def get_analysis_args(params):
+    """Return dictionary of args from supplied request parameters."""
+    args = {}
+
+    # GeoJSON location (e.g., Polygon, MultiPolygon)
+    if type(params['location']) == dict:
+        geom = json.dumps(params['location'])
+        args['location'] = """ST_INTERSECTS(ST_SetSRID(
+            ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % geom
+    # Country ISO location
     else:
-        params['select'] = ''
-    if 'geom' in params:
-        query = GEOJSON_GEOM_SQL.format(**params)
-        params['filename'] = 'gfw_forma_{begin}_to_{end}'.format(**params)
-    elif 'iso' in params:
-        query = ISO_GEOM_SQL.format(**params)
-        params['filename'] = 'gfw_forma_{iso}_{begin}_to_{end}'.format(**params)
+        iso = params['location']
+        args['location'] = "iso = upper('%s')" % iso
+
+    args['begin'] = params['begin']
+    args['end'] = params['end']
+
+    return args
+
+
+def query_world(**params):
+    args = {}
+    args['location'] = """ST_INTERSECTS(ST_SetSRID(
+        ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % params['geojson']
+    args['begin'] = params['begin']
+    args['end'] = params['end']
+    query = sql.FORMA_ANALYSIS.format(**args)
+    response = cdb.execute(query)
+    if response.status_code == 200:
+        return json.loads(response.content)
     else:
-        raise ValueError('FORMA download expects geom or iso parameter')
-    return cdb.get_url(query, params)
+        raise Exception(response.content)
 
 
 def analyze(params):
-    if 'geom' in params:
-        query = GEOJSON_SQL.format(**params)
-    elif 'iso' in params:
-        query = ISO_SQL.format(**params)
-    else:
-        raise ValueError('FORMA analysis expects geom or iso parameter')
+    args = get_analysis_args(params)
+    query = sql.FORMA_ANALYSIS.format(**args)
     return cdb.execute(query)
 
 

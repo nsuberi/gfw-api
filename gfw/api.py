@@ -1,5 +1,5 @@
 # Global Forest Watch API
-# Copyright (C) 2013 World Resource Institute
+# Copyright (C) 2014 World Resource Institute
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,24 +18,24 @@
 """This module contains request handlers for the Global Forest Watch API."""
 
 import base64
+import copy
 import hashlib
 import json
-import random
-import re
-import os
-import copy
-import webapp2
 import monitor
-import logging
+import random
 import traceback
+import re
+import webapp2
+
+from hashlib import md5
 
 from gfw import common
 from gfw import countries
 from gfw import stories
 from gfw import pubsub
 from gfw import wdpa
+
 from appengine_config import runtime_config
-from hashlib import md5
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
