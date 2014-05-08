@@ -79,10 +79,10 @@ class FORMAHandler(CORSRequestHandler):
         if 'geojson' in args:
             params['geojson'] = args['geojson']
             json.loads(params['geojson'])
-        if 'format' in args:
-            params['format'] = args['format']
-            if 'filename' in args:
-                params['filename'] = args['filename']
+        if 'download' in args:
+            fmt, filename = args['download'].split(',')
+            params['format'] = fmt
+            params['filename'] = filename
         return params
 
     def world(self):
