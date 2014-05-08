@@ -45,7 +45,7 @@ def _query_args(params):
     if 'iso' in params:
         filters.append("iso = upper('%s')" % params['iso'])
     if 'id1' in params:
-        filters.append("gadm2 = '%s'" % params['id1'])
+        filters.append("id_1 = '%s'" % params['id1'])
     if 'begin' in params:
         filters.append("date >= '%s'" % params['begin'])
     if 'end' in params:
