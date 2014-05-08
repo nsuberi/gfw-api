@@ -27,10 +27,11 @@ META = {
     "description": "Alerts where forest disturbances have likely occurred.",
     "resolution": "500 x 500 meters",
     "coverage": "Humid tropical forest biome",
-    "timescale": "Janurary 2006 to present",
+    "timescale": "January 2006 to present",
     "updates": "16 day",
     "source": "MODIS",
-    "units": "Alerts"
+    "units": "Alerts",
+    "name": "FORMA"
 }
 
 
