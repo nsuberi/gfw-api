@@ -70,6 +70,8 @@ class FORMAHandler(CORSRequestHandler):
     def iso(self, iso):
         try:
             params = self.world_params()
+            if 'geojson' in params:
+                params.pop('geojson')
             params['iso'] = iso
             result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
@@ -80,6 +82,8 @@ class FORMAHandler(CORSRequestHandler):
     def iso1(self, iso, id1):
         try:
             params = self.world_params()
+            if 'geojson' in params:
+                params.pop('geojson')
             params['iso'] = iso
             params['id1'] = id1
             result = forma.query(**params)
