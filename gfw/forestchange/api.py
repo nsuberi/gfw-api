@@ -20,6 +20,8 @@
 Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
 """
 
+import datetime
+import functools
 import json
 import logging
 import webapp2
@@ -30,6 +32,21 @@ from gfw.common import CORSRequestHandler
 
 class FORMAHandler(CORSRequestHandler):
     """Handler for FORMA requests."""
+
+    def handle_exception(self, e):
+        logging.exception(e)
+        if e.message == 'need more than 1 value to unpack':
+            msg = '{"error": ["Invalid period parameter"]}'
+        elif e.message == 'period':
+            msg = '{"error": ["The period parameter is required"]}'
+        elif e.message == 'geojson':
+            msg = '{"error": ["The geojson parameter is required"]}'
+        elif e.message == "invalid period (begin > end)":
+            msg = '{"error": ["The period parameter begin > end"]}'
+        else:
+            # TODO monitor
+            msg = e.message
+        self.write(msg)
 
     def world_params(self):
         """Return prepared params from supplied GET request args."""
@@ -44,6 +61,11 @@ class FORMAHandler(CORSRequestHandler):
                 params['begin'] = begin
             if end:
                 params['end'] = end
+            if begin and end:
+                f = datetime.datetime.strptime
+                b, e = f(begin, '%Y-%m-%d'), f(end, '%Y-%m-%d')
+                if b > e:
+                    raise Exception("invalid period (begin > end)")
         if 'geojson' in args:
             params['geojson'] = args['geojson']
         return params
@@ -55,17 +77,7 @@ class FORMAHandler(CORSRequestHandler):
             result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
         except Exception, e:
-            logging.exception(e)
-            if e.message == 'need more than 1 value to unpack':
-                msg = '{"error": ["Invalid period parameter"]}'
-            elif e.message == 'period':
-                msg = '{"error": ["The period parameter is required"]}'
-            elif e.message == 'geojson':
-                msg = '{"error": ["The geojson parameter is required"]}'
-            else:
-                # TODO monitor
-                msg = e.message
-            self.write(msg)
+            self.handle_exception(e)
 
     def iso(self, iso):
         try:
@@ -76,8 +88,7 @@ class FORMAHandler(CORSRequestHandler):
             result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
         except Exception, e:
-            logging.exception(e)
-            self.write(e.message)
+            self.handle_exception(e)
 
     def iso1(self, iso, id1):
         try:
@@ -89,8 +100,7 @@ class FORMAHandler(CORSRequestHandler):
             result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
         except Exception, e:
-            logging.exception(e)
-            self.write(e.message)
+            self.handle_exception(e)
 
 FOREST_CHANGE_ROUTE = r'/forest-change/forma'
 
