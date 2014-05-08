@@ -43,12 +43,22 @@ class FORMAHandler(CORSRequestHandler):
             msg = '{"error": ["The geojson parameter is required"]}'
         elif e.message == "invalid period (begin > end)":
             msg = '{"error": ["The period parameter begin > end"]}'
+        elif e.message == 'No JSON object could be decoded':
+            msg = '{"error": ["Invalid geojson parameter"]}'
         else:
             # TODO monitor
             msg = e.message
         self.write(msg)
 
-    def world_params(self):
+    def handle_request(self, params):
+        fmt = params.get('format', 'json')
+        if fmt == 'json':
+            result = forma.query(**params)
+            self.write(json.dumps(result, sort_keys=True))
+        else:
+            self.redirect(forma.download(**params))
+
+    def get_params(self):
         """Return prepared params from supplied GET request args."""
         args = self.args()
         if not args:
@@ -68,37 +78,41 @@ class FORMAHandler(CORSRequestHandler):
                     raise Exception("invalid period (begin > end)")
         if 'geojson' in args:
             params['geojson'] = args['geojson']
+            json.loads(params['geojson'])
+        if 'format' in args:
+            params['format'] = args['format']
+            if 'filename' in args:
+                params['filename'] = args['filename']
         return params
 
     def world(self):
-        """Query world for FORMA alerts with supplied period and geojson."""
+        """Query FORMA globally."""
         try:
-            params = self.world_params()
-            result = forma.query(**params)
-            self.write(json.dumps(result, sort_keys=True))
+            params = self.get_params()
+            self.handle_request(params)
         except Exception, e:
             self.handle_exception(e)
 
     def iso(self, iso):
+        """Query FORMA by country iso."""
         try:
-            params = self.world_params()
+            params = self.get_params()
             if 'geojson' in params:
                 params.pop('geojson')
             params['iso'] = iso
-            result = forma.query(**params)
-            self.write(json.dumps(result, sort_keys=True))
+            self.handle_request(params)
         except Exception, e:
             self.handle_exception(e)
 
     def iso1(self, iso, id1):
+        """Query FORMA by country province."""
         try:
-            params = self.world_params()
+            params = self.get_params()
             if 'geojson' in params:
                 params.pop('geojson')
             params['iso'] = iso
             params['id1'] = id1
-            result = forma.query(**params)
-            self.write(json.dumps(result, sort_keys=True))
+            self.handle_request(params)
         except Exception, e:
             self.handle_exception(e)
 

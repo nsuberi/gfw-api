@@ -49,7 +49,10 @@ def get_url(query, params, auth=False):
     params['q'] = query
     if auth:
         params['api_key'] = _get_api_key()
-    return '%s?%s' % (ENDPOINT, urllib.urlencode(params))
+    url = '%s?%s' % (ENDPOINT, urllib.urlencode(params))
+    if runtime_config['IS_DEV']:
+        logging.info(url)
+    return str(url)
 
 
 def get_body(query, params, auth=False):

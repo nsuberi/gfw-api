@@ -43,7 +43,7 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(str(data))
 
-    def args(self):
+    def args(self, only=[]):
         if not self.request.arguments():
             if self.request.body:
                 return json.loads(self.request.body)

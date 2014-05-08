@@ -35,7 +35,7 @@ META = {
 }
 
 
-def _world_args(params):
+def _query_args(params):
     """Return prepared query args from supplied API params."""
     args = {}
     filters = []
@@ -56,7 +56,7 @@ def _world_args(params):
     return args
 
 
-def _world_response(response, params):
+def _query_response(response, params):
     """Return world response."""
     if response.status_code == 200:
         result = json.loads(response.content)['rows'][0]
@@ -69,17 +69,30 @@ def _world_response(response, params):
         raise Exception(response.content)
 
 
+def _download_args(params):
+    args = _query_args(params)
+    fmt = params.get('format')
+    if fmt != 'csv':
+        args['select'] = ', the_geom'
+    else:
+        args['select'] = ''
+    args['format'] = fmt
+    return args
+
+
 def query(**params):
-    """Query the world with supplied API parameter dictionary."""
-    args = _world_args(params)
+    """Query FORMA with supplied params and return result."""
+    args = _query_args(params)
     query = sql.FORMA_ANALYSIS.format(**args)
     response = cdb.execute(query)
-    return _world_response(response, params)
+    return _query_response(response, params)
 
 
-
-
-
-
-
-
+def download(**params):
+    """Return CartoDB download URL for supplied params."""
+    args = _download_args(params)
+    query = sql.FORMA_DOWNLOAD.format(**args)
+    download_args = dict(format=params['format'])
+    if 'filename' in params:
+        download_args['filename'] = params['filename']
+    return cdb.get_url(query, download_args)

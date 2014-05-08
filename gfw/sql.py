@@ -17,7 +17,4 @@ SELECT iso country_iso_code,
        lat,
        lon {select}
 FROM %s
-WHERE
-  {location}
-  AND date >= '{begin}'
-  AND date <= '{end}'""" % FORMA_TABLE
+{where}""" % FORMA_TABLE
