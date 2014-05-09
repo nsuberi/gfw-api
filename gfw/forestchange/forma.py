@@ -80,10 +80,35 @@ def _download_args(params):
     return args
 
 
+def _use_args(params):
+    args = {}
+    args['pid'] = params['use_pid']
+    filters = []
+    if 'begin' in params:
+        filters.append("date >= '%s'" % params['begin'])
+    if 'end' in params:
+        filters.append("date <= '%s'" % params['end'])
+    filters.append('log.cartodb_id = %s' % params['use_pid'])
+    filters.append('ST_Intersects(forma.the_geom, log.the_geom)')
+    args['where'] = ' AND '.join(filters)
+    args['where'] = ' WHERE ' + args['where']
+    return args
+
+
 def query(**params):
     """Query FORMA with supplied params and return result."""
+    if 'use' in params:
+        return use_query(**params)
     args = _query_args(params)
     query = sql.FORMA_ANALYSIS.format(**args)
+    response = cdb.execute(query)
+    return _query_response(response, params)
+
+
+def use_query(**params):
+    args = _use_args(params)
+    if params['use'] == 'logging':
+        query = sql.FORMA_LOGGING.format(**args)
     response = cdb.execute(query)
     return _query_response(response, params)
 

@@ -35,3 +35,12 @@ INNER JOIN
       {where}
    ) gadm
       ON forma.gadm2::int=gadm.id""" % FORMA_TABLE
+
+
+FORMA_LOGGING = """
+SELECT
+   count(forma.*) AS value
+FROM
+   logging_all_merged log,
+   %s forma
+{where}""" % FORMA_TABLE

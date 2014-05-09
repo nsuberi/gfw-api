@@ -82,6 +82,10 @@ class FORMAHandler(CORSRequestHandler):
             fmt, filename = args['download'].split(',')
             params['format'] = fmt
             params['filename'] = filename
+        if 'use' in args:
+            name, pid = args['use'].split(',')
+            params['use'] = name
+            params['use_pid'] = pid
         return params
 
     def world(self):
