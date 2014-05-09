@@ -37,10 +37,10 @@ INNER JOIN
       ON forma.gadm2::int=gadm.id""" % FORMA_TABLE
 
 
-FORMA_LOGGING = """
+FORMA_USE = """
 SELECT
    count(forma.*) AS value
 FROM
-   logging_all_merged log,
+   {table} t,
    %s forma
 {where}""" % FORMA_TABLE

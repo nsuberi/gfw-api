@@ -82,14 +82,22 @@ def _download_args(params):
 
 def _use_args(params):
     args = {}
+    if params['use'] == 'logging':
+        args['table'] = 'logging_all_merged'
+    elif params['use'] == 'mining':
+        args['table'] = 'mining_permits_merge'
+    elif params['use'] == 'oilpalm':
+        args['table'] = 'oil_palm_permits_merge'
+    elif params['use'] == 'fiber':
+        args['table'] = 'fiber_all_merged'
     args['pid'] = params['use_pid']
     filters = []
     if 'begin' in params:
         filters.append("date >= '%s'" % params['begin'])
     if 'end' in params:
         filters.append("date <= '%s'" % params['end'])
-    filters.append('log.cartodb_id = %s' % params['use_pid'])
-    filters.append('ST_Intersects(forma.the_geom, log.the_geom)')
+    filters.append('t.cartodb_id = %s' % params['use_pid'])
+    filters.append('ST_Intersects(forma.the_geom, t.the_geom)')
     args['where'] = ' AND '.join(filters)
     args['where'] = ' WHERE ' + args['where']
     return args
@@ -107,8 +115,7 @@ def query(**params):
 
 def use_query(**params):
     args = _use_args(params)
-    if params['use'] == 'logging':
-        query = sql.FORMA_LOGGING.format(**args)
+    query = sql.FORMA_USE.format(**args)
     response = cdb.execute(query)
     return _query_response(response, params)
 
