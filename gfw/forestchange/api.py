@@ -21,7 +21,6 @@ Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
 """
 
 import datetime
-import functools
 import json
 import logging
 import webapp2
