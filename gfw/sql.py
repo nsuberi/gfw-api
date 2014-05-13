@@ -44,3 +44,15 @@ FROM
    {table} t,
    %s forma
 {where}""" % FORMA_TABLE
+
+
+QUICC_ANALYSIS = """
+SELECT
+   count(*) AS total   
+FROM
+   modis_forest_change_copy m,
+   world_countries c  
+{where} 
+GROUP BY
+   c.the_geom
+"""

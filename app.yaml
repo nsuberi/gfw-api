@@ -65,7 +65,7 @@ handlers:
   login: admin
 
 # Forest change handlers
-- url: /forest-change/(forma|umd|imazon|quicc|fires).*
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-fires).*
   script: gfw.forestchange.api.handlers
 
 # - url: /.*

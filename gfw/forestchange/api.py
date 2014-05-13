@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module is the entry point for forest change API.
+"""This module is the entry point for the forest change API.
 
 Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
 """
@@ -33,6 +33,7 @@ class FORMAHandler(CORSRequestHandler):
     """Handler for FORMA requests."""
 
     def handle_exception(self, e):
+        """Common handler for exceptions."""
         logging.exception(e)
         if e.message == 'need more than 1 value to unpack':
             msg = '{"error": ["Invalid period parameter"]}'
@@ -50,10 +51,13 @@ class FORMAHandler(CORSRequestHandler):
         self.write(msg)
 
     def handle_request(self, params):
+        """Common handler for a request with supplied params dictionary."""
         fmt = params.get('format', 'json')
+        # Handle analysis request
         if fmt == 'json':
             result = forma.query(**params)
             self.write(json.dumps(result, sort_keys=True))
+        # Handle download request
         else:
             self.redirect(forma.download(**params))
 
@@ -88,7 +92,7 @@ class FORMAHandler(CORSRequestHandler):
             params['use_pid'] = pid
         return params
 
-    def world(self):
+    def world(self, dataset):
         """Query FORMA globally."""
         try:
             params = self.get_params()
@@ -96,7 +100,7 @@ class FORMAHandler(CORSRequestHandler):
         except Exception, e:
             self.handle_exception(e)
 
-    def iso(self, iso):
+    def iso(self, dataset, iso):
         """Query FORMA by country iso."""
         try:
             params = self.get_params()
@@ -107,7 +111,7 @@ class FORMAHandler(CORSRequestHandler):
         except Exception, e:
             self.handle_exception(e)
 
-    def iso1(self, iso, id1):
+    def iso1(self, dataset, iso, id1):
         """Query FORMA by country province."""
         try:
             params = self.get_params()
@@ -119,20 +123,20 @@ class FORMAHandler(CORSRequestHandler):
         except Exception, e:
             self.handle_exception(e)
 
-FOREST_CHANGE_ROUTE = r'/forest-change/forma'
+
+DATASETS = ['imazon-sad-alerts', 'forma-alerts', 'quicc-alerts',
+            'umd-loss-gain', 'nasa-fires']
+
+ROUTE = r'/forest-change/<dataset:(%s)>' % '|'.join(DATASETS)
 
 handlers = webapp2.WSGIApplication([
-
-    # FORMA routes
     webapp2.Route(
-        r'/forest-change/forma',  # world
+        ROUTE,
         handler=FORMAHandler, handler_method='world'),
     webapp2.Route(
-        r'/forest-change/forma/<iso:[A-z]{3,3}>',  # country
+        ROUTE + r'/<iso:[A-z]{3,3}>',  # country
         handler=FORMAHandler, handler_method='iso'),
     webapp2.Route(
-        r'/forest-change/forma/<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
+        ROUTE + r'/<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
         handler=FORMAHandler, handler_method='iso1')],
-
-
     debug=True)
