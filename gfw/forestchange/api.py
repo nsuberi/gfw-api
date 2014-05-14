@@ -25,8 +25,25 @@ import json
 import logging
 import webapp2
 
-from gfw.forestchange import forma
+from google.appengine.api import memcache
+
+from gfw.forestchange import forma, quicc
 from gfw.common import CORSRequestHandler
+
+
+META = {
+    # 'umd-loss-gain'=None,
+    'forma-alerts': forma.META,
+    'quicc-alerts': quicc.META,
+    # 'imazon-sad-alerts'=None,
+    # 'nasa-fires'=None
+}
+
+
+class Handler(CORSRequestHandler):
+    """Default handler that returns META json."""
+    def get(self):
+        self.write(json.dumps(META))
 
 
 class FORMAHandler(CORSRequestHandler):
@@ -50,12 +67,20 @@ class FORMAHandler(CORSRequestHandler):
             msg = e.message
         self.write(msg)
 
-    def handle_request(self, params):
+    def handle_request(self, params, dataset):
         """Common handler for a request with supplied params dictionary."""
         fmt = params.get('format', 'json')
+        if dataset == 'forma-alerts':
+            module = forma
+        elif dataset == 'quicc-alerts':
+            module = quicc
         # Handle analysis request
         if fmt == 'json':
-            result = forma.query(**params)
+            rid = self.get_id(params)
+            result = memcache.get(rid)
+            if not result or 'bust' in params:
+                result = module.query(**params)
+                memcache.set(key=rid, value=result)
             self.write(json.dumps(result, sort_keys=True))
         # Handle download request
         else:
@@ -67,23 +92,20 @@ class FORMAHandler(CORSRequestHandler):
         if not args:
             return {}
         params = {}
-        period = args.get('period')
-        if period:
-            begin, end = period.split(',')
-            if begin:
-                params['begin'] = begin
-            if end:
-                params['end'] = end
-            if begin and end:
-                f = datetime.datetime.strptime
-                b, e = f(begin, '%Y-%m-%d'), f(end, '%Y-%m-%d')
-                if b > e:
-                    raise Exception("invalid period (begin > end)")
+        period = args.get('period', ',')
+        begin, end = period.split(',')
+        if begin and end:
+            f = datetime.datetime.strptime
+            b, e = f(begin, '%Y-%m-%d'), f(end, '%Y-%m-%d')
+            if b > e:
+                raise Exception("invalid period (begin > end)")
+            params['begin'] = begin
+            params['end'] = end
         if 'geojson' in args:
             params['geojson'] = args['geojson']
             json.loads(params['geojson'])
         if 'download' in args:
-            fmt, filename = args['download'].split(',')
+            filename, fmt = args['download'].split('.')
             params['format'] = fmt
             params['filename'] = filename
         if 'use' in args:
@@ -96,7 +118,7 @@ class FORMAHandler(CORSRequestHandler):
         """Query FORMA globally."""
         try:
             params = self.get_params()
-            self.handle_request(params)
+            self.handle_request(params, dataset)
         except Exception, e:
             self.handle_exception(e)
 
@@ -107,7 +129,7 @@ class FORMAHandler(CORSRequestHandler):
             if 'geojson' in params:
                 params.pop('geojson')
             params['iso'] = iso
-            self.handle_request(params)
+            self.handle_request(params, dataset)
         except Exception, e:
             self.handle_exception(e)
 
@@ -119,7 +141,7 @@ class FORMAHandler(CORSRequestHandler):
                 params.pop('geojson')
             params['iso'] = iso
             params['id1'] = id1
-            self.handle_request(params)
+            self.handle_request(params, dataset)
         except Exception, e:
             self.handle_exception(e)
 
@@ -130,6 +152,9 @@ DATASETS = ['imazon-sad-alerts', 'forma-alerts', 'quicc-alerts',
 ROUTE = r'/forest-change/<dataset:(%s)>' % '|'.join(DATASETS)
 
 handlers = webapp2.WSGIApplication([
+    webapp2.Route(
+        '/forest-change',
+        handler=Handler, handler_method='get'),
     webapp2.Route(
         ROUTE,
         handler=FORMAHandler, handler_method='world'),

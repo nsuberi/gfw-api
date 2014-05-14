@@ -19,6 +19,7 @@
 
 import json
 import os
+import re
 import webapp2
 
 from hashlib import md5
@@ -52,6 +53,11 @@ class CORSRequestHandler(webapp2.RequestHandler):
             vals = map(self.request.get, args)
             return dict(zip(args, vals))
 
+    def get_id(self, params):
+        whitespace = re.compile(r'\s+')
+        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+
 
 CONTENT_TYPES = {
     'shp': 'application/octet-stream',
@@ -66,11 +72,15 @@ CONTENT_TYPES = {
 GCS_URL_TMPL = 'http://storage.googleapis.com/gfw-apis-analysis%s.%s'
 
 IS_DEV = 'Development' in os.environ['SERVER_SOFTWARE']
+APP_VERSION = os.environ['CURRENT_VERSION_ID']
+if '.' in APP_VERSION:
+    APP_VERSION = APP_VERSION.split('.')[0]
+
 
 if IS_DEV:
-    APP_BASE_URL = 'http://localhost:8080'
+    APP_BASE_URL = 'http://%s.localhost:8080' % APP_VERSION
 else:
-    APP_BASE_URL = 'http://gfw-apis.appspot.com'
+    APP_BASE_URL = 'http://%s.gfw-apis.appspot.com' % APP_VERSION
 
 
 def get_params_hash(params):

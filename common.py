@@ -70,6 +70,11 @@ class CORSRequestHandler(webapp2.RequestHandler):
             vals = map(self.request.get, args)
             return dict(zip(args, vals))
 
+    def get_id(self, params):
+        whitespace = re.compile(r'\s+')
+        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+
 
 class BaseApi(webapp2.RequestHandler):
     """Base request handler for API."""

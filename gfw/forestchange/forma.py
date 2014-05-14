@@ -20,7 +20,12 @@
 import json
 
 from gfw import cdb
+from gfw import common
 from gfw import sql
+
+
+API = "%s/forest-change/forma-alerts{/iso}{/id1}{?period,geojson,use,download}" \
+    % common.APP_BASE_URL
 
 
 META = {
@@ -31,7 +36,9 @@ META = {
     "updates": "16 day",
     "source": "MODIS",
     "units": "Alerts",
-    "name": "FORMA"
+    "name": "FORMA",
+    "api_url": API,
+    "id": "forma-alerts"
 }
 
 
@@ -108,7 +115,10 @@ def query(**params):
     if 'use' in params:
         return use_query(**params)
     args = _query_args(params)
-    query = sql.FORMA_ANALYSIS.format(**args)
+    if 'iso' in params:
+        query = sql.FORMA_ANALYSIS_GADM.format(**args)
+    else:
+        query = sql.FORMA_ANALYSIS.format(**args)
     response = cdb.execute(query)
     return _query_response(response, params)
 

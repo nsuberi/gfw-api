@@ -18,20 +18,28 @@
 """This module supports querying QUICC alerts."""
 
 import json
+import logging
 
 from gfw import cdb
+from gfw import common
 from gfw import sql
 
 
+API = "%s/forest-change/quicc-alerts{/iso}{/id1}{?period,geojson,use,download}" \
+    % common.APP_BASE_URL
+
+
 META = {
-    "description": "Alerts when 40% green vegetation cover loss from the previous quarter.",
+    "description": "Alerts when 40 percent green vegetation cover loss is detected from the previous quarter.",
     "resolution": "5 x 5 kilometers",
     "coverage": "Global except for areas >37 degrees north",
     "timescale": "October 2011 to present",
     "updates": "Quarterly",
     "source": "MODIS",
     "units": "Alerts",
-    "name": "QUICC Alertsv"
+    "name": "QUICC Alertsv",
+    "id": "quicc-alerts",
+    "api_url": API,
 }
 
 
@@ -39,20 +47,70 @@ def _query_args(params):
     """Return prepared query args from supplied API params."""
     args = {}
     filters = []
-    if 'geojson' in params:
-        filters.append("""ST_INTERSECTS(ST_SetSRID(
-            ST_GeomFromGeoJSON('%s'),4326),the_geom)""" % params['geojson'])
-    if 'iso' in params:
-        filters.append("iso = upper('%s')" % params['iso'])
-    if 'id1' in params:
-        filters.append("id_1 = '%s'" % params['id1'])
+    select = []
+    gadm_filters = []
+    group_by = []
+    order_by = []
+
+    # National and subnational
+    if 'iso' in params and not 'id1' in params:
+        select.append('g.iso')
+        select.append('count(t.*) AS value')
+        gadm_filters.append("iso = upper('%s')" % params['iso'])
+        filters.append('ST_Intersects(t.the_geom, g.the_geom)')
+        group_by.append('g.iso')
+    elif 'iso' in params and 'id1' in params:
+        select.append('g.id_1')
+        select.append('g.name_1')
+        select.append('count(t.*) AS value')
+        gadm_filters.append("iso = upper('%s')" % params['iso'])
+        gadm_filters.append("id_1 = %s" % params['id1'])
+        filters.append('ST_Intersects(t.the_geom, g.the_geom)')
+        group_by.append('g.id_1')
+        group_by.append('g.name_1')
+        order_by.append('g.id_1')
+
+    else:  # Global query
+        select.append('count(t.*) AS value')
+        if 'geojson' in params:
+            filters.append("""ST_INTERSECTS(ST_SetSRID(
+                ST_GeomFromGeoJSON('%s'),4326),t.the_geom)""" %
+                           params['geojson'])
+
+    # Common filters
     if 'begin' in params:
-        filters.append("date >= '%s'" % params['begin'])
+        filters.append("t.date >= '%s'" % params['begin'])
     if 'end' in params:
-        filters.append("date <= '%s'" % params['end'])
-    args['where'] = ' AND '.join(filters)
-    if args['where']:
-        args['where'] = ' WHERE ' + args['where']
+        filters.append("t.date <= '%s'" % params['end'])
+
+    # {select}
+    args['select'] = ','.join(select)
+
+    # {where}
+    if filters:
+        args['where'] = 'WHERE ' + ' AND '.join(filters)
+    else:
+        args['where'] = ''
+
+    # {gadm_where}
+    if gadm_filters:
+        args['gadm_where'] = 'WHERE ' + ' AND '.join(gadm_filters)
+    else:
+        args['gadm_where'] = ''
+
+    # {group_by}
+    if group_by:
+        args['group_by'] = ','.join(group_by)
+    else:
+        args['group_by'] = ''
+
+    # {order_by}
+    if order_by:
+        args['order_by'] = 'ORDER BY ' + ','.join(order_by)
+    else:
+        args['order_by'] = ''
+
+    logging.info(args)
     return args
 
 
@@ -108,74 +166,27 @@ def query(**params):
     if 'use' in params:
         return use_query(**params)
     args = _query_args(params)
-    query = sql.FORMA_ANALYSIS.format(**args)
+    if 'iso' in params:
+        query = sql.QUICC_ANALYSIS_GADM.format(**args)
+    else:
+        query = sql.QUICC_ANALYSIS.format(**args)
     response = cdb.execute(query)
     return _query_response(response, params)
 
 
+def use_query(**params):
+    args = _use_args(params)
+    query = sql.FORMA_USE.format(**args)
+    response = cdb.execute(query)
+    return _query_response(response, params)
 
 
+def download(**params):
+    """Return CartoDB download URL for supplied params."""
+    args = _download_args(params)
+    query = sql.FORMA_DOWNLOAD.format(**args)
+    download_args = dict(format=params['format'])
+    if 'filename' in params:
+        download_args['filename'] = params['filename']
+    return cdb.get_url(query, download_args)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-import json
-from gfw import cdb
-
-ANALYSIS = """SELECT count(*) AS total {select_geom}
-FROM modis_forest_change_copy m, world_countries c
-WHERE m.date = '{date}'::date
-      AND m.country = c.name
-      AND c.iso3 = upper('{iso}')
-GROUP BY c.the_geom"""
-
-ANALYSIS_GEOM = """SELECT count(*) AS total {select_geom}
-FROM modis_forest_change_copy m, world_countries c
-WHERE ST_Intersects(m.the_geom,ST_SetSRID(ST_GeomFromGeoJSON('{geom}'),4326))
-      AND m.date = '{date}'::date
-GROUP BY c.the_geom"""
-
-def query(**params):
-
-
-def download(params):
-    params['select_geom'] = ', c.the_geom'
-    geom = params.get('geom')
-    if geom:
-        query = ANALYSIS_GEOM.format(**params)
-        params['filename'] = 'gfw_quicc_{date}'.format(**params)
-    else:
-        query = ANALYSIS.format(**params)
-        params['filename'] = 'gfw_quicc_{iso}_{date}'.format(**params)
-    return cdb.get_url(query, params)
-
-
-def analyze(params):
-    params['select_geom'] = ''
-    if 'iso' in params:
-        params['iso'] = params['iso'].upper()
-    geom = params.get('geom')
-    if geom:
-        query = ANALYSIS_GEOM.format(**params)
-    else:
-        query = ANALYSIS.format(**params)
-    return cdb.execute(query)
-
-
-def parse_analysis(content):
-    rows = json.loads(content)['rows']
-    if rows:
-        result = rows[0]
-    else:
-        result = dict(total=0)
-    return result

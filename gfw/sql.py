@@ -6,6 +6,14 @@ SELECT
    count(*) AS value
 FROM
    %s forma
+{where}""" % FORMA_TABLE
+
+
+FORMA_ANALYSIS_GADM = """
+SELECT
+   count(*) AS value
+FROM
+   %s forma
 INNER JOIN
    (
       SELECT
@@ -48,11 +56,24 @@ FROM
 
 QUICC_ANALYSIS = """
 SELECT
-   count(*) AS total   
+   {select}
 FROM
-   modis_forest_change_copy m,
-   world_countries c  
-{where} 
+   modis_forest_change_copy t
+{where}
+"""
+
+QUICC_ANALYSIS_GADM = """
+SELECT
+   {select}
+FROM
+   modis_forest_change_copy t,
+   (SELECT
+      *
+   FROM
+      gadm2
+   {gadm_where}) as g
+{where}
 GROUP BY
-   c.the_geom
+  {group_by}
+{order_by}
 """
