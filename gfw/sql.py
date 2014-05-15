@@ -20,9 +20,11 @@ INNER JOIN
          gadm2.objectid id
       FROM
          gadm2
-      {where}
+      WHERE
+      {gadm_where}
    ) gadm
-      ON forma.gadm2::int=gadm.id""" % FORMA_TABLE
+      ON forma.gadm2::int=gadm.id
+{where}""" % FORMA_TABLE
 
 
 FORMA_DOWNLOAD = """

@@ -88,9 +88,23 @@ def _run_forma_tests(args):
             'props': ['value', 'iso']
         },
         {
+            'name': 'forma iso with period',
+            'url': '%s/bra' % base,
+            'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
+            'status': 200,
+            'props': ['value', 'iso']
+        },
+        {
             'name': 'forma iso/id1',
             'url': '%s/bra/1' % base,
             'params': {'bust': 1},
+            'status': 200,
+            'props': ['value', 'iso', 'id1']
+        },
+        {
+            'name': 'forma iso/id1 with period',
+            'url': '%s/bra/1' % base,
+            'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
             'status': 200,
             'props': ['value', 'iso', 'id1']
         },
@@ -154,7 +168,7 @@ def _run_forma_tests(args):
     for test in tests:
         print '%s - %s %s' % (test['name'], test['url'], test['params'])
         r, ms = _timeit(test['url'], test['params'])
-        assert r.status_code == test['status'], r
+        assert r.status_code == test['status'], r.text
         if not 'download' in test['params']:
             try:
                 response = r.json()
