@@ -54,7 +54,7 @@ class FORMAHandler(CORSRequestHandler):
         """Common handler for exceptions."""
         logging.exception(e)
         if e.message == 'need more than 1 value to unpack':
-            msg = '{"error": ["Invalid period parameter"]}'
+            msg = '{"error": ["Invalid parameter"]}'
         elif e.message == 'period':
             msg = '{"error": ["The period parameter is required"]}'
         elif e.message == 'geojson':
@@ -86,6 +86,8 @@ class FORMAHandler(CORSRequestHandler):
             rid = self.get_id(params)
             result = memcache.get(rid)
             if not result or 'bust' in params:
+                if 'bust' in params:
+                    params.pop('bust')
                 result = module.query(**params)
                 memcache.set(key=rid, value=result)
             self.write(json.dumps(result, sort_keys=True))
@@ -99,6 +101,8 @@ class FORMAHandler(CORSRequestHandler):
         if not args:
             return {}
         params = {}
+        if 'bust' in args:
+            params['bust'] = True
         period = args.get('period', ',')
         begin, end = period.split(',')
         if begin and end:

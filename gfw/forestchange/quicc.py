@@ -37,7 +37,7 @@ META = {
     "updates": "Quarterly",
     "source": "MODIS",
     "units": "Alerts",
-    "name": "QUICC Alertsv",
+    "name": "QUICC Alerts",
     "id": "quicc-alerts",
     "api_url": API,
 }

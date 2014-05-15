@@ -10,21 +10,47 @@ FROM
 
 
 FORMA_ANALYSIS_GADM = """
-SELECT
-   count(*) AS value
+SELECT   
+   g.id_1,
+   g.name_1,
+   count(*) AS total
 FROM
-   %s forma
+   forma_api t
 INNER JOIN
    (
       SELECT
-         gadm2.objectid id
+         *
       FROM
          gadm2
       WHERE
-      {gadm_where}
-   ) gadm
-      ON forma.gadm2::int=gadm.id
-{where}""" % FORMA_TABLE
+         {gadm_where}
+   ) g
+      ON t.gadm2::int=g.objectid
+{where}
+GROUP BY
+   g.id_1,
+   g.name_1
+ORDER BY
+   g.id_1
+"""
+
+
+# FORMA_ANALYSIS_GADM = """
+# SELECT
+#    count(*) AS value
+# FROM
+#    %s forma
+# INNER JOIN
+#    (
+#       SELECT
+#          gadm2.objectid id
+#       FROM
+#          gadm2
+#       WHERE
+#       {gadm_where}
+#    ) gadm
+#       ON forma.gadm2::int=gadm.id
+# {where}""" % FORMA_TABLE
 
 
 FORMA_DOWNLOAD = """
