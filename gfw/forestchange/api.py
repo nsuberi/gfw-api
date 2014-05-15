@@ -103,6 +103,8 @@ class FORMAHandler(CORSRequestHandler):
         params = {}
         if 'bust' in args:
             params['bust'] = True
+        if 'dev' in args:
+            params['dev'] = True
         period = args.get('period', ',')
         begin, end = period.split(',')
         if begin and end:

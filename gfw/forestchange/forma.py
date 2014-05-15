@@ -51,7 +51,7 @@ def _query_args(params):
     if 'iso' in params and not 'id1' in params:
         filters.append("iso = upper('%s')" % params['iso'])
     if 'iso' in params and 'id1' in params:
-        gadm_filters.append("id_1 = '%s'" % params['id1'])
+        gadm_filters.append("id_1 = %s" % params['id1'])
         gadm_filters.append("iso = upper('%s')" % params['iso'])
 
     if 'geojson' in params:
@@ -73,7 +73,7 @@ def _query_args(params):
     return args
 
 
-def _query_response(response, params):
+def _query_response(response, params, query):
     """Return world response."""
     if response.status_code == 200:
         result = json.loads(response.content)['rows'][0]
@@ -81,6 +81,8 @@ def _query_response(response, params):
         result.update(params)
         if 'geojson' in params:
             result['geojson'] = json.loads(params['geojson'])
+        if 'dev' in params:
+            result['dev'] = {'sql': query}
         return result
     else:
         raise Exception(response.content)
@@ -130,7 +132,7 @@ def query(**params):
     else:
         query = sql.FORMA_ANALYSIS.format(**args)
     response = cdb.execute(query)
-    return _query_response(response, params)
+    return _query_response(response, params, query)
 
 
 def use_query(**params):
