@@ -44,6 +44,18 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(str(data))
 
+    def write_error(self, status, data):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.set_status(status, message=str(data))
+        self.response.out.write(str(data))
+
+
     def args(self, only=[]):
         if not self.request.arguments():
             if self.request.body:

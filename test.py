@@ -156,9 +156,12 @@ def _run_forma_tests(args):
         r, ms = _timeit(test['url'], test['params'])
         assert r.status_code == test['status'], r
         if not 'download' in test['params']:
-            response = r.json()
-            for prop in test['props']:
-                assert prop in response, 'missing %s' % prop
+            try:
+                response = r.json()
+                for prop in test['props']:
+                    assert prop in response, 'missing %s' % prop
+            except:
+                raise Exception("Invalid JSON response: %s" % r.text())
         if 'headers' in test:
             for name, f in test['headers'].iteritems():
                 assert f(r.headers[name]), 'wrong header value for %s' % name

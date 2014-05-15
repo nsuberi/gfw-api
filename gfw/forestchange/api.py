@@ -23,6 +23,7 @@ Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
 import datetime
 import json
 import logging
+import sys
 import webapp2
 
 from google.appengine.api import memcache
@@ -49,7 +50,7 @@ class Handler(CORSRequestHandler):
 class FORMAHandler(CORSRequestHandler):
     """Handler for FORMA requests."""
 
-    def handle_exception(self, e):
+    def _handle_exception(self, e):
         """Common handler for exceptions."""
         logging.exception(e)
         if e.message == 'need more than 1 value to unpack':
@@ -62,10 +63,16 @@ class FORMAHandler(CORSRequestHandler):
             msg = '{"error": ["The period parameter begin > end"]}'
         elif e.message == 'No JSON object could be decoded':
             msg = '{"error": ["Invalid geojson parameter"]}'
+        elif e.message == 'Unknown use':
+            msg = '{"error": ["Invalid use parameter (unknown use name)"]}'
+        elif e.message.startswith('invalid literal for int() with base 10'):
+            msg = '{"error": ["Invalid use param (polygon id not a number)"]}'
+        elif e.message.startswith('Unsupported geojson type'):
+            msg = '{"error": ["%s"]}' % e.message
         else:
             # TODO monitor
             msg = e.message
-        self.write(msg)
+        self.write_error(400, msg)
 
     def handle_request(self, params, dataset):
         """Common handler for a request with supplied params dictionary."""
@@ -103,13 +110,18 @@ class FORMAHandler(CORSRequestHandler):
             params['end'] = end
         if 'geojson' in args:
             params['geojson'] = args['geojson']
-            json.loads(params['geojson'])
+            geom = json.loads(params['geojson'])
+            if geom['type'] != 'Polygon' and geom['type'] != 'MultiPolygon':
+                raise Exception('Unsupported geojson type %s' % geom['type'])
         if 'download' in args:
             filename, fmt = args['download'].split('.')
             params['format'] = fmt
             params['filename'] = filename
         if 'use' in args:
             name, pid = args['use'].split(',')
+            if not name in ['logging', 'mining', 'oilpalm', 'fiber']:
+                raise Exception('Unknown use')
+            int(pid)
             params['use'] = name
             params['use_pid'] = pid
         return params
@@ -119,8 +131,8 @@ class FORMAHandler(CORSRequestHandler):
         try:
             params = self.get_params()
             self.handle_request(params, dataset)
-        except Exception, e:
-            self.handle_exception(e)
+        except (Exception, ValueError) as e:
+            self._handle_exception(e)
 
     def iso(self, dataset, iso):
         """Query FORMA by country iso."""
@@ -130,8 +142,8 @@ class FORMAHandler(CORSRequestHandler):
                 params.pop('geojson')
             params['iso'] = iso
             self.handle_request(params, dataset)
-        except Exception, e:
-            self.handle_exception(e)
+        except (Exception, ValueError) as e:
+            self._handle_exception(e)
 
     def iso1(self, dataset, iso, id1):
         """Query FORMA by country province."""
@@ -142,8 +154,8 @@ class FORMAHandler(CORSRequestHandler):
             params['iso'] = iso
             params['id1'] = id1
             self.handle_request(params, dataset)
-        except Exception, e:
-            self.handle_exception(e)
+        except (Exception, ValueError) as e:
+            self._handle_exception(e)
 
 
 DATASETS = ['imazon-sad-alerts', 'forma-alerts', 'quicc-alerts',
