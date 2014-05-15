@@ -139,7 +139,7 @@ def use_query(**params):
     args = _use_args(params)
     query = sql.FORMA_USE.format(**args)
     response = cdb.execute(query)
-    return _query_response(response, params)
+    return _query_response(response, params, query)
 
 
 def download(**params):

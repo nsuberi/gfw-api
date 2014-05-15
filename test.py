@@ -175,7 +175,8 @@ def _run_forma_tests(args):
                 for prop in test['props']:
                     assert prop in response, 'missing %s' % prop
             except:
-                raise Exception("Invalid JSON response: %s" % r.text())
+                print r.text, r.headers
+                raise
         if 'headers' in test:
             for name, f in test['headers'].iteritems():
                 assert f(r.headers[name]), 'wrong header value for %s' % name

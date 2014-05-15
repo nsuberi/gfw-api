@@ -11,9 +11,9 @@ FROM
 
 FORMA_ANALYSIS_GADM = """
 SELECT   
-   g.id_1,
+   g.id_1 as id1,
    g.name_1,
-   count(*) AS total
+   count(*) AS value
 FROM
    forma_api t
 INNER JOIN
