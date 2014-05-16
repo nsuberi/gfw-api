@@ -47,7 +47,7 @@ def _query_args(params):
     args = {}
     filters = []
     gadm_filters = []
-
+    print 'hi'
     if 'iso' in params and not 'id1' in params:
         filters.append("iso = upper('%s')" % params['iso'])
     if 'iso' in params and 'id1' in params:

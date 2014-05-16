@@ -23,7 +23,6 @@ Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
 import datetime
 import json
 import logging
-import sys
 import webapp2
 
 from google.appengine.api import memcache
@@ -74,8 +73,9 @@ class FORMAHandler(CORSRequestHandler):
             msg = e.message
         self.write_error(400, msg)
 
-    def handle_request(self, params, dataset):
+    def handle_request(self, args, dataset):
         """Common handler for a request with supplied params dictionary."""
+        params = self.get_params(args)
         fmt = params.get('format', 'json')
         if dataset == 'forma-alerts':
             module = forma
@@ -95,9 +95,8 @@ class FORMAHandler(CORSRequestHandler):
         else:
             self.redirect(forma.download(**params))
 
-    def get_params(self):
+    def get_params(self, args):
         """Return prepared params from supplied GET request args."""
-        args = self.args()
         if not args:
             return {}
         params = {}
@@ -135,8 +134,8 @@ class FORMAHandler(CORSRequestHandler):
     def world(self, dataset):
         """Query FORMA globally."""
         try:
-            params = self.get_params()
-            self.handle_request(params, dataset)
+            args = self.args()
+            self.handle_request(args, dataset)
         except (Exception, ValueError) as e:
             self._handle_exception(e)
 

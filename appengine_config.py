@@ -38,7 +38,7 @@ def _load_config(name):
     except:
         return {}
 
-IS_DEV = 'Development' in os.environ['SERVER_SOFTWARE']
+IS_DEV = 'Development' in os.environ.get('SERVER_SOFTWARE', 'Development')
 
 if IS_DEV:
     APP_BASE_URL = 'http://localhost:8080'
@@ -50,4 +50,3 @@ else:
 
 runtime_config['APP_BASE_URL'] = APP_BASE_URL
 runtime_config['IS_DEV'] = IS_DEV
-

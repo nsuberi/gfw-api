@@ -3,7 +3,9 @@ FORMA_TABLE = 'forma_api'
 
 FORMA_ANALYSIS = """
 SELECT
-   count(*) AS value
+   count(*) AS value,
+   min(date) AS begin,
+   max(date) AS end
 FROM
    %s forma
 {where}""" % FORMA_TABLE

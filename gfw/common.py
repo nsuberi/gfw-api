@@ -55,7 +55,6 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.set_status(status, message=str(data))
         self.response.out.write(str(data))
 
-
     def args(self, only=[]):
         if not self.request.arguments():
             if self.request.body:
@@ -83,8 +82,8 @@ CONTENT_TYPES = {
 
 GCS_URL_TMPL = 'http://storage.googleapis.com/gfw-apis-analysis%s.%s'
 
-IS_DEV = 'Development' in os.environ['SERVER_SOFTWARE']
-APP_VERSION = os.environ['CURRENT_VERSION_ID']
+IS_DEV = 'Development' in os.environ.get('SERVER_SOFTWARE', 'Development')
+APP_VERSION = os.environ.get('CURRENT_VERSION_ID', 'dev')
 if '.' in APP_VERSION:
     APP_VERSION = APP_VERSION.split('.')[0]
 
