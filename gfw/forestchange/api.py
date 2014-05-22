@@ -15,29 +15,27 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module is the entry point for the forest change API.
+"""This module is the entry point for the forest change API."""
 
-Supported data sources include UMD, FORMA, IMAZON, QUICC, and Nasa Fires.
-"""
-
-import datetime
 import json
-import logging
 import webapp2
 
 from google.appengine.api import memcache
 
-from gfw.forestchange import forma, quicc
+from gfw.forestchange import forma, quicc, args
 from gfw.common import CORSRequestHandler
 
 
 META = {
-    # 'umd-loss-gain'=None,
     'forma-alerts': forma.META,
     'quicc-alerts': quicc.META,
-    # 'imazon-sad-alerts'=None,
-    # 'nasa-fires'=None
 }
+
+
+def dispatch(path, args):
+    if path == '/forest-change/forma-alerts':
+        target = forma
+    return target.execute(args)
 
 
 class Handler(CORSRequestHandler):
@@ -46,121 +44,65 @@ class Handler(CORSRequestHandler):
         self.write(json.dumps(META))
 
 
-class FORMAHandler(CORSRequestHandler):
-    """Handler for FORMA requests."""
+class APIHandler(CORSRequestHandler):
 
-    def _handle_exception(self, e):
-        """Common handler for exceptions."""
-        logging.exception(e)
-        if e.message == 'need more than 1 value to unpack':
-            msg = '{"error": ["Invalid parameter"]}'
-        elif e.message == 'period':
-            msg = '{"error": ["The period parameter is required"]}'
-        elif e.message == 'geojson':
-            msg = '{"error": ["The geojson parameter is required"]}'
-        elif e.message == "invalid period (begin > end)":
-            msg = '{"error": ["The period parameter begin > end"]}'
-        elif e.message == 'No JSON object could be decoded':
-            msg = '{"error": ["Invalid geojson parameter"]}'
-        elif e.message == 'Unknown use':
-            msg = '{"error": ["Invalid use parameter (unknown use name)"]}'
-        elif e.message.startswith('invalid literal for int() with base 10'):
-            msg = '{"error": ["Invalid use param (polygon id not a number)"]}'
-        elif e.message.startswith('Unsupported geojson type'):
-            msg = '{"error": ["%s"]}' % e.message
-        else:
-            # TODO monitor
-            msg = e.message
-        self.write_error(400, msg)
-
-    def handle_request(self, args, dataset):
-        """Common handler for a request with supplied params dictionary."""
-        params = self.get_params(args)
-        fmt = params.get('format', 'json')
-        if dataset == 'forma-alerts':
-            module = forma
-        elif dataset == 'quicc-alerts':
-            module = quicc
-        # Handle analysis request
-        if fmt == 'json':
-            rid = self.get_id(params)
-            result = memcache.get(rid)
-            if not result or 'bust' in params:
-                if 'bust' in params:
-                    params.pop('bust')
-                result = module.query(**params)
-                memcache.set(key=rid, value=result)
-            self.write(json.dumps(result, sort_keys=True))
-        # Handle download request
-        else:
-            self.redirect(forma.download(**params))
-
-    def get_params(self, args):
-        """Return prepared params from supplied GET request args."""
-        if not args:
-            return {}
-        params = {}
+    def complete(self, args):
         if 'bust' in args:
-            params['bust'] = True
-        if 'dev' in args:
-            params['dev'] = True
-        period = args.get('period', ',')
-        begin, end = period.split(',')
-        if begin and end:
-            f = datetime.datetime.strptime
-            b, e = f(begin, '%Y-%m-%d'), f(end, '%Y-%m-%d')
-            if b > e:
-                raise Exception("invalid period (begin > end)")
-            params['begin'] = begin
-            params['end'] = end
-        if 'geojson' in args:
-            params['geojson'] = args['geojson']
-            geom = json.loads(params['geojson'])
-            if geom['type'] != 'Polygon' and geom['type'] != 'MultiPolygon':
-                raise Exception('Unsupported geojson type %s' % geom['type'])
-        if 'download' in args:
-            filename, fmt = args['download'].split('.')
-            params['format'] = fmt
-            params['filename'] = filename
-        if 'use' in args:
-            name, pid = args['use'].split(',')
-            if not name in ['logging', 'mining', 'oilpalm', 'fiber']:
-                raise Exception('Unknown use')
-            int(pid)
-            params['use'] = name
-            params['use_pid'] = pid
-        return params
+            result = dispatch(self.request.path, args)
+        else:
+            rid = self.get_id(args)
+            result = memcache.get(rid)
+            if not result:
+                result = dispatch(self.request.path, args)
+                memcache.set(key=rid, value=result)
+        action, data = result
+        if action == 'respond':
+            self.write(json.dumps(data, sort_keys=True))
+        elif action == 'error':
+            self.write_error(400, data.message)
 
-    def world(self, dataset):
-        """Query FORMA globally."""
+    def all(self, dataset):
+        """Query dataset"""
         try:
-            args = self.args()
-            self.handle_request(args, dataset)
-        except (Exception, ValueError) as e:
-            self._handle_exception(e)
+            query_args = args.process(self.args())
+            self.complete(query_args)
+        except args.ArgError, e:
+            self.write_error(400, e.message)
 
     def iso(self, dataset, iso):
-        """Query FORMA by country iso."""
+        """Query dataset within supplied country."""
         try:
-            params = self.get_params()
-            if 'geojson' in params:
-                params.pop('geojson')
-            params['iso'] = iso
-            self.handle_request(params, dataset)
-        except (Exception, ValueError) as e:
-            self._handle_exception(e)
+            raw_args = self.args()
+
+            # Ignore geojson since we're querying by iso
+            if 'geojson' in raw_args:
+                raw_args.pop('geojson')
+
+            # Pass in path arguments
+            raw_args['iso'] = iso
+
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            self.write_error(400, e.message)
 
     def iso1(self, dataset, iso, id1):
-        """Query FORMA by country province."""
+        """Query dataset within supplied country and province."""
         try:
-            params = self.get_params()
-            if 'geojson' in params:
-                params.pop('geojson')
-            params['iso'] = iso
-            params['id1'] = id1
-            self.handle_request(params, dataset)
-        except (Exception, ValueError) as e:
-            self._handle_exception(e)
+            raw_args = self.args()
+
+            # Ignore geojson since we're querying by iso+ad1
+            if 'geojson' in raw_args:
+                raw_args.pop('geojson')
+
+            # Pass in path arguments
+            raw_args['iso'] = iso
+            raw_args['id1'] = id1
+
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            self.write_error(400, e.message)
 
 
 DATASETS = ['imazon-sad-alerts', 'forma-alerts', 'quicc-alerts',
@@ -174,11 +116,12 @@ handlers = webapp2.WSGIApplication([
         handler=Handler, handler_method='get'),
     webapp2.Route(
         ROUTE,
-        handler=FORMAHandler, handler_method='world'),
+        handler=APIHandler, handler_method='all'),
     webapp2.Route(
-        ROUTE + r'/<iso:[A-z]{3,3}>',  # country
-        handler=FORMAHandler, handler_method='iso'),
+        ROUTE + r'/<iso:[A-z]{3,3}>',
+        handler=APIHandler, handler_method='iso'),
     webapp2.Route(
-        ROUTE + r'/<iso:[A-z]{3,3}>/<id1:\d+>',  # country+state
-        handler=FORMAHandler, handler_method='iso1')],
+        ROUTE + r'/<iso:[A-z]{3,3}>/<id1:\d+>',
+        handler=APIHandler, handler_method='iso1')
+    ],
     debug=True)

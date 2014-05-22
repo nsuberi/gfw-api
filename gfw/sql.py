@@ -1,109 +1,138 @@
-FORMA_TABLE = 'forma_api'
+# Global Forest Watch API
+# Copyright (C) 2014 World Resource Institute
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""This module contains SQL helpers."""
 
 
-FORMA_ANALYSIS = """
-SELECT
-   count(*) AS value,
-   min(date) AS begin,
-   max(date) AS end
-FROM
-   %s forma
-{where}""" % FORMA_TABLE
+class SqlError(ValueError):
+    def __init__(self, msg):
+        super(SqlError, self).__init__(msg)
 
 
-FORMA_ANALYSIS_GADM = """
-SELECT   
-   g.id_1 as id1,
-   g.name_1,
-   count(*) AS value
-FROM
-   forma_api t
-INNER JOIN
-   (
-      SELECT
-         *
-      FROM
-         gadm2
-      WHERE
-         {gadm_where}
-   ) g
-      ON t.gadm2::int=g.objectid
-{where}
-GROUP BY
-   g.id_1,
-   g.name_1
-ORDER BY
-   g.id_1
-"""
+class FormaSqlError(SqlError):
+    PARAMS = """'begin' and 'end' dates in YYYY-MM-DD format"""
+
+    def __init__(self):
+        msg = 'Invalid SQL parameters for FORMA world query: %s' % \
+            self.PARAMS
+        super(FormaSqlError, self).__init__(msg)
 
 
-# FORMA_ANALYSIS_GADM = """
-# SELECT
-#    count(*) AS value
-# FROM
-#    %s forma
-# INNER JOIN
-#    (
-#       SELECT
-#          gadm2.objectid id
-#       FROM
-#          gadm2
-#       WHERE
-#       {gadm_where}
-#    ) gadm
-#       ON forma.gadm2::int=gadm.id
-# {where}""" % FORMA_TABLE
+class Sql():
+    pass
 
 
-FORMA_DOWNLOAD = """
-SELECT
-   forma.iso,
-   forma.date,
-   forma.lat,
-   forma.lon
-   {select}
-FROM
-   %s forma
-INNER JOIN
-   (
-      SELECT
-         gadm2.objectid id
-      FROM
-         gadm2
-      {where}
-   ) gadm
-      ON forma.gadm2::int=gadm.id""" % FORMA_TABLE
+class FormaSql(Sql):
 
+    # Worldwide query with optional geojson filter:
+    WORLD = """
+        SELECT
+           count(t.*) AS value
+        FROM
+           forma_api t
+        WHERE
+            date >= '{begin}'::date
+            AND date <= '{end}'::date
+            {geojson}"""
 
-FORMA_USE = """
-SELECT
-   count(forma.*) AS value
-FROM
-   {table} t,
-   %s forma
-{where}""" % FORMA_TABLE
+    # Query by country:
+    ISO = """
+        SELECT
+           t.iso,
+           count(t.*) AS value
+        FROM
+           forma_api t
+        WHERE
+            date >= '{begin}'::date
+            AND date <= '{end}'::date
+            AND iso = '{iso}'
+        GROUP BY
+           t.iso"""
 
+    # Query by country and administrative unit 1:
+    ID1 = """
+        SELECT
+           g.id_1 AS id1,
+           count(*) AS value
+        FROM
+           forma_api t
+        INNER JOIN
+           (
+              SELECT
+                 *
+              FROM
+                 gadm2
+              WHERE
+                 id_1 = {id1}
+                 AND iso = '{iso}'
+           ) g
+              ON t.gadm2::int = g.objectid
+        WHERE
+           t.date >= '{begin}'::date
+           AND t.date <= '{end}'
+        GROUP BY
+           g.id_1 id1,
+        ORDER BY
+           g.id_1"""
 
-QUICC_ANALYSIS = """
-SELECT
-   {select}
-FROM
-   modis_forest_change_copy t
-{where}
-"""
+    # Query by concession use and concession polygon cartodb_id:
+    USE = """
+        SELECT
+           p.cartodb_id AS pid,
+           count(t.*) AS value
+        FROM
+           {use_table} u,
+           forma_api f
+        WHERE
+           u.cartodb_id = {pid}
+           AND ST_Intersects(f.the_geom, u.the_geom)
+           AND f.date >= '{begin}'::date
+           AND f.date <= '{end}'::date
+        GROUP BY
+           u.cartodb_id"""
 
-QUICC_ANALYSIS_GADM = """
-SELECT
-   {select}
-FROM
-   modis_forest_change_copy t,
-   (SELECT
-      *
-   FROM
-      gadm2
-   {gadm_where}) as g
-{where}
-GROUP BY
-  {group_by}
-{order_by}
-"""
+    # Query by protected area:
+    PA = """"""
+
+    @classmethod
+    def process(cls, args):
+        begin = args['begin'] if 'begin' in args else '1969-01-01'
+        end = args['end'] if 'end' in args else '3014-01-01'
+        params = dict(begin=begin, end=end, geojson='')
+        classification = cls.classify_query(args)
+        if hasattr(cls, classification):
+            return getattr(cls, classification)(params, args)
+
+    @classmethod
+    def world(cls, params, args):
+        if 'geojson' in args:
+            params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
+                ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
+        return FormaSql.WORLD.format(**params)
+
+    @classmethod
+    def classify_query(cls, args):
+        if 'iso' in args and not 'id1' in args:
+            return 'iso'
+        elif 'iso' in args and 'id1' in args:
+            return 'id1'
+        elif 'use' in args:
+            return 'use'
+        elif 'pa' in args:
+            return 'pa'
+        else:
+            return 'world'

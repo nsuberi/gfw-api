@@ -18,6 +18,7 @@
 """This module provides functions for dealing with FORMA data."""
 
 import json
+import logging
 
 from gfw import cdb
 from gfw import common
@@ -85,6 +86,7 @@ def _query_response(response, params, query):
             result['dev'] = {'sql': query}
         return result
     else:
+        logging.info(query)
         raise Exception(response.content)
 
 
@@ -150,3 +152,23 @@ def download(**params):
     if 'filename' in params:
         download_args['filename'] = params['filename']
     return cdb.get_url(query, download_args)
+
+
+def classify_query(args):
+    if 'iso' in args and not 'id1' in args:
+        return 'country'
+    elif 'iso' in args and 'id1' in args:
+        return 'id1'
+    elif 'use' in args:
+        return 'concessions'
+    else:
+        return 'world'
+
+
+def execute(args):
+    try:
+        query = sql.FormaSql.process(args)
+        response = cdb.execute(query)
+        return 'respond', _query_response(response, args, query)
+    except sql.SqlError, e:
+        return 'error', e
