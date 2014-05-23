@@ -46,7 +46,11 @@ META = {
 def _query_response(response, params, query):
     """Return world response."""
     if response.status_code == 200:
-        result = json.loads(response.content)['rows'][0]
+        rows = json.loads(response.content)['rows']
+        if rows:
+            result = rows[0]
+        else:
+            result = {'value': 0}
         result.update(META)
         result.update(params)
         if 'geojson' in params:

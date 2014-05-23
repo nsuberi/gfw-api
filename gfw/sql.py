@@ -74,7 +74,7 @@ class FormaSql(Sql):
         WHERE
             date >= '{begin}'::date
             AND date <= '{end}'::date
-            AND iso = '{iso}'
+            AND iso = UPPER('{iso}')
         GROUP BY
            t.iso"""
 
@@ -107,8 +107,8 @@ class FormaSql(Sql):
     # Query by concession use and concession polygon cartodb_id:
     USE = """
         SELECT
-           p.cartodb_id AS pid,
-           count(t.*) AS value
+           u.cartodb_id AS pid,
+           count(f.*) AS value
         FROM
            {use_table} u,
            forma_api f
@@ -138,6 +138,23 @@ class FormaSql(Sql):
             params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
                 ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
         return FormaSql.WORLD.format(**params)
+
+    @classmethod
+    def use(cls, params, args):
+        concessions = {
+            'mining': 'mining_permits_merge',
+            'oilpalm': 'oil_palm_permits_merge',
+            'fiber': 'fiber_all_merged',
+            'logging': 'logging_all_merged'
+        }
+        params['use_table'] = concessions[args['use']]
+        params['pid'] = args['use_pid']
+        return FormaSql.USE.format(**params)
+
+    @classmethod
+    def iso(cls, params, args):
+        params['iso'] = args['iso']
+        return FormaSql.ISO.format(**params)
 
     @classmethod
     def world_download(cls, params, args):

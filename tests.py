@@ -22,6 +22,7 @@ import itertools
 import json
 
 HOST = 'http://localhost:8080'
+TEST_DOWNLOAD = False
 
 
 def combos(params, repeat=None, min=None):
@@ -35,7 +36,7 @@ def combos(params, repeat=None, min=None):
     return result
 
 
-class FormaTest(unittest.TestCase):
+class ForestChangeTest(unittest.TestCase):
 
     def check_download(self, r, download):
         self.assertIn('attachment', r.headers['Content-Disposition'])
@@ -51,7 +52,7 @@ class FormaTest(unittest.TestCase):
             self.assertIn('application/zip', r.headers['Content-Type'])
 
     def check(self, url, params, props, retry_count=0):
-        logging.warning('%s - %s' % (url, params.keys()))
+        logging.warning('%s - %s' % (url, params))
         r = requests.get(url, params=params)
         if r.status_code == 500:
             logging.warning('RETRY=%s, ERROR=%s' % (retry_count, r.text[-99:]))
@@ -67,14 +68,11 @@ class FormaTest(unittest.TestCase):
                 result = r.json()
                 [self.assertIn(x, result) for x in props]
 
+
+class FormaTest(ForestChangeTest):
     def setUp(self):
-        self.url = '%s/forest-change/forma-alerts' % HOST
-        self.world_download_params = [
-            ('download', 'forma.csv'),
-            ('download', 'forma.kml'),
-            ('download', 'forma.geojson'),
-            ('download', 'forma.svg'),
-            ('download', 'forma.shp'),
+        self.params = [
+            ('bust', 1),
             ('period', '2008-01-01,2009-01-01'),
             ('geojson', json.dumps({
                 "type": "Polygon",
@@ -104,53 +102,62 @@ class FormaTest(unittest.TestCase):
                 ]
                 }))
         ]
-        self.world_params = [
-            ('bust', 1),
-            ('period', '2005-01-01,2014-01-01'),
-            ('geojson', json.dumps({
-                "type": "Polygon",
-                "coordinates": [
-                    [
-                        [
-                            -51.50390625,
-                            -11.695272733029402
-                        ],
-                        [
-                            -51.50390625,
-                            -13.154376055418515
-                        ],
-                        [
-                            -49.21875,
-                            -13.154376055418515
-                        ],
-                        [
-                            -49.21875,
-                            -11.60919340793894
-                        ],
-                        [
-                            -51.50390625,
-                            -11.695272733029402
-                        ]
-                    ]
-                ]
-                }))
-        ]
+        self.params_download = self.params + \
+            [('download', 'forma.csv'),
+             ('download', 'forma.kml'),
+             ('download', 'forma.geojson'),
+             ('download', 'forma.svg'),
+             ('download', 'forma.shp')]
 
-    def test_world(self):
-        """Test FORMA world queries."""
-        # Analysis:
-        for combo in combos(self.world_params):
+
+class FormaWorldTest(FormaTest):
+
+    def setUp(self):
+        super(FormaWorldTest, self).setUp()
+        self.url = '%s/forest-change/forma-alerts' % HOST
+        self.params += [
+            ('use', 'logging,1'),
+            ('use', 'mining,1'),
+            ('use', 'fiber,1'),
+            ('use', 'oilpalm,1')]
+
+    def test_analysis(self):
+        for combo in combos(self.params):
             self.check(self.url, dict(combo), ['value'])
         self.check(self.url, dict(), ['value'])  # No params
 
-        # Download:
-        for combo in combos(self.world_download_params, min=2):
-            params = dict(combo)
-            if len(params) == 1:
-                continue
-            if 'download' not in params:
-                continue
-            self.check(self.url, params, ['value'])
+    def test_download(self):
+        if TEST_DOWNLOAD:
+            for combo in combos(self.params_dowload, min=2):
+                params = dict(combo)
+                if len(params) == 1:
+                    continue
+                if 'download' not in params:
+                    continue
+                self.check(self.url, params, ['value'])
+
+
+class FormaIsoTest(FormaTest):
+
+    def setUp(self):
+        super(FormaIsoTest, self).setUp()
+        self.url = '%s/forest-change/forma-alerts/idn' % HOST
+
+    def test_analysis(self):
+        for combo in combos(self.params):
+            self.check(self.url, dict(combo), ['value'])
+        self.check(self.url, dict(), ['value'])  # No params
+
+    def test_download(self):
+        if TEST_DOWNLOAD:
+            for combo in combos(self.params_dowload, min=2):
+                params = dict(combo)
+                if len(params) == 1:
+                    continue
+                if 'download' not in params:
+                    continue
+                self.check(self.url, params, ['value'])
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)

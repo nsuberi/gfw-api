@@ -34,7 +34,7 @@ META = {
 
 
 def dispatch(path, args):
-    if path == '/forest-change/forma-alerts':
+    if '/forest-change/forma-alerts' in path:
         target = forma
     return target.execute(args)
 
@@ -78,18 +78,13 @@ class APIHandler(CORSRequestHandler):
     def iso(self, dataset, iso):
         """Query dataset within supplied country."""
         try:
-            raw_args = self.args()
-
-            # Ignore geojson since we're querying by iso
-            if 'geojson' in raw_args:
-                raw_args.pop('geojson')
-
-            # Pass in path arguments
-            raw_args['iso'] = iso
-
-            query_args = args.process(raw_args)
+            query_args = args.process(self.args())
+            query_args['iso'] = iso
+            if 'geojson' in query_args:
+                query_args.pop('geojson')
             self.complete(query_args)
         except args.ArgError, e:
+            logging.exception(e)
             self.write_error(400, e.message)
 
     def iso1(self, dataset, iso, id1):
