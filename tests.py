@@ -17,7 +17,6 @@
 
 import requests
 import unittest
-import time
 import logging
 import itertools
 import json
@@ -25,70 +24,133 @@ import json
 HOST = 'http://localhost:8080'
 
 
-def _timeit(url, params):
-    start = time.clock()
-    r = requests.get(url, params=params)
-    ms = (time.clock() - start) * 1000
-    return r, ms
+def combos(params, repeat=None, min=None):
+    result = set()
+    if not repeat:
+        repeat = len(params) + 1
+    if not min:
+        min = 1
+    for x in range(min, repeat):
+        result.update(itertools.combinations(params, x))
+    return result
 
 
 class FormaTest(unittest.TestCase):
 
+    def check_download(self, r, download):
+        self.assertIn('attachment', r.headers['Content-Disposition'])
+        if download.endswith('.csv'):
+            self.assertIn('text/csv', r.headers['Content-Type'])
+        elif download.endswith('.kml'):
+            self.assertIn('application/kml', r.headers['Content-Type'])
+        elif download.endswith('.geojson'):
+            self.assertIn('application/json', r.headers['Content-Type'])
+        elif download.endswith('.svg'):
+            self.assertIn('image/svg+xml', r.headers['Content-Type'])
+        elif download.endswith('.shp'):
+            self.assertIn('application/zip', r.headers['Content-Type'])
+
     def check(self, url, params, props, retry_count=0):
         logging.warning('%s - %s' % (url, params.keys()))
-        r, ms = _timeit(url, params)
+        r = requests.get(url, params=params)
         if r.status_code == 500:
             logging.warning('RETRY=%s, ERROR=%s' % (retry_count, r.text[-99:]))
             if retry_count < 3:
                 self.check(url, params, props, retry_count + 1)
+            else:
+                self.fail('Retried %s times' % retry_count)
         else:
             self.assertEqual(r.status_code, 200)
-            result = r.json()
-            [self.assertIn(x, result) for x in props]
+            if 'download' in params:
+                self.check_download(r, params['download'])
+            else:
+                result = r.json()
+                [self.assertIn(x, result) for x in props]
 
     def setUp(self):
         self.url = '%s/forest-change/forma-alerts' % HOST
-        self.world_params = [
-            {},
-            {'bust': 1},
-            {'period': '2005-01-01,2014-01-01'},
-            {'geojson': json.dumps({
+        self.world_download_params = [
+            ('download', 'forma.csv'),
+            ('download', 'forma.kml'),
+            ('download', 'forma.geojson'),
+            ('download', 'forma.svg'),
+            ('download', 'forma.shp'),
+            ('period', '2008-01-01,2009-01-01'),
+            ('geojson', json.dumps({
                 "type": "Polygon",
                 "coordinates": [
                     [
                         [
-                            -67.8515625,
-                            -11.178401873711785
+                            -51.50390625,
+                            -11.695272733029402
                         ],
                         [
-                            -70.3125,
-                            -28.30438068296277
+                            -51.50390625,
+                            -13.154376055418515
                         ],
                         [
-                            -54.84375,
-                            -38.27268853598096
+                            -49.21875,
+                            -13.154376055418515
                         ],
                         [
-                            -46.40625,
-                            -14.944784875088372
+                            -49.21875,
+                            -11.60919340793894
                         ],
                         [
-                            -67.8515625,
-                            -11.178401873711785
+                            -51.50390625,
+                            -11.695272733029402
                         ]
                     ]
                 ]
-                })}
+                }))
+        ]
+        self.world_params = [
+            ('bust', 1),
+            ('period', '2005-01-01,2014-01-01'),
+            ('geojson', json.dumps({
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -51.50390625,
+                            -11.695272733029402
+                        ],
+                        [
+                            -51.50390625,
+                            -13.154376055418515
+                        ],
+                        [
+                            -49.21875,
+                            -13.154376055418515
+                        ],
+                        [
+                            -49.21875,
+                            -11.60919340793894
+                        ],
+                        [
+                            -51.50390625,
+                            -11.695272733029402
+                        ]
+                    ]
+                ]
+                }))
         ]
 
     def test_world(self):
-        logging.warning(self.world_params)
-        combos = [x for x in itertools.combinations(self.world_params, 2)]
-        params = combos + [self.world_params] + [{}]
-        for param_combo in params:
-            query = {}
-            map(query.update, param_combo)
-            self.check(self.url, query, ['value'])
+        """Test FORMA world queries."""
+        # Analysis:
+        for combo in combos(self.world_params):
+            self.check(self.url, dict(combo), ['value'])
+        self.check(self.url, dict(), ['value'])  # No params
+
+        # Download:
+        for combo in combos(self.world_download_params, min=2):
+            params = dict(combo)
+            if len(params) == 1:
+                continue
+            if 'download' not in params:
+                continue
+            self.check(self.url, params, ['value'])
 
 if __name__ == '__main__':
     unittest.main(exit=False)

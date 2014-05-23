@@ -49,6 +49,21 @@ class FormaSql(Sql):
             AND date <= '{end}'::date
             {geojson}"""
 
+    # Worldwide download, optional the_geom (for non-csv) and geojson filter:
+    WORLD_DOWNLOAD = """
+        SELECT
+           iso country_iso_code,
+           to_char(date, 'YYYY-MM-DD') as year_month_day,
+           lat,
+           lon
+           {the_geom}
+        FROM
+           forma_api t
+        WHERE
+            date >= '{begin}'::date
+            AND date <= '{end}'::date
+            {geojson}"""
+
     # Query by country:
     ISO = """
         SELECT
@@ -112,7 +127,7 @@ class FormaSql(Sql):
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '1969-01-01'
         end = args['end'] if 'end' in args else '3014-01-01'
-        params = dict(begin=begin, end=end, geojson='')
+        params = dict(begin=begin, end=end, geojson='', the_geom='')
         classification = cls.classify_query(args)
         if hasattr(cls, classification):
             return getattr(cls, classification)(params, args)
@@ -125,6 +140,15 @@ class FormaSql(Sql):
         return FormaSql.WORLD.format(**params)
 
     @classmethod
+    def world_download(cls, params, args):
+        if 'geojson' in args:
+            params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
+                ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
+        if args['format'] != 'csv':
+            params['the_geom'] = ', the_geom'
+        return FormaSql.WORLD_DOWNLOAD.format(**params)
+
+    @classmethod
     def classify_query(cls, args):
         if 'iso' in args and not 'id1' in args:
             return 'iso'
@@ -135,4 +159,7 @@ class FormaSql(Sql):
         elif 'pa' in args:
             return 'pa'
         else:
-            return 'world'
+            if 'format' in args:
+                return 'world_download'
+            else:
+                return 'world'

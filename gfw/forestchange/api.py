@@ -18,6 +18,7 @@
 """This module is the entry point for the forest change API."""
 
 import json
+import logging
 import webapp2
 
 from google.appengine.api import memcache
@@ -58,8 +59,12 @@ class APIHandler(CORSRequestHandler):
         action, data = result
         if action == 'respond':
             self.write(json.dumps(data, sort_keys=True))
+        elif action == 'redirect':
+            self.redirect(data)
         elif action == 'error':
             self.write_error(400, data.message)
+        else:
+            self.write_error(400, 'Unknown action %s' % action)
 
     def all(self, dataset):
         """Query dataset"""
@@ -67,6 +72,7 @@ class APIHandler(CORSRequestHandler):
             query_args = args.process(self.args())
             self.complete(query_args)
         except args.ArgError, e:
+            logging.exception(e)
             self.write_error(400, e.message)
 
     def iso(self, dataset, iso):
