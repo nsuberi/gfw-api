@@ -52,117 +52,117 @@ def _run_forma_tests(args):
             'status': 200,
             'props': ['value', 'begin', 'end']
         },
-        {
-            'name': 'forma global + use logging',
-            'url': base,
-            'params': {'bust': 1, 'use': 'logging,1'},
-            'status': 200,
-            'props': ['value', 'use', 'use_pid']
-        },
-        {
-            'name': 'forma global + use oilpalm',
-            'url': base,
-            'params': {'bust': 1, 'use': 'oilpalm,1'},
-            'status': 200,
-            'props': ['value', 'use', 'use_pid']
-        },
-        {
-            'name': 'forma global + use mining',
-            'url': base,
-            'params': {'bust': 1, 'use': 'mining,1'},
-            'status': 200,
-            'props': ['value', 'use', 'use_pid']
-        },
-        {
-            'name': 'forma global + use fiber',
-            'url': base,
-            'params': {'bust': 1, 'use': 'fiber,1'},
-            'status': 200,
-            'props': ['value', 'use', 'use_pid']
-        },
-        {
-            'name': 'forma iso',
-            'url': '%s/bra' % base,
-            'params': {'bust': 1},
-            'status': 200,
-            'props': ['value', 'iso']
-        },
-        {
-            'name': 'forma iso with period',
-            'url': '%s/bra' % base,
-            'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
-            'status': 200,
-            'props': ['value', 'iso']
-        },
-        {
-            'name': 'forma iso/id1',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1},
-            'status': 200,
-            'props': ['value', 'iso', 'id1']
-        },
-        {
-            'name': 'forma iso/id1 with period',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
-            'status': 200,
-            'props': ['value', 'iso', 'id1']
-        },
-        {
-            'name': 'forma iso/id1 with download csv',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'download': 'forma_bra_1.csv'},
-            'status': 200,
-            'props': [],
-            'headers': {
-                'Content-Type': lambda x: 'text/csv' in x,
-                'Content-Disposition': lambda x: 'attachment' in x
-            }
-        },
-        {
-            'name': 'forma iso/id1 with download kml',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'download': 'forma_bra_1.kml'},
-            'status': 200,
-            'props': [],
-            'headers': {
-                'Content-Type': lambda x: 'application/kml' in x,
-                'Content-Disposition': lambda x: 'attachment' in x
-            }
-        },
-        {
-            'name': 'forma iso/id1 with download geojson',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'download': 'forma_bra_1.geojson'},
-            'status': 200,
-            'props': [],
-            'headers': {
-                'Content-Type': lambda x: 'application/json' in x,
-                'Content-Disposition': lambda x: 'attachment' in x
-            }
-        },
-        {
-            'name': 'forma iso/id1 with download svg',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'download': 'forma_bra_1.svg'},
-            'status': 200,
-            'props': [],
-            'headers': {
-                'Content-Type': lambda x: 'image/svg+xml' in x,
-                'Content-Disposition': lambda x: 'attachment' in x
-            }
-        },
-        {
-            'name': 'forma iso/id1 with download shp',
-            'url': '%s/bra/1' % base,
-            'params': {'bust': 1, 'download': 'forma_bra_1.shp'},
-            'status': 200,
-            'props': [],
-            'headers': {
-                'Content-Type': lambda x: 'application/zip' in x,
-                'Content-Disposition': lambda x: 'attachment' in x
-            }
-        }
+        # {
+        #     'name': 'forma global + use logging',
+        #     'url': base,
+        #     'params': {'bust': 1, 'use': 'logging,1'},
+        #     'status': 200,
+        #     'props': ['value', 'use', 'use_pid']
+        # },
+        # {
+        #     'name': 'forma global + use oilpalm',
+        #     'url': base,
+        #     'params': {'bust': 1, 'use': 'oilpalm,1'},
+        #     'status': 200,
+        #     'props': ['value', 'use', 'use_pid']
+        # },
+        # {
+        #     'name': 'forma global + use mining',
+        #     'url': base,
+        #     'params': {'bust': 1, 'use': 'mining,1'},
+        #     'status': 200,
+        #     'props': ['value', 'use', 'use_pid']
+        # },
+        # {
+        #     'name': 'forma global + use fiber',
+        #     'url': base,
+        #     'params': {'bust': 1, 'use': 'fiber,1'},
+        #     'status': 200,
+        #     'props': ['value', 'use', 'use_pid']
+        # },
+        # {
+        #     'name': 'forma iso',
+        #     'url': '%s/bra' % base,
+        #     'params': {'bust': 1},
+        #     'status': 200,
+        #     'props': ['value', 'iso']
+        # },
+        # {
+        #     'name': 'forma iso with period',
+        #     'url': '%s/bra' % base,
+        #     'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
+        #     'status': 200,
+        #     'props': ['value', 'iso']
+        # },
+        # {
+        #     'name': 'forma iso/id1',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1},
+        #     'status': 200,
+        #     'props': ['value', 'iso', 'id1']
+        # },
+        # {
+        #     'name': 'forma iso/id1 with period',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'period': '2010-01-01,2013-01-01'},
+        #     'status': 200,
+        #     'props': ['value', 'iso', 'id1']
+        # },
+        # {
+        #     'name': 'forma iso/id1 with download csv',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'download': 'forma_bra_1.csv'},
+        #     'status': 200,
+        #     'props': [],
+        #     'headers': {
+        #         'Content-Type': lambda x: 'text/csv' in x,
+        #         'Content-Disposition': lambda x: 'attachment' in x
+        #     }
+        # },
+        # {
+        #     'name': 'forma iso/id1 with download kml',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'download': 'forma_bra_1.kml'},
+        #     'status': 200,
+        #     'props': [],
+        #     'headers': {
+        #         'Content-Type': lambda x: 'application/kml' in x,
+        #         'Content-Disposition': lambda x: 'attachment' in x
+        #     }
+        # },
+        # {
+        #     'name': 'forma iso/id1 with download geojson',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'download': 'forma_bra_1.geojson'},
+        #     'status': 200,
+        #     'props': [],
+        #     'headers': {
+        #         'Content-Type': lambda x: 'application/json' in x,
+        #         'Content-Disposition': lambda x: 'attachment' in x
+        #     }
+        # },
+        # {
+        #     'name': 'forma iso/id1 with download svg',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'download': 'forma_bra_1.svg'},
+        #     'status': 200,
+        #     'props': [],
+        #     'headers': {
+        #         'Content-Type': lambda x: 'image/svg+xml' in x,
+        #         'Content-Disposition': lambda x: 'attachment' in x
+        #     }
+        # },
+        # {
+        #     'name': 'forma iso/id1 with download shp',
+        #     'url': '%s/bra/1' % base,
+        #     'params': {'bust': 1, 'download': 'forma_bra_1.shp'},
+        #     'status': 200,
+        #     'props': [],
+        #     'headers': {
+        #         'Content-Type': lambda x: 'application/zip' in x,
+        #         'Content-Disposition': lambda x: 'attachment' in x
+        #     }
+        #}
     ]
 
     for test in tests:
@@ -199,6 +199,9 @@ def _get_args():
 
 
 if __name__ == '__main__':
+    print 'hi'
     args = _get_args()
     if 'forest-change' in args.target:
+        _forest_change(args)
+    elif 'all' in args.target:
         _forest_change(args)
