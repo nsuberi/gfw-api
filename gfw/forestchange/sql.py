@@ -93,16 +93,16 @@ class FormaSql(Sql):
                  gadm2
               WHERE
                  id_1 = {id1}
-                 AND iso = '{iso}'
+                 AND iso = UPPER('{iso}')
            ) g
               ON t.gadm2::int = g.objectid
         WHERE
            t.date >= '{begin}'::date
-           AND t.date <= '{end}'
+           AND t.date <= '{end}'::date
         GROUP BY
-           g.id_1 id1,
+           id1
         ORDER BY
-           g.id_1"""
+           id1"""
 
     # Query by concession use and concession polygon cartodb_id:
     USE = """
@@ -155,6 +155,12 @@ class FormaSql(Sql):
     def iso(cls, params, args):
         params['iso'] = args['iso']
         return FormaSql.ISO.format(**params)
+
+    @classmethod
+    def id1(cls, params, args):
+        params['iso'] = args['iso']
+        params['id1'] = args['id1']
+        return FormaSql.ID1.format(**params)
 
     @classmethod
     def world_download(cls, params, args):

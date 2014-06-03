@@ -117,6 +117,7 @@ class ArgProcessor():
 
     @classmethod
     def process(cls, args):
+        """Process supplied dictionary of args into new dictionary of args."""
         processed = {}
         if not args:
             return processed

@@ -20,9 +20,9 @@
 import json
 import logging
 
+import sql
 from gfw import cdb
 from gfw import common
-from gfw import sql
 
 
 API = "%s/forest-change/forma-alerts{/iso}{/id1}{?period,geojson,use,download}" \
