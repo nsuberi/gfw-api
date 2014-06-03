@@ -30,6 +30,22 @@ class ArgError(ValueError):
         super(ArgError, self).__init__(msg)
 
 
+class IsoArgError(ArgError):
+    USAGE = """iso must be three characters."""
+
+    def __init__(self):
+        msg = 'Invalid iso parameter! Usage: %s' % self.UseArgError
+        super(IsoArgError, self).__init__(msg)
+
+
+class Id1ArgError(ArgError):
+    USAGE = """id1 must be an integer."""
+
+    def __init__(self):
+        msg = 'Invalid id1 parameter! Usage: %s' % self.UseArgError
+        super(Id1ArgError, self).__init__(msg)
+
+
 class PeriodArgError(ArgError):
     USAGE = """begin,end dates in format YYYY-MM-DD."""
 
@@ -62,6 +78,14 @@ class UseArgError(ArgError):
         super(UseArgError, self).__init__(msg)
 
 
+class WdpaIdArgError(ArgError):
+    USAGE = """wdpaid must be an integer"""
+
+    def __init__(self):
+        msg = 'Invalid wdpaid parameter! Usage: %s' % self.USAGE
+        super(WdpaIdArgError, self).__init__(msg)
+
+
 class ArgProcessor():
 
     @classmethod
@@ -73,6 +97,23 @@ class ArgProcessor():
             if b > e:
                 raise
             return dict(begin=begin, end=end)
+        except:
+            raise PeriodArgError()
+
+    @classmethod
+    def iso(cls, value):
+        try:
+            if len(value) != 3:
+                raise
+            return dict(iso=value)
+        except:
+            raise PeriodArgError()
+
+    @classmethod
+    def id1(cls, value):
+        try:
+            int(value)
+            return dict(id1=value)
         except:
             raise PeriodArgError()
 
@@ -106,6 +147,14 @@ class ArgProcessor():
             return dict(use=name, use_pid=pid)
         except:
             raise UseArgError()
+
+    @classmethod
+    def wdpaid(cls, value):
+        try:
+            int(value)
+            return dict(wdpaid=value)
+        except:
+            raise WdpaIdArgError()
 
     @classmethod
     def bust(cls, value):

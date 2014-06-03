@@ -23,13 +23,13 @@ import webapp2
 
 from google.appengine.api import memcache
 
-from gfw.forestchange import forma, quicc, args
+from gfw.forestchange import forma, args
 from gfw.common import CORSRequestHandler
 
 
 META = {
     'forma-alerts': forma.META,
-    'quicc-alerts': quicc.META,
+    # 'quicc-alerts': quicc.META,
 }
 
 
@@ -66,63 +66,96 @@ class APIHandler(CORSRequestHandler):
         else:
             self.write_error(400, 'Unknown action %s' % action)
 
-    def all(self, dataset):
-        """Query dataset"""
+
+class FormaAllHandler(APIHandler):
+    """Handler for /forest-change/forma-alerts"""
+
+    PARAMS = ['period', 'download', 'geojson', 'dev', 'bust']
+
+    def get(self):
         try:
-            query_args = args.process(self.args())
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-    def iso(self, dataset, iso):
-        """Query dataset within supplied country."""
-        try:
-            query_args = args.process(self.args())
-            query_args['iso'] = iso
-            if 'geojson' in query_args:
-                query_args.pop('geojson')
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-    def iso1(self, dataset, iso, id1):
-        """Query dataset within supplied country and province."""
-        try:
-            raw_args = self.args()
-
-            # Ignore geojson since we're querying by iso+ad1
-            if 'geojson' in raw_args:
-                raw_args.pop('geojson')
-
-            # Pass in path arguments
-            raw_args['iso'] = iso
-            raw_args['id1'] = id1
-
+            raw_args = self.args(only=self.PARAMS)
             query_args = args.process(raw_args)
             self.complete(query_args)
         except args.ArgError, e:
+            logging.exception(e)
+
+    def post(self):
+        self.get()
+
+
+class FormaIsoHandler(APIHandler):
+    """"Handler for /forest-change/forma-alerts/admin/{iso}"""
+
+    PARAMS = ['period', 'download', 'dev', 'bust']
+
+    @classmethod
+    def iso_from_path(cls, path):
+        """Return iso code from supplied request path."""
+        return path.split('/')[4]
+
+    def get(self):
+        try:
+            raw_args = self.args(only=self.PARAMS)
+            raw_args['iso'] = self.iso_from_path(self.request.path)
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            logging.exception(e)
             self.write_error(400, e.message)
 
 
-DATASETS = ['imazon-sad-alerts', 'forma-alerts', 'quicc-alerts',
-            'umd-loss-gain', 'nasa-fires']
+class FormaIsoId1Handler(APIHandler):
+    """"Handler for /forest-change/forma-alerts/admin/{iso}/{id1}"""
 
-ROUTE = r'/forest-change/<dataset:(%s)>' % '|'.join(DATASETS)
+    PARAMS = ['period', 'download', 'dev', 'bust']
+
+    @classmethod
+    def iso_id1_from_path(cls, path):
+        """Return iso code and id1 from supplied request path."""
+        return path.split('/')[4], path.split('/')[5]
+
+    def get(self):
+        try:
+            raw_args = self.args(only=self.PARAMS)
+            iso, id1 = self.iso_id1_from_path(self.request.path)
+            raw_args['iso'] = iso
+            raw_args['id1'] = id1
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            logging.exception(e)
+            self.write_error(400, e.message)
+
+
+class FormaWdpaHandler(APIHandler):
+    """"Handler for /forest-change/forma-alerts/admin/{iso}/{id1}"""
+
+    PARAMS = ['period', 'download', 'dev', 'bust']
+
+    @classmethod
+    def wdpaid_from_path(cls, path):
+        """Return wdpaid from supplied request path."""
+        return path.split('/')[4]
+
+    def get(self):
+        try:
+            raw_args = self.args(only=['period', 'download'])
+            raw_args['wdpaid'] = self.wdpaid_from_path(self.request.path)
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            logging.exception(e)
+            self.write_error(400, e.message)
+
 
 handlers = webapp2.WSGIApplication([
-    webapp2.Route(
-        '/forest-change',
-        handler=Handler, handler_method='get'),
-    webapp2.Route(
-        ROUTE,
-        handler=APIHandler, handler_method='all'),
-    webapp2.Route(
-        ROUTE + r'/<iso:[A-z]{3,3}>',
-        handler=APIHandler, handler_method='iso'),
-    webapp2.Route(
-        ROUTE + r'/<iso:[A-z]{3,3}>/<id1:\d+>',
-        handler=APIHandler, handler_method='iso1')
+    (r'/forest-change', Handler),
+
+    # FORMA endpoints
+    (r'/forest-change/forma-alerts', APIHandler),
+    (r'/forest-change/forma-alerts/admin/[A-z]{3,3}', FormaIsoHandler),
+    (r'/forest-change/forma-alerts/admin/[A-z]{3,3}/\d+', FormaIsoId1Handler),
+    (r'/forest-change/forma-alerts/wdpa/\d+', FormaWdpaHandler),
     ],
     debug=True)

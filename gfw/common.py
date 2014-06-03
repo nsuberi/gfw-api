@@ -56,13 +56,21 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.out.write(str(data))
 
     def args(self, only=[]):
+        raw = {}
         if not self.request.arguments():
             if self.request.body:
-                return json.loads(self.request.body)
+                raw = json.loads(self.request.body)
         else:
             args = self.request.arguments()
             vals = map(self.request.get, args)
-            return dict(zip(args, vals))
+            raw = dict(zip(args, vals))
+
+        result = {}
+        for key, val in raw.iteritems():
+            if key in only:
+                result[key] = val
+
+        return result
 
     def get_id(self, params):
         whitespace = re.compile(r'\s+')

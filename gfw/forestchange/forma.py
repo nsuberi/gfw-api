@@ -64,6 +64,7 @@ def _query_response(response, params, query):
 
 
 def execute(args):
+    logging.info(args)
     try:
         query = sql.FormaSql.process(args)
         if 'format' in args:

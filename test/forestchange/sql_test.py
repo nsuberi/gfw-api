@@ -79,6 +79,24 @@ class SqlTest(BaseTest):
         self.assertEqual(1, len(response.json()['rows']))
         self.assertIn('value', response.json()['rows'][0])
 
+        geojson = {"type": "Polygon", "coordinates": [[
+            [-58.35937499999999, -5.615985819155327],
+            [-58.35937499999999, -17.97873309555617],
+            [-50.2734375, -16.97274101999901],
+            [-49.92187499999999, -4.565473550710278],
+            [-58.35937499999999, -5.615985819155327]]]}
+
+        # GeoJSON test
+        args = dict(geojson=json.dumps(geojson))
+        query = f(args)
+        self.assertIsNotNone(query)
+        response = fetch(query)
+        print response
+        self.assertEqual(200, response.status_code)
+        self.assertIn('rows', response.json())
+        self.assertEqual(1, len(response.json()['rows']))
+        self.assertIn('value', response.json()['rows'][0])
+
     def test_use(self):
         f = sql.FormaSql.process
         for use in ['logging', 'mining', 'oilpalm', 'fiber']:
@@ -117,6 +135,18 @@ class SqlTest(BaseTest):
             self.assertIn('rows', response.json())
             self.assertEqual(1, len(response.json()['rows']))
             self.assertIn('value', response.json()['rows'][0])
+
+    def test_wdpa(self):
+        f = sql.FormaSql.process
+        args = dict(wdpaid=8950)
+        query = f(args)
+        self.assertIsNotNone(query)
+        response = fetch(query)
+        print response
+        self.assertEqual(200, response.status_code)
+        self.assertIn('rows', response.json())
+        self.assertEqual(1, len(response.json()['rows']))
+        self.assertIn('value', response.json()['rows'][0])
 
 if __name__ == '__main__':
     reload(sql)

@@ -121,7 +121,26 @@ class FormaSql(Sql):
            u.cartodb_id"""
 
     # Query by protected area:
-    PA = """"""
+    WDPA = """
+    SELECT
+       p.wdpaid,
+       count(pt.*) AS value
+    FROM
+       forma_api pt,
+       (SELECT
+          *
+       FROM
+          wdpa_all
+       WHERE
+          wdpaid={wdpaid}) AS p
+    WHERE
+       ST_Intersects(pt.the_geom, p.the_geom)
+       AND pt.date >= '{begin}'::date
+       AND pt.date <= '{end}'::date
+    GROUP BY
+       p.wdpaid
+    ORDER BY
+       p.wdpaid"""
 
     @classmethod
     def process(cls, args):
@@ -163,6 +182,11 @@ class FormaSql(Sql):
         return FormaSql.ID1.format(**params)
 
     @classmethod
+    def wdpa(cls, params, args):
+        params['wdpaid'] = args['wdpaid']
+        return FormaSql.WDPA.format(**params)
+
+    @classmethod
     def world_download(cls, params, args):
         if 'geojson' in args:
             params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
@@ -181,6 +205,8 @@ class FormaSql(Sql):
             return 'use'
         elif 'pa' in args:
             return 'pa'
+        elif 'wdpaid' in args:
+            return 'wdpa'
         else:
             if 'format' in args:
                 return 'world_download'
