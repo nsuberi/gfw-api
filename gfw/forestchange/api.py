@@ -79,6 +79,7 @@ class FormaAllHandler(APIHandler):
             self.complete(query_args)
         except args.ArgError, e:
             logging.exception(e)
+            self.write_error(400, e.message)
 
     def post(self):
         self.get()
@@ -129,7 +130,7 @@ class FormaIsoId1Handler(APIHandler):
 
 
 class FormaWdpaHandler(APIHandler):
-    """"Handler for /forest-change/forma-alerts/admin/{iso}/{id1}"""
+    """"Handler for /forest-change/forma-alerts/wdpa/{wdpaid}"""
 
     PARAMS = ['period', 'download', 'dev', 'bust']
 
@@ -140,7 +141,7 @@ class FormaWdpaHandler(APIHandler):
 
     def get(self):
         try:
-            raw_args = self.args(only=['period', 'download'])
+            raw_args = self.args(only=self.PARAMS)
             raw_args['wdpaid'] = self.wdpaid_from_path(self.request.path)
             query_args = args.process(raw_args)
             self.complete(query_args)
@@ -148,6 +149,28 @@ class FormaWdpaHandler(APIHandler):
             logging.exception(e)
             self.write_error(400, e.message)
 
+
+class FormaUseHandler(APIHandler):
+    """"Handler for /forest-change/forma-alerts/use/{use}/{useid}"""
+
+    PARAMS = ['period', 'download', 'dev', 'bust']
+
+    @classmethod
+    def use_useid_from_path(cls, path):
+        """Return nameid from supplied request path."""
+        return path.split('/')[4], path.split('/')[5]
+
+    def get(self):
+        try:
+            raw_args = self.args(only=self.PARAMS)
+            use, useid = self.use_useid_from_path(self.request.path)
+            raw_args['use'] = use
+            raw_args['useid'] = useid
+            query_args = args.process(raw_args)
+            self.complete(query_args)
+        except args.ArgError, e:
+            logging.exception(e)
+            self.write_error(400, e.message)
 
 handlers = webapp2.WSGIApplication([
     (r'/forest-change', Handler),
@@ -157,5 +180,7 @@ handlers = webapp2.WSGIApplication([
     (r'/forest-change/forma-alerts/admin/[A-z]{3,3}', FormaIsoHandler),
     (r'/forest-change/forma-alerts/admin/[A-z]{3,3}/\d+', FormaIsoId1Handler),
     (r'/forest-change/forma-alerts/wdpa/\d+', FormaWdpaHandler),
+    (r'/forest-change/forma-alerts/use/[A-z]+/\d+',
+        FormaUseHandler),
     ],
     debug=True)

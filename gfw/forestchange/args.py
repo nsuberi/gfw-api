@@ -46,6 +46,14 @@ class Id1ArgError(ArgError):
         super(Id1ArgError, self).__init__(msg)
 
 
+class UseIdArgError(ArgError):
+    USAGE = """useid must be an integer."""
+
+    def __init__(self):
+        msg = 'Invalid useid parameter! Usage: %s' % self.UseIdArgError
+        super(UseIdArgError, self).__init__(msg)
+
+
 class PeriodArgError(ArgError):
     USAGE = """begin,end dates in format YYYY-MM-DD."""
 
@@ -140,13 +148,19 @@ class ArgProcessor():
     @classmethod
     def use(cls, value):
         try:
-            name, pid = value.split(',')
-            if not name in ['logging', 'mining', 'oilpalm', 'fiber']:
+            if not value in ['logging', 'mining', 'oilpalm', 'fiber']:
                 raise
-            int(pid)
-            return dict(use=name, use_pid=pid)
+            return dict(use=value)
         except:
             raise UseArgError()
+
+    @classmethod
+    def useid(cls, value):
+        try:
+            int(value)
+            return dict(useid=value)
+        except:
+            raise UseIdArgError()
 
     @classmethod
     def wdpaid(cls, value):

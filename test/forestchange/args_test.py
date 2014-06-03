@@ -79,11 +79,10 @@ class ArgsTest(BaseTest):
 
     def test_use(self):
         f = args.ArgProcessor.use
-        for arg in ['logging,1', 'mining,1', 'oilpalm,1', 'fiber,1']:
-            self.assertEqual(f(arg)['use'], arg.split(',')[0])
-            self.assertEqual(f(arg)['use_pid'], arg.split(',')[1])
+        for arg in ['logging', 'mining', 'oilpalm', 'fiber']:
+            self.assertEqual(f(arg)['use'], arg)
         with self.assertRaises(args.UseArgError):
-            f('logging')
+            f('boom')
 
     def test_bust(self):
         f = args.ArgProcessor.bust
@@ -99,13 +98,14 @@ class ArgsTest(BaseTest):
             "period": "2007-1-1,2008-1-1",
             "bust": "",
             "dev": "",
-            "use": "logging,1",
+            "use": "logging",
+            "useid": "1",
             "download": "foo.csv",
             "geojson": '{"type": "Polygon"}'
         }
         x = f(params)
         self.assertItemsEqual(
-            ['begin', 'end', 'use', 'use_pid', 'filename', 'format',
+            ['begin', 'end', 'use', 'useid', 'filename', 'format',
                 'geojson', 'dev', 'bust'],
             x)
 

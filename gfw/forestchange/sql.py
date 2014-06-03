@@ -167,7 +167,7 @@ class FormaSql(Sql):
             'logging': 'logging_all_merged'
         }
         params['use_table'] = concessions[args['use']]
-        params['pid'] = args['use_pid']
+        params['pid'] = args['useid']
         return FormaSql.USE.format(**params)
 
     @classmethod

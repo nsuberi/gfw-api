@@ -100,7 +100,7 @@ class SqlTest(BaseTest):
     def test_use(self):
         f = sql.FormaSql.process
         for use in ['logging', 'mining', 'oilpalm', 'fiber']:
-            args = dict(use=use, use_pid=1)
+            args = dict(use=use, useid=1)
             query = f(args)
             self.assertIsNotNone(query)
             response = fetch(query)

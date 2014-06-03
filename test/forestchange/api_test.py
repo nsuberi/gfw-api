@@ -39,16 +39,14 @@ class BaseTest(unittest.TestCase):
         self.testbed.init_urlfetch_stub()
         self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
 
-        app = webapp2.WSGIApplication(
-            [(r'/forest-change/forma-alerts/wdpa/\d+',
-              api.FormaWdpaHandler),
-             (r'/forest-change/forma-alerts/admin/[A-z]{3,3}/\d+',
-              api.FormaIsoId1Handler),
-             (r'/forest-change/forma-alerts/admin/[A-z]{3,3}',
-              api.FormaIsoHandler),
-             (r'/forest-change/forma-alerts',
-              api.FormaAllHandler)
-             ])
+        BASE = r'/forest-change/forma-alerts'
+        app = webapp2.WSGIApplication([
+            (BASE + r'/wdpa/\d+', api.FormaWdpaHandler),
+            (BASE + r'/admin/[A-z]{3,3}/\d+', api.FormaIsoId1Handler),
+            (BASE + r'/admin/[A-z]{3,3}', api.FormaIsoHandler),
+            (BASE + r'/use/[A-z]+/\d+', api.FormaUseHandler),
+            (BASE, api.FormaAllHandler),
+            ])
 
         self.testapp = webtest.TestApp(app)
 
@@ -90,6 +88,17 @@ class FormaTest(BaseTest):
         response = self.testapp.get(path, dict(bust=1))
         self.assertIn('wdpaid', response.json)
         self.assertEqual('390', response.json['wdpaid'])
+        self.assertIn('value', response.json)
+        self.assertEqual(200, response.status_code)
+
+    def test_use(self):
+        path = r'/forest-change/forma-alerts/use/logging/1'
+        print '\n%s...' % path
+        response = self.testapp.get(path, dict(bust=1))
+        self.assertIn('useid', response.json)
+        self.assertEqual('1', response.json['useid'])
+        self.assertIn('use', response.json)
+        self.assertEqual('logging', response.json['use'])
         self.assertIn('value', response.json)
         self.assertEqual(200, response.status_code)
 
