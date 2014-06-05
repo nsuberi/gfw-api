@@ -80,7 +80,6 @@ class SqlTest(BaseTest):
         self.assertEqual('id1', f(dict(iso='', id1='')))
         self.assertEqual('use', f(dict(use='')))
         self.assertEqual('pa', f(dict(pa='')))
-        self.assertEqual('world_download', f(dict(format='')))
         self.assertEqual('world', f(dict()))
 
     def test_world(self):
