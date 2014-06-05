@@ -26,6 +26,8 @@ import unittest
 import urllib
 import requests
 
+from contextlib import closing
+
 from google.appengine.ext import testbed
 
 from gfw.forestchange import sql
@@ -34,16 +36,8 @@ from gfw.forestchange import sql
 def fetch(query):
     params = urllib.urlencode(dict(q=query))
     url = 'http://wri-01.cartodb.com/api/v2/sql?%s' % params
-    print 'Fetching query: %s...\n%s' % (query, url)
-    max_retries = 3
-    retry_count = 0
-    while retry_count < max_retries:
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response
-        print 'ERROR %s' % response.text
-        retry_count += 1
-    return response
+    with closing(requests.get(url, stream=True)) as r:
+        return r
 
 
 class BaseTest(unittest.TestCase):
@@ -95,7 +89,6 @@ class SqlTest(BaseTest):
         query = f(args)
         self.assertIsNotNone(query)
         response = fetch(query)
-        print response
         self.assertEqual(200, response.status_code)
         self.assertIn('rows', response.json())
         self.assertEqual(1, len(response.json()['rows']))
@@ -113,7 +106,6 @@ class SqlTest(BaseTest):
         query = f(args)
         self.assertIsNotNone(query)
         response = fetch(query)
-        print response
         self.assertEqual(200, response.status_code)
         self.assertIn('rows', response.json())
         self.assertEqual(1, len(response.json()['rows']))
@@ -126,7 +118,6 @@ class SqlTest(BaseTest):
             query = f(args)
             self.assertIsNotNone(query)
             response = fetch(query)
-            print response
             self.assertEqual(200, response.status_code)
             self.assertIn('rows', response.json())
             self.assertGreaterEqual(len(response.json()['rows']), 0)
@@ -139,7 +130,6 @@ class SqlTest(BaseTest):
         query = f(args)
         self.assertIsNotNone(query)
         response = fetch(query)
-        print response
         self.assertEqual(200, response.status_code)
         self.assertIn('rows', response.json())
         self.assertEqual(1, len(response.json()['rows']))
@@ -152,7 +142,6 @@ class SqlTest(BaseTest):
             query = f(args)
             self.assertIsNotNone(query)
             response = fetch(query)
-            print response
             self.assertEqual(200, response.status_code)
             self.assertIn('rows', response.json())
             self.assertEqual(1, len(response.json()['rows']))
