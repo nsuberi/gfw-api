@@ -24,12 +24,25 @@ import webapp2
 from google.appengine.api import memcache
 
 from gfw.forestchange import forma, args
-from gfw.common import CORSRequestHandler
+from gfw.common import CORSRequestHandler, APP_BASE_URL
 
+FORMA_API_BASE = '%s/forma-alerts' % APP_BASE_URL
 
 META = {
-    'forma-alerts': forma.META,
-    # 'quicc-alerts': quicc.META,
+    'forma-alerts': {
+        'meta': forma.META,
+        'apis': {
+            'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API_BASE,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            FORMA_API_BASE,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            FORMA_API_BASE,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            FORMA_API_BASE,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            FORMA_API_BASE
+        }
+    },
 }
 
 
@@ -42,7 +55,7 @@ def dispatch(path, args):
 class Handler(CORSRequestHandler):
     """Default handler that returns META json."""
     def get(self):
-        self.write(json.dumps(META))
+        self.write(json.dumps(META, sort_keys=True))
 
 
 class APIHandler(CORSRequestHandler):

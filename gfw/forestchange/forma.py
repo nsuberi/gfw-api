@@ -23,7 +23,6 @@ import logging
 import sql
 from gfw import cdb
 
-
 META = {
     "description": "Alerts where forest disturbances have likely occurred.",
     "resolution": "500 x 500 meters",
