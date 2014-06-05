@@ -78,6 +78,27 @@ class FormaSql(Sql):
         GROUP BY
            t.iso"""
 
+    # Download query by country:
+    ISO_DOWNLOAD = """
+        SELECT
+           iso country_iso_code,
+           to_char(date, 'YYYY-MM-DD') as year_month_day,
+           lat,
+           lon
+           {the_geom}
+        FROM
+           forma_api t
+        WHERE
+            date >= '{begin}'::date
+            AND date <= '{end}'::date
+            AND iso = UPPER('{iso}')
+        GROUP BY
+           t.iso,
+           t.date,
+           t.lat,
+           t.lon,
+           t.the_geom"""
+
     # Query by country and administrative unit 1:
     ID1 = """
         SELECT
@@ -104,6 +125,41 @@ class FormaSql(Sql):
         ORDER BY
            id1"""
 
+    # Download by country and administrative unit 1:
+    ID1_DOWNLOAD = """
+        SELECT
+           g.id_1 AS id1,
+           t.iso country_iso_code,
+           to_char(date, 'YYYY-MM-DD') as year_month_day,
+           lat,
+           lon
+           {the_geom}
+        FROM
+           forma_api t
+        INNER JOIN
+           (
+              SELECT
+                 *
+              FROM
+                 gadm2
+              WHERE
+                 id_1 = {id1}
+                 AND iso = UPPER('{iso}')
+           ) g
+              ON t.gadm2::int = g.objectid
+        WHERE
+           t.date >= '{begin}'::date
+           AND t.date <= '{end}'::date
+        GROUP BY
+           id1,
+           t.iso,
+           t.date,
+           t.lat,
+           t.lon,
+           t.the_geom
+        ORDER BY
+           id1"""
+
     # Query by concession use and concession polygon cartodb_id:
     USE = """
         SELECT
@@ -120,27 +176,96 @@ class FormaSql(Sql):
         GROUP BY
            u.cartodb_id"""
 
+    # Query by concession use and concession polygon cartodb_id:
+    USE_DOWNLOAD = """
+        SELECT
+           u.cartodb_id AS pid,
+           f.iso country_iso_code,
+           to_char(f.date, 'YYYY-MM-DD') as year_month_day,
+           f.lat,
+           f.lon
+           {the_geom}
+        FROM
+           {use_table} u,
+           forma_api f
+        WHERE
+           u.cartodb_id = {pid}
+           AND ST_Intersects(f.the_geom, u.the_geom)
+           AND f.date >= '{begin}'::date
+           AND f.date <= '{end}'::date
+        GROUP BY
+           u.cartodb_id,
+           f.iso,
+           f.date,
+           f.lat,
+           f.lon,
+           f.the_geom"""
+
     # Query by protected area:
     WDPA = """
-    SELECT
-       p.wdpaid,
-       count(pt.*) AS value
-    FROM
-       forma_api pt,
-       (SELECT
-          *
-       FROM
-          wdpa_all
-       WHERE
-          wdpaid={wdpaid}) AS p
-    WHERE
-       ST_Intersects(pt.the_geom, p.the_geom)
-       AND pt.date >= '{begin}'::date
-       AND pt.date <= '{end}'::date
-    GROUP BY
-       p.wdpaid
-    ORDER BY
-       p.wdpaid"""
+        SELECT
+           p.wdpaid,
+           count(f.*) AS value
+        FROM
+           forma_api f,
+           (SELECT
+              *
+           FROM
+              wdpa_all
+           WHERE
+              wdpaid={wdpaid}) AS p
+        WHERE
+           ST_Intersects(f.the_geom, p.the_geom)
+           AND f.date >= '{begin}'::date
+           AND f.date <= '{end}'::date
+        GROUP BY
+           p.wdpaid
+        ORDER BY
+           p.wdpaid"""
+
+    # Query by protected area:
+    WDPA_DOWNLOAD = """
+        SELECT
+           p.wdpaid,
+           f.iso country_iso_code,
+           to_char(f.date, 'YYYY-MM-DD') as year_month_day,
+           f.lat,
+           f.lon
+           {the_geom}
+        FROM
+           forma_api f,
+           (SELECT
+              *
+           FROM
+              wdpa_all
+           WHERE
+              wdpaid={wdpaid}) AS p
+        WHERE
+           ST_Intersects(f.the_geom, p.the_geom)
+           AND f.date >= '{begin}'::date
+           AND f.date <= '{end}'::date
+        GROUP BY
+           p.wdpaid,
+           f.iso,
+           f.date,
+           f.lat,
+           f.lon,
+           f.the_geom
+        ORDER BY
+           p.wdpaid"""
+
+    @classmethod
+    def get_query_type(cls, params, args, the_geom_table=''):
+        """Return query type (download or analysis) with updated params."""
+        query_type = 'analysis'
+        if 'format' in args:
+            query_type = 'download'
+            if args['format'] != 'csv':
+                the_geom = ', the_geom' \
+                    if not the_geom_table \
+                    else ', %s.the_geom' % the_geom_table
+                params['the_geom'] = the_geom
+        return query_type, params
 
     @classmethod
     def process(cls, args):
@@ -156,7 +281,11 @@ class FormaSql(Sql):
         if 'geojson' in args:
             params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
                 ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
-        return FormaSql.WORLD.format(**params)
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return FormaSql.WORLD_DOWNLOAD.format(**params)
+        else:
+            return FormaSql.WORLD.format(**params)
 
     @classmethod
     def use(cls, params, args):
@@ -168,32 +297,42 @@ class FormaSql(Sql):
         }
         params['use_table'] = concessions[args['use']]
         params['pid'] = args['useid']
-        return FormaSql.USE.format(**params)
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return FormaSql.USE_DOWNLOAD.format(**params)
+        else:
+            return FormaSql.USE.format(**params)
 
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
-        return FormaSql.ISO.format(**params)
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return FormaSql.ISO_DOWNLOAD.format(**params)
+        else:
+            return FormaSql.ISO.format(**params)
 
     @classmethod
     def id1(cls, params, args):
         params['iso'] = args['iso']
         params['id1'] = args['id1']
-        return FormaSql.ID1.format(**params)
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='t')
+        if query_type == 'download':
+            return FormaSql.ID1_DOWNLOAD.format(**params)
+        else:
+            return FormaSql.ID1.format(**params)
 
     @classmethod
     def wdpa(cls, params, args):
         params['wdpaid'] = args['wdpaid']
-        return FormaSql.WDPA.format(**params)
-
-    @classmethod
-    def world_download(cls, params, args):
-        if 'geojson' in args:
-            params['geojson'] = "AND ST_INTERSECTS(ST_SetSRID( \
-                ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
-        if args['format'] != 'csv':
-            params['the_geom'] = ', the_geom'
-        return FormaSql.WORLD_DOWNLOAD.format(**params)
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return FormaSql.WDPA_DOWNLOAD.format(**params)
+        else:
+            return FormaSql.WDPA.format(**params)
 
     @classmethod
     def classify_query(cls, args):
@@ -208,7 +347,4 @@ class FormaSql(Sql):
         elif 'wdpaid' in args:
             return 'wdpa'
         else:
-            if 'format' in args:
-                return 'world_download'
-            else:
-                return 'world'
+            return 'world'

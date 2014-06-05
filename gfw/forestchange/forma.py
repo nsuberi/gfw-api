@@ -22,11 +22,6 @@ import logging
 
 import sql
 from gfw import cdb
-from gfw import common
-
-
-API = "%s/forest-change/forma-alerts{/iso}{/id1}{?period,geojson,use,download}" \
-    % common.APP_BASE_URL
 
 
 META = {
@@ -38,7 +33,6 @@ META = {
     "source": "MODIS",
     "units": "Alerts",
     "name": "FORMA",
-    "api_url": API,
     "id": "forma-alerts"
 }
 

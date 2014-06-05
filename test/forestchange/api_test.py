@@ -15,17 +15,40 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Unit test coverage for gfw.common"""
+"""Unit test coverage for the gfw.forestchange.api module.
 
+These test the actual RequestHandlers in the api module for both analysis
+and download queries. This doesn't test the CartoDB SQL used. See the
+test/gfw.forestchange.sql for that.
+"""
+
+import itertools
 import json
+import requests
 import unittest
 import webapp2
 import webtest
 
+from contextlib import closing
+
 from google.appengine.ext import testbed
 
-from gfw.forestchange import api, args
+from gfw.forestchange import api, args, sql
 from gfw import common
+
+
+def combos(params, repeat=None, min=None):
+    """Returns a sequence of param tuples (name, value)."""
+    result = set()
+    if not repeat:
+        repeat = len(params) + 1
+    if not min:
+        min = 1
+    for x in range(min, repeat):
+        result.update(itertools.combinations(params, x))
+    result = list(result)
+    result.append(())
+    return result
 
 
 class BaseTest(unittest.TestCase):
@@ -50,60 +73,163 @@ class BaseTest(unittest.TestCase):
 
         self.testapp = webtest.TestApp(app)
 
+        self.content_types = dict(
+            csv='text/csv',
+            kml='application/kml',
+            geojson='application/json',
+            svg='image/svg+xml',
+            shp='application/zip'
+        )
+
     def tearDown(self):
         self.testbed.deactivate()
 
+    def fetch(self, url, fmt):
+        with closing(requests.get(url, stream=True)) as r:
+            return r
 
-class FormaTest(BaseTest):
+    def download_helper(self, path, args={}):
+        """Test download for supplied path and args."""
+        for fmt in ['csv', 'geojson', 'kml', 'shp', 'svg']:
+            args['download'] = 'file.%s' % fmt
+            r = self.testapp.get(path, args)
+            self.assertEqual(302, r.status_code)
+            self.assertIn('location', r.headers)
+            self.assertIn('http://wri-01.cartodb.com', r.headers['location'])
+            response = self.fetch(r.headers['location'], fmt)
+            if response.status_code != 200:
+                print '\nERROR - %s\n%s\n%s\n%s\n' % \
+                    (path, args, response.json(), r.headers['location'])
+            else:
+                self.assertIn(
+                    self.content_types[fmt], response.headers['Content-Type'])
 
-    def test_all(self):
+
+class FormaAllHandlerTest(BaseTest):
+    """Test for the FormaAllHandler."""
+
+    def setUp(self):
+        super(FormaAllHandlerTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('period', '2008-01-01,2009-01-01'),
+            ('geojson', json.dumps({
+                "type": "Polygon",
+                "coordinates": [
+                    [[-51.50390625, -11.695272733029402],
+                     [-51.50390625, -13.154376055418515],
+                     [-49.21875, -13.154376055418515],
+                     [-49.21875, -11.60919340793894],
+                     [-51.50390625, -11.695272733029402]]]}))]
+
+    def test_get(self):
         path = r'/forest-change/forma-alerts'
-        print '\n%s...' % path
-        response = self.testapp.get(path, dict())
-        self.assertIn('value', response.json)
-        self.assertEqual(200, response.status_code)
 
-    def test_iso(self):
+        for combo in combos(self.args):
+            args = dict(combo)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertEqual(200, r.status_code)
+            self.download_helper(path, args)
+
+
+class FormaIsoHandlerTest(BaseTest):
+
+    """Test for the FormaIsoHandler."""
+
+    def setUp(self):
+        super(FormaIsoHandlerTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('period', '2008-01-01,2009-01-01')]
+
+    def test_get(self):
         path = r'/forest-change/forma-alerts/admin/bra'
-        print '\n%s...' % path
-        response = self.testapp.get(path, dict(bust=1))
-        self.assertIn('iso', response.json)
-        self.assertIn('value', response.json)
-        self.assertEqual(200, response.status_code)
 
-    def test_id1(self):
+        for combo in combos(self.args):
+            args = dict(combo)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('iso', r.json)
+            self.assertEqual(200, r.status_code)
+            self.download_helper(path, args)
+
+
+class FormaIsoId1HandlerTest(BaseTest):
+
+    """Test for the FormaIsoId1Handler."""
+
+    def setUp(self):
+        super(FormaIsoId1HandlerTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('period', '2008-01-01,2009-01-01')]
+
+    def test_get(self):
         path = r'/forest-change/forma-alerts/admin/bra/1'
-        print '\n%s...' % path
-        response = self.testapp.get(path, dict(bust=1))
-        self.assertIn('iso', response.json)
-        self.assertEqual('bra', response.json['iso'])
-        self.assertIn('id1', response.json)
-        self.assertEqual('1', response.json['id1'])
-        self.assertIn('value', response.json)
-        self.assertEqual(200, response.status_code)
 
-    def test_wdpa(self):
-        path = r'/forest-change/forma-alerts/wdpa/390'
-        print '\n%s...' % path
-        response = self.testapp.get(path, dict(bust=1))
-        self.assertIn('wdpaid', response.json)
-        self.assertEqual('390', response.json['wdpaid'])
-        self.assertIn('value', response.json)
-        self.assertEqual(200, response.status_code)
+        for combo in combos(self.args):
+            args = dict(combo)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('iso', r.json)
+            self.assertEqual('bra', r.json['iso'])
+            self.assertIn('id1', r.json)
+            self.assertEqual('1', r.json['id1'])
+            self.assertEqual(200, r.status_code)
+            self.download_helper(path, args)
 
-    def test_use(self):
+
+class FormaUseHandlerTest(BaseTest):
+
+    """Test for the FormaUseHandler."""
+
+    def setUp(self):
+        super(FormaUseHandlerTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('period', '2008-01-01,2009-01-01')]
+
+    def test_get(self):
         path = r'/forest-change/forma-alerts/use/logging/1'
-        print '\n%s...' % path
-        response = self.testapp.get(path, dict(bust=1))
-        self.assertIn('useid', response.json)
-        self.assertEqual('1', response.json['useid'])
-        self.assertIn('use', response.json)
-        self.assertEqual('logging', response.json['use'])
-        self.assertIn('value', response.json)
-        self.assertEqual(200, response.status_code)
+
+        for combo in combos(self.args):
+            args = dict(combo)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('useid', r.json)
+            self.assertEqual('1', r.json['useid'])
+            self.assertIn('use', r.json)
+            self.assertEqual('logging', r.json['use'])
+            self.assertEqual(200, r.status_code)
+            self.download_helper(path, args)
+
+
+class FormaWdpaHandlerTest(BaseTest):
+
+    """Test for the FormaWdpaHandler."""
+
+    def setUp(self):
+        super(FormaWdpaHandlerTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('period', '2008-01-01,2009-01-01')]
+
+    def test_get(self):
+        path = r'/forest-change/forma-alerts/wdpa/8950'
+
+        for combo in combos(self.args):
+            args = dict(combo)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('wdpaid', r.json)
+            self.assertEqual('8950', r.json['wdpaid'])
+            self.assertEqual(200, r.status_code)
+            self.download_helper(path, args)
 
 if __name__ == '__main__':
     reload(common)
     reload(api)
     reload(args)
+    reload(sql)
     unittest.main(exit=False)

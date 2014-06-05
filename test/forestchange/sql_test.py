@@ -15,7 +15,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Unit test coverage for gfw.forestchange.args"""
+"""Unit test coverage for the gfw.forestchange.sql module.
+
+These tests take the SQL generated from the sql module, hit the
+CartoDB SQL API with it, and check the response for any errors.
+"""
 
 import json
 import unittest
@@ -57,6 +61,24 @@ class BaseTest(unittest.TestCase):
 
 
 class SqlTest(BaseTest):
+
+    def test_get_query_type(self):
+        f = sql.FormaSql.get_query_type
+        args = dict(format='csv')
+        query_type, params = f({}, args)
+        self.assertEqual('download', query_type)
+        self.assertNotIn('the_geom', params)
+
+        args = dict(format='shp')
+        query_type, params = f({}, args)
+        self.assertEqual('download', query_type)
+        self.assertIn('the_geom', params)
+        self.assertEqual(', the_geom', params['the_geom'])
+
+        args = dict()
+        query_type, params = f({}, args)
+        self.assertEqual('analysis', query_type)
+        self.assertNotIn('the_geom', params)
 
     def test_classify_query(self):
         f = sql.FormaSql.classify_query

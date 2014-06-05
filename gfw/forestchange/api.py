@@ -81,9 +81,6 @@ class FormaAllHandler(APIHandler):
             logging.exception(e)
             self.write_error(400, e.message)
 
-    def post(self):
-        self.get()
-
 
 class FormaIsoHandler(APIHandler):
     """"Handler for /forest-change/forma-alerts/admin/{iso}"""
@@ -176,7 +173,7 @@ handlers = webapp2.WSGIApplication([
     (r'/forest-change', Handler),
 
     # FORMA endpoints
-    (r'/forest-change/forma-alerts', APIHandler),
+    (r'/forest-change/forma-alerts', FormaAllHandler),
     (r'/forest-change/forma-alerts/admin/[A-z]{3,3}', FormaIsoHandler),
     (r'/forest-change/forma-alerts/admin/[A-z]{3,3}/\d+', FormaIsoId1Handler),
     (r'/forest-change/forma-alerts/wdpa/\d+', FormaWdpaHandler),
