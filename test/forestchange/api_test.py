@@ -33,7 +33,8 @@ from contextlib import closing
 
 from google.appengine.ext import testbed
 
-from gfw.forestchange import api, args, sql
+from gfw.forestchange import args, sql
+from gfw.forestchange import forma_api as api
 from gfw import common
 
 

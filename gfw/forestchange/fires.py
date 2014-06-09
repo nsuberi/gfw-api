@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module provides functions for dealing with FORMA data."""
+"""This module provides functions for dealing with NASA fires."""
 
 import json
 import logging
@@ -23,15 +23,27 @@ import logging
 import sql
 from gfw import cdb
 
+META = {
+    "description": "Displays fire alert data for the past 7 days.",
+    "resolution": "1000 x 1000 meters",
+    "coverage": "Global",
+    "timescale": "Past 7 days",
+    "updates": "Daily",
+    "source": "MODIS",
+    "units": "Fires",
+    "name": "NASA Active Fires",
+    "id": "nasa-fires"
+}
+
 
 def _query_response(response, params, query):
-    """Return world response."""
     if response.status_code == 200:
         rows = json.loads(response.content)['rows']
         if rows:
             result = rows[0]
         else:
             result = {'value': 0}
+        result.update(META)
         result.update(params)
         if 'geojson' in params:
             result['geojson'] = json.loads(params['geojson'])
@@ -39,14 +51,13 @@ def _query_response(response, params, query):
             result['dev'] = {'sql': query}
         return result
     else:
-        logging.info(query)
+        logging.exception(query)
         raise Exception(response.content)
 
 
 def execute(args):
-    logging.info(args)
     try:
-        query = sql.FormaSql.process(args)
+        query = sql.FiresSql.process(args)
         if 'format' in args:
             return 'redirect', cdb.get_url(query, args)
         else:
