@@ -22,7 +22,7 @@ import logging
 from gfw.forestchange import forma, args
 from gfw.common import CORSRequestHandler, APP_BASE_URL
 
-FORMA_API_BASE = '%s/forma-alerts' % APP_BASE_URL
+FORMA_API_BASE = '%s/forest-change/forma-alerts' % APP_BASE_URL
 
 FORMA_META = {
     'meta': {

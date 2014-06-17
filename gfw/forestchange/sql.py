@@ -41,7 +41,7 @@ class FiresSql(Sql):
     # Worldwide query
     WORLD = """
         SELECT
-           count(pt.*)
+           count(pt.*) AS value
         FROM
            global_7d pt
         WHERE
@@ -50,115 +50,121 @@ class FiresSql(Sql):
            {geojson}"""
 
     # Worldwide download
-    WORLD_DOWNLOAD = """
-        SELECT
-           iso country_iso_code,
-           to_char(date, 'YYYY-MM-DD') as year_month_day,
-           lat,
-           lon
-           {the_geom}
-        FROM
-           forma_api t
-        WHERE
-            date >= '{begin}'::date
-            AND date <= '{end}'::date
-            {geojson}"""
+    # WORLD_DOWNLOAD = """
+    #     SELECT
+    #        iso country_iso_code,
+    #        to_char(date, 'YYYY-MM-DD') as year_month_day,
+    #        lat,
+    #        lon
+    #        {the_geom}
+    #     FROM
+    #        forma_api t
+    #     WHERE
+    #         date >= '{begin}'::date
+    #         AND date <= '{end}'::date
+    #         {geojson}"""
 
     # Query by country:
     ISO = """
         SELECT
-           t.iso,
-           count(t.*) AS value
+           p.iso,
+           count(pt.*) AS value
         FROM
-           forma_api t
+           global_7d pt,
+           (SELECT
+              *
+           FROM
+              gadm2
+           WHERE
+              iso=UPPER('{iso}')) as p
         WHERE
-            date >= '{begin}'::date
-            AND date <= '{end}'::date
-            AND iso = UPPER('{iso}')
+           ST_Intersects(pt.the_geom, p.the_geom)
+           AND acq_date >= '{begin}'::date
+           AND acq_date <= '{end}'::date
         GROUP BY
-           t.iso"""
+           p.iso"""
 
     # Download query by country:
-    ISO_DOWNLOAD = """
-        SELECT
-           iso country_iso_code,
-           to_char(date, 'YYYY-MM-DD') as year_month_day,
-           lat,
-           lon
-           {the_geom}
-        FROM
-           forma_api t
-        WHERE
-            date >= '{begin}'::date
-            AND date <= '{end}'::date
-            AND iso = UPPER('{iso}')
-        GROUP BY
-           t.iso,
-           t.date,
-           t.lat,
-           t.lon,
-           t.the_geom"""
+    # ISO_DOWNLOAD = """
+    #     SELECT
+    #        iso country_iso_code,
+    #        to_char(date, 'YYYY-MM-DD') as year_month_day,
+    #        lat,
+    #        lon
+    #        {the_geom}
+    #     FROM
+    #        forma_api t
+    #     WHERE
+    #         date >= '{begin}'::date
+    #         AND date <= '{end}'::date
+    #         AND iso = UPPER('{iso}')
+    #     GROUP BY
+    #        t.iso,
+    #        t.date,
+    #        t.lat,
+    #        t.lon,
+    #        t.the_geom"""
 
     # Query by country and administrative unit 1:
+
     ID1 = """
         SELECT
-           g.id_1 AS id1,
-           count(*) AS value
+           p.id_1 AS id1,
+           p.iso AS iso,
+           count(pt.*) AS value
         FROM
-           forma_api t
-        INNER JOIN
-           (
-              SELECT
-                 *
-              FROM
-                 gadm2
-              WHERE
-                 id_1 = {id1}
-                 AND iso = UPPER('{iso}')
-           ) g
-              ON t.gadm2::int = g.objectid
+           global_7d pt,
+           (SELECT
+              *
+           FROM
+              gadm2
+           WHERE
+              iso=UPPER('{iso}')
+              AND id_1={id1}) as p
         WHERE
-           t.date >= '{begin}'::date
-           AND t.date <= '{end}'::date
+           ST_Intersects(pt.the_geom, p.the_geom)
+           AND acq_date::date >= '{begin}'::date
+           AND acq_date::date <= '{end}'::date
         GROUP BY
-           id1
+           p.id_1,
+           p.iso
         ORDER BY
-           id1"""
+           p.id_1"""
 
     # Download by country and administrative unit 1:
-    ID1_DOWNLOAD = """
-        SELECT
-           g.id_1 AS id1,
-           t.iso country_iso_code,
-           to_char(date, 'YYYY-MM-DD') as year_month_day,
-           lat,
-           lon
-           {the_geom}
-        FROM
-           forma_api t
-        INNER JOIN
-           (
-              SELECT
-                 *
-              FROM
-                 gadm2
-              WHERE
-                 id_1 = {id1}
-                 AND iso = UPPER('{iso}')
-           ) g
-              ON t.gadm2::int = g.objectid
-        WHERE
-           t.date >= '{begin}'::date
-           AND t.date <= '{end}'::date
-        GROUP BY
-           id1,
-           t.iso,
-           t.date,
-           t.lat,
-           t.lon,
-           t.the_geom
-        ORDER BY
-           id1"""
+    # ID1_DOWNLOAD = """
+    #     SELECT
+    #        g.id_1 AS id1,
+    #        t.iso country_iso_code,
+    #        to_char(date, 'YYYY-MM-DD') as year_month_day,
+    #        lat,
+    #        lon
+    #        {the_geom}
+    #     FROM
+    #        forma_api t
+    #     INNER JOIN
+    #        (
+    #           SELECT
+    #              *
+    #           FROM
+    #              gadm2
+    #           WHERE
+    #              id_1 = {id1}
+    #              AND iso = UPPER('{iso}')
+    #        ) g
+    #           ON t.gadm2::int = g.objectid
+    #     WHERE
+    #        t.date >= '{begin}'::date
+    #        AND t.date <= '{end}'::date
+    #     GROUP BY
+    #        id1,
+    #        t.iso,
+    #        t.date,
+    #        t.lat,
+    #        t.lon,
+    #        t.the_geom
+    #     ORDER BY
+    #        id1"""
 
     # Query by concession use and concession polygon cartodb_id:
     USE = """
@@ -283,9 +289,9 @@ class FiresSql(Sql):
                 ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
-            return FormaSql.WORLD_DOWNLOAD.format(**params)
+            return cls.WORLD_DOWNLOAD.format(**params)
         else:
-            return FormaSql.WORLD.format(**params)
+            return cls.WORLD.format(**params)
 
     @classmethod
     def use(cls, params, args):
@@ -300,29 +306,29 @@ class FiresSql(Sql):
         query_type, params = cls.get_query_type(
             params, args, the_geom_table='f')
         if query_type == 'download':
-            return FormaSql.USE_DOWNLOAD.format(**params)
+            return cls.USE_DOWNLOAD.format(**params)
         else:
-            return FormaSql.USE.format(**params)
+            return cls.USE.format(**params)
 
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
-            return FormaSql.ISO_DOWNLOAD.format(**params)
+            return cls.ISO_DOWNLOAD.format(**params)
         else:
-            return FormaSql.ISO.format(**params)
+            return cls.ISO.format(**params)
 
     @classmethod
     def id1(cls, params, args):
         params['iso'] = args['iso']
         params['id1'] = args['id1']
         query_type, params = cls.get_query_type(
-            params, args, the_geom_table='t')
+            params, args, the_geom_table='pt')
         if query_type == 'download':
-            return FormaSql.ID1_DOWNLOAD.format(**params)
+            return cls.ID1_DOWNLOAD.format(**params)
         else:
-            return FormaSql.ID1.format(**params)
+            return cls.ID1.format(**params)
 
     @classmethod
     def wdpa(cls, params, args):
@@ -330,9 +336,9 @@ class FiresSql(Sql):
         query_type, params = cls.get_query_type(
             params, args, the_geom_table='f')
         if query_type == 'download':
-            return FormaSql.WDPA_DOWNLOAD.format(**params)
+            return cls.WDPA_DOWNLOAD.format(**params)
         else:
-            return FormaSql.WDPA.format(**params)
+            return cls.WDPA.format(**params)
 
     @classmethod
     def classify_query(cls, args):
@@ -597,9 +603,9 @@ class FormaSql(Sql):
                 ST_GeomFromGeoJSON('%s'),4326),the_geom)" % args['geojson']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
-            return FormaSql.WORLD_DOWNLOAD.format(**params)
+            return cls.WORLD_DOWNLOAD.format(**params)
         else:
-            return FormaSql.WORLD.format(**params)
+            return cls.WORLD.format(**params)
 
     @classmethod
     def use(cls, params, args):
@@ -614,18 +620,18 @@ class FormaSql(Sql):
         query_type, params = cls.get_query_type(
             params, args, the_geom_table='f')
         if query_type == 'download':
-            return FormaSql.USE_DOWNLOAD.format(**params)
+            return cls.USE_DOWNLOAD.format(**params)
         else:
-            return FormaSql.USE.format(**params)
+            return cls.USE.format(**params)
 
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
-            return FormaSql.ISO_DOWNLOAD.format(**params)
+            return cls.ISO_DOWNLOAD.format(**params)
         else:
-            return FormaSql.ISO.format(**params)
+            return cls.ISO.format(**params)
 
     @classmethod
     def id1(cls, params, args):
@@ -634,9 +640,9 @@ class FormaSql(Sql):
         query_type, params = cls.get_query_type(
             params, args, the_geom_table='t')
         if query_type == 'download':
-            return FormaSql.ID1_DOWNLOAD.format(**params)
+            return cls.ID1_DOWNLOAD.format(**params)
         else:
-            return FormaSql.ID1.format(**params)
+            return cls.ID1.format(**params)
 
     @classmethod
     def wdpa(cls, params, args):
@@ -644,9 +650,9 @@ class FormaSql(Sql):
         query_type, params = cls.get_query_type(
             params, args, the_geom_table='f')
         if query_type == 'download':
-            return FormaSql.WDPA_DOWNLOAD.format(**params)
+            return cls.WDPA_DOWNLOAD.format(**params)
         else:
-            return FormaSql.WDPA.format(**params)
+            return cls.WDPA.format(**params)
 
     @classmethod
     def classify_query(cls, args):

@@ -23,18 +23,6 @@ import logging
 import sql
 from gfw import cdb
 
-META = {
-    "description": "Displays fire alert data for the past 7 days.",
-    "resolution": "1000 x 1000 meters",
-    "coverage": "Global",
-    "timescale": "Past 7 days",
-    "updates": "Daily",
-    "source": "MODIS",
-    "units": "Fires",
-    "name": "NASA Active Fires",
-    "id": "nasa-fires"
-}
-
 
 def _query_response(response, params, query):
     if response.status_code == 200:
@@ -43,7 +31,6 @@ def _query_response(response, params, query):
             result = rows[0]
         else:
             result = {'value': 0}
-        result.update(META)
         result.update(params)
         if 'geojson' in params:
             result['geojson'] = json.loads(params['geojson'])
@@ -63,5 +50,5 @@ def execute(args):
         else:
             action, response = 'respond', cdb.execute(query)
             return action, _query_response(response, args, query)
-    except sql.SqlError, e:
+    except (sql.SqlError, Exception) as e:
         return 'error', e
