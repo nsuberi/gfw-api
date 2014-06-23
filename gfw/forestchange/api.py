@@ -85,6 +85,9 @@ class FormaAllHandler(APIHandler):
 
     PARAMS = ['period', 'download', 'geojson', 'dev', 'bust']
 
+    def post(self):
+        self.get()
+
     def get(self):
         try:
             raw_args = self.args(only=self.PARAMS)
@@ -104,6 +107,9 @@ class FormaIsoHandler(APIHandler):
     def iso_from_path(cls, path):
         """Return iso code from supplied request path."""
         return path.split('/')[4]
+
+    def post(self):
+        self.get()
 
     def get(self):
         try:
@@ -125,6 +131,9 @@ class FormaIsoId1Handler(APIHandler):
     def iso_id1_from_path(cls, path):
         """Return iso code and id1 from supplied request path."""
         return path.split('/')[4], path.split('/')[5]
+
+    def post(self):
+        self.get()
 
     def get(self):
         try:
@@ -149,6 +158,9 @@ class FormaWdpaHandler(APIHandler):
         """Return wdpaid from supplied request path."""
         return path.split('/')[4]
 
+    def post(self):
+        self.get()
+
     def get(self):
         try:
             raw_args = self.args(only=self.PARAMS)
@@ -169,6 +181,9 @@ class FormaUseHandler(APIHandler):
     def use_useid_from_path(cls, path):
         """Return nameid from supplied request path."""
         return path.split('/')[4], path.split('/')[5]
+
+    def post(self):
+        self.get()
 
     def get(self):
         try:

@@ -27,7 +27,7 @@ from hashlib import md5
 
 class CORSRequestHandler(webapp2.RequestHandler):
 
-    def options(self, dataset):
+    def options(self):
         """Options to support CORS requests."""
         self.response.headers['Access-Control-Allow-Origin'] = '*'
         self.response.headers['Access-Control-Allow-Headers'] = \
