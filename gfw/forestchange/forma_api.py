@@ -22,34 +22,6 @@ import logging
 from gfw.forestchange import forma, args
 from gfw.common import CORSRequestHandler, APP_BASE_URL
 
-FORMA_API_BASE = '%s/forest-change/forma-alerts' % APP_BASE_URL
-
-FORMA_META = {
-    'meta': {
-        "description": "Forest disturbances alerts.",
-        "resolution": "500 x 500 meters",
-        "coverage": "Humid tropical forest biome",
-        "timescale": "January 2006 to present",
-        "updates": "16 day",
-        "source": "MODIS",
-        "units": "Alerts",
-        "name": "FORMA",
-        "id": "forma-alerts"
-    },
-    'apis': {
-        'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API_BASE,
-        'national': '%s/admin{/iso}{?period,download,bust,dev}' %
-        FORMA_API_BASE,
-        'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
-        FORMA_API_BASE,
-        'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
-        FORMA_API_BASE,
-        'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
-        FORMA_API_BASE
-    }
-}
-
-
 class FormaAllHandler(CORSRequestHandler):
     """Handler for /forest-change/forma-alerts"""
 
@@ -61,8 +33,6 @@ class FormaAllHandler(CORSRequestHandler):
             query_args = args.process(raw_args)
             rid = self.get_id(query_args)
             action, data = self.get_or_execute(query_args, forma, rid)
-            if action != 'redirect':
-                data.update(FORMA_META['meta'])
             self.complete(action, data)
         except args.ArgError, e:
             logging.exception(e)

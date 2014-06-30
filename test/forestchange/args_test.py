@@ -39,6 +39,15 @@ class BaseTest(unittest.TestCase):
         self.testbed.deactivate()
 
 
+class PathProcessorTest(BaseTest):
+
+    def test_process_path(self):
+        path = '/forest-change/forma-alerts/admin/bra'
+        value = args.process_path(path, 'iso')
+
+        self.assertEqual('bra', value['iso'])
+
+
 class ArgsTest(BaseTest):
 
     def test_period(self):

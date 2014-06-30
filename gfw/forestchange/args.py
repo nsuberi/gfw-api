@@ -21,6 +21,10 @@ import datetime
 import json
 
 
+def process_path(path, param):
+    return PathProcessor.process(path, param)
+
+
 def process(args):
     return ArgProcessor.process(args)
 
@@ -92,6 +96,21 @@ class WdpaIdArgError(ArgError):
     def __init__(self):
         msg = 'Invalid wdpaid parameter! Usage: %s' % self.USAGE
         super(WdpaIdArgError, self).__init__(msg)
+
+
+class PathProcessor():
+    @classmethod
+    def iso(cls, path):
+        try:
+            return path.split('/')[4]
+        except:
+            raise Exception('Unable to process iso from request path')
+
+    @classmethod
+    def process(cls, path, param):
+        """Process parameter from supplied request path"""
+        if hasattr(cls, param):
+            return {param: getattr(cls, param)(path)}
 
 
 class ArgProcessor():
