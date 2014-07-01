@@ -44,8 +44,23 @@ class PathProcessorTest(BaseTest):
     def test_process_path(self):
         path = '/forest-change/forma-alerts/admin/bra'
         value = args.process_path(path, 'iso')
+        self.assertEqual({'iso': 'bra'}, value)
 
-        self.assertEqual('bra', value['iso'])
+        path = '/forest-change/forma-alerts/admin/bra/123'
+        value = args.process_path(path, 'iso', 'id1')
+        self.assertEqual({'iso': 'bra', 'id1': '123'}, value)
+
+        path = '/forest-change/forma-alerts/admin/bra/123'
+        value = args.process_path(path, 'iso', 'id1')
+        self.assertEqual({'iso': 'bra', 'id1': '123'}, value)
+
+        path = '/forest-change/forma-alerts/wdpa/123'
+        value = args.process_path(path, 'wdpaid')
+        self.assertEqual({'wdpaid': '123'}, value)
+
+        path = '/forest-change/forma-alerts/use/logging/123'
+        value = args.process_path(path, 'use', 'useid')
+        self.assertEqual({'use': 'logging', 'useid': '123'}, value)
 
 
 class ArgsTest(BaseTest):

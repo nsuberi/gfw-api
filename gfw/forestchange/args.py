@@ -21,8 +21,8 @@ import datetime
 import json
 
 
-def process_path(path, param):
-    return PathProcessor.process(path, param)
+def process_path(path, *params):
+    return PathProcessor.process(path, params)
 
 
 def process(args):
@@ -107,10 +107,41 @@ class PathProcessor():
             raise Exception('Unable to process iso from request path')
 
     @classmethod
-    def process(cls, path, param):
+    def id1(cls, path):
+        try:
+            return path.split('/')[5]
+        except:
+            raise Exception('Unable to process id1 from request path')
+
+    @classmethod
+    def wdpaid(cls, path):
+        try:
+            return path.split('/')[4]
+        except:
+            raise Exception('Unable to process wpdaid from request path')
+
+    @classmethod
+    def use(cls, path):
+        try:
+            return path.split('/')[4]
+        except:
+            raise Exception('Unable to process nameid from request path')
+
+    @classmethod
+    def useid(cls, path):
+        try:
+            return path.split('/')[5]
+        except:
+            raise Exception('Unable to process nameid from request path')
+
+    @classmethod
+    def process(cls, path, params):
         """Process parameter from supplied request path"""
-        if hasattr(cls, param):
-            return {param: getattr(cls, param)(path)}
+        result = {}
+        for param in params:
+            if hasattr(cls, param):
+                result.update({param: getattr(cls, param)(path)})
+        return result
 
 
 class ArgProcessor():

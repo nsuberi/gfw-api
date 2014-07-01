@@ -136,12 +136,12 @@ class BaseTest(unittest.TestCase):
 #             self.download_helper(path, args)
 
 
-class FormaIsoHandlerTest(BaseTest):
+class FunctionsTest(BaseTest):
 
     """Test for the FormaIsoHandler."""
 
     def setUp(self):
-        super(FormaIsoHandlerTest, self).setUp()
+        super(FunctionsTest, self).setUp()
         self.args = [
             ('bust', 1),
             ('period', '2008-01-01,2009-01-01')]
