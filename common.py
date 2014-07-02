@@ -62,6 +62,7 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.out.write(str(data))
 
     def args(self):
+        1/0
         if not self.request.arguments():
             if self.request.body:
                 return json.loads(self.request.body)

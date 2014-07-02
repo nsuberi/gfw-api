@@ -98,6 +98,14 @@ class WdpaIdArgError(ArgError):
         super(WdpaIdArgError, self).__init__(msg)
 
 
+class ThreshArgError(ArgError):
+    USAGE = """thresh must be either 10, 15, 20, 25, 30, 50, 75"""
+
+    def __init__(self):
+        msg = 'Invalid wdpaid parameter! Usage: %s' % self.USAGE
+        super(ThreshArgError, self).__init__(msg)
+
+
 class PathProcessor():
     @classmethod
     def iso(cls, path):
@@ -145,6 +153,16 @@ class PathProcessor():
 
 
 class ArgProcessor():
+
+    @classmethod
+    def thresh(cls, value):
+        try:
+            if int(value) in [10, 15, 20, 25, 30, 50, 75]:
+                return dict(thresh=value)
+            else:
+                raise
+        except:
+            raise ThreshArgError()
 
     @classmethod
     def period(cls, value):

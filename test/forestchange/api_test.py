@@ -23,7 +23,6 @@ test/gfw.forestchange.sql for that.
 """
 
 import itertools
-import json
 import requests
 import unittest
 import webapp2

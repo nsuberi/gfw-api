@@ -32,8 +32,44 @@ class FormaSqlError(SqlError):
         super(FormaSqlError, self).__init__(msg)
 
 
-class Sql():
-    pass
+class Sql(object):
+
+    @classmethod
+    def get_query_type(cls, params, args, the_geom_table=''):
+        """Return query type (download or analysis) with updated params."""
+        query_type = 'analysis'
+        if 'format' in args:
+            query_type = 'download'
+            if args['format'] != 'csv':
+                the_geom = ', the_geom' \
+                    if not the_geom_table \
+                    else ', %s.the_geom' % the_geom_table
+                params['the_geom'] = the_geom
+        return query_type, params
+
+    @classmethod
+    def process(cls, args):
+        begin = args['begin'] if 'begin' in args else '1969-01-01'
+        end = args['end'] if 'end' in args else '3014-01-01'
+        params = dict(begin=begin, end=end, geojson='', the_geom='')
+        classification = cls.classify_query(args)
+        if hasattr(cls, classification):
+            return getattr(cls, classification)(params, args)
+
+    @classmethod
+    def classify_query(cls, args):
+        if 'iso' in args and not 'id1' in args:
+            return 'iso'
+        elif 'iso' in args and 'id1' in args:
+            return 'id1'
+        elif 'use' in args:
+            return 'use'
+        elif 'pa' in args:
+            return 'pa'
+        elif 'wdpaid' in args:
+            return 'wdpa'
+        else:
+            return 'world'
 
 
 class FiresSql(Sql):
@@ -354,6 +390,9 @@ class FiresSql(Sql):
             return 'wdpa'
         else:
             return 'world'
+
+
+
 
 
 class FormaSql(Sql):
