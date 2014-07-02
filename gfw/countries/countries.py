@@ -71,7 +71,7 @@ class CountrySql():
 
 def _handler(response):
     if response.status_code == 200:
-        data = json.loads(response.content, sort_keys=True)
+        data = json.loads(response.content)
         if 'rows' in data:
             return data['rows']
         else:

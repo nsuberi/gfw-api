@@ -81,7 +81,10 @@ class Handler(CORSRequestHandler):
 
             # Handle request
             params = dict(iso=iso)
+            bust = self.request.get('bust')
             rid = self.get_id(params)
+            if bust:
+                params['bust'] = 1
             action, data = self.get_or_execute(params, countries, rid)
             self.complete(action, data)
         except Exception, e:
