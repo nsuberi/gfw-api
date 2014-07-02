@@ -21,6 +21,10 @@ import datetime
 import json
 
 
+def process_path(path, *params):
+    return PathProcessor.process(path, params)
+
+
 def process(args):
     return ArgProcessor.process(args)
 
@@ -94,7 +98,75 @@ class WdpaIdArgError(ArgError):
         super(WdpaIdArgError, self).__init__(msg)
 
 
+class ThreshArgError(ArgError):
+    USAGE = """thresh must be either 10, 15, 20, 25, 30, 50, 75"""
+
+    def __init__(self):
+        msg = 'Invalid wdpaid parameter! Usage: %s' % self.USAGE
+        super(ThreshArgError, self).__init__(msg)
+
+
+class PathProcessor():
+    @classmethod
+    def iso(cls, path):
+        try:
+            return dict(iso=path.split('/')[4])
+        except:
+            raise Exception('Unable to process iso from request path')
+
+    @classmethod
+    def id1(cls, path):
+        try:
+            arg = dict(id1=path.split('/')[5])
+            arg.update(cls.iso(path))
+            return arg
+        except:
+            raise Exception('Unable to process id1 from request path')
+
+    @classmethod
+    def wdpaid(cls, path):
+        try:
+            return dict(wdpaid=path.split('/')[4])
+        except:
+            raise Exception('Unable to process wpdaid from request path')
+
+    @classmethod
+    def use(cls, path):
+        try:
+            arg = dict(use=path.split('/')[4])
+            arg.update(cls.useid(path))
+            return arg
+        except:
+            raise Exception('Unable to process name from request path')
+
+    @classmethod
+    def useid(cls, path):
+        try:
+            return dict(useid=path.split('/')[5])
+        except:
+            raise Exception('Unable to process nameid from request path')
+
+    @classmethod
+    def process(cls, path, params):
+        """Process parameter from supplied request path"""
+        result = {}
+        for param in params:
+            if hasattr(cls, param):
+                result.update(getattr(cls, param)(path))
+        return result
+
+
 class ArgProcessor():
+
+    @classmethod
+    def thresh(cls, value):
+        try:
+            if int(value) in [10, 15, 20, 25, 30, 50, 75]:
+                return dict(thresh=value)
+            else:
+                raise
+        except:
+            raise ThreshArgError()
 
     @classmethod
     def period(cls, value):

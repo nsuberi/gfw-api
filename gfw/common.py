@@ -22,6 +22,8 @@ import os
 import re
 import webapp2
 
+from google.appengine.api import memcache
+
 from hashlib import md5
 
 
@@ -55,6 +57,18 @@ class CORSRequestHandler(webapp2.RequestHandler):
         self.response.set_status(status, message=str(data))
         self.response.out.write(str(data))
 
+    @classmethod
+    def get_or_execute(cls, args, target, rid):
+        if 'bust' in args:
+            result = target.execute(args)
+        else:
+            result = memcache.get(rid)
+            if not result:
+                result = target.execute(args)
+                memcache.set(key=rid, value=result)
+        action, data = result
+        return action, data
+
     def args(self, only=[]):
         raw = {}
         if not self.request.arguments():
@@ -67,10 +81,22 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
         result = {}
         for key, val in raw.iteritems():
-            if key in only:
+            if only and key in only:
+                result[key] = val
+            else:
                 result[key] = val
 
         return result
+
+    def complete(self, action, data):
+        if action == 'respond':
+            self.write(json.dumps(data, sort_keys=True))
+        elif action == 'redirect':
+            self.redirect(data)
+        elif action == 'error':
+            self.write_error(400, data.message)
+        else:
+            self.write_error(400, 'Unknown action %s' % action)
 
     def get_id(self, params):
         whitespace = re.compile(r'\s+')

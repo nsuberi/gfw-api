@@ -1,5 +1,5 @@
 # Global Forest Watch API
-# Copyright (C) 2014 World Resource Institute
+# Copyright (C) 2013 World Resource Institute
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,39 +15,36 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports acessing FORMA data."""
+"""This module supports accessing UMD data."""
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
+from gfw.forestchange.common import classify_query
 
 
-class FormaSql(Sql):
+class UmdSql(Sql):
 
     ISO = """
-        SELECT t.iso, count(t.*) AS value
-        FROM forma_api t
-        WHERE date >= '{begin}'::date
-              AND date <= '{end}'::date
-              AND iso = UPPER('{iso}')
-        GROUP BY t.iso"""
+        SELECT iso, country, year, thresh, extent, extent_perc, loss,
+               loss_perc, gain, gain_perc
+        FROM umd_nat
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+        ORDER BY year"""
 
     ID1 = """
-        SELECT g.id_1 AS id1, count(*) AS value
-        FROM forma_api t
-        INNER JOIN (
-            SELECT *
-            FROM gadm2
-            WHERE id_1 = {id1}
-                  AND iso = UPPER('{iso}')) g
-            ON t.gadm2::int = g.objectid
-        WHERE t.date >= '{begin}'::date
-              AND t.date <= '{end}'::date
-        GROUP BY id1
-        ORDER BY id1"""
+        SELECT iso, country, region, year, thresh, extent, extent_perc, loss,
+               loss_perc, gain, gain_perc, id1
+        FROM umd_subnat
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+              AND id1 = {id1}
+        ORDER BY year"""
 
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
+        params['thresh'] = args['thresh']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
             return cls.ISO.format(**params)
@@ -58,6 +55,7 @@ class FormaSql(Sql):
     def id1(cls, params, args):
         params['iso'] = args['iso']
         params['id1'] = args['id1']
+        params['thresh'] = args['thresh']
         query_type, params = cls.get_query_type(params, args)
         if query_type == 'download':
             return cls.ID1.format(**params)
@@ -65,18 +63,33 @@ class FormaSql(Sql):
             return cls.ID1.format(**params)
 
 
-def _processResults(action, data):
-    if data['rows']:
-        result = data['rows'][0]
-        data.pop('rows')
-    else:
-        result = dict(value=0)
+def _executeIso(args):
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    rows = data['rows']
+    data.pop('rows')
+    data['years'] = rows
+    return action, data
 
-    data['value'] = result['value']
 
+def _executeId1(args):
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    rows = data['rows']
+    data.pop('rows')
+    data['years'] = rows
     return action, data
 
 
 def execute(args):
-    action, data = CartoDbExecutor.execute(args, FormaSql)
-    return _processResults(action, data)
+    query_type = classify_query(args)
+
+    # Set default threshold
+    if not 'thresh' in args:
+        args['thresh'] = 10
+
+    if query_type == 'iso':
+        return _executeIso(args)
+    elif query_type == 'id1':
+        return _executeId1(args)
+
+
+    # TODO: Query new EE assets

@@ -39,6 +39,26 @@ class BaseTest(unittest.TestCase):
         self.testbed.deactivate()
 
 
+class PathProcessorTest(BaseTest):
+
+    def test_process_path(self):
+        path = '/forest-change/forma-alerts/admin/bra'
+        value = args.process_path(path, 'iso')
+        self.assertEqual({'iso': 'bra'}, value)
+
+        path = '/forest-change/forma-alerts/admin/bra/123'
+        value = args.process_path(path, 'id1')
+        self.assertEqual({'iso': 'bra', 'id1': '123'}, value)
+
+        path = '/forest-change/forma-alerts/wdpa/123'
+        value = args.process_path(path, 'wdpaid')
+        self.assertEqual({'wdpaid': '123'}, value)
+
+        path = '/forest-change/forma-alerts/use/logging/123'
+        value = args.process_path(path, 'use')
+        self.assertEqual({'use': 'logging', 'useid': '123'}, value)
+
+
 class ArgsTest(BaseTest):
 
     def test_period(self):

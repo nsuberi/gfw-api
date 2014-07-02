@@ -23,7 +23,6 @@ test/gfw.forestchange.sql for that.
 """
 
 import itertools
-import json
 import requests
 import unittest
 import webapp2
@@ -33,7 +32,8 @@ from contextlib import closing
 
 from google.appengine.ext import testbed
 
-from gfw.forestchange import api, args, sql
+from gfw.forestchange import args, sql
+from gfw.forestchange import api
 from gfw import common
 
 
@@ -62,15 +62,7 @@ class BaseTest(unittest.TestCase):
         self.testbed.init_urlfetch_stub()
         self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
 
-        BASE = r'/forest-change/forma-alerts'
-        app = webapp2.WSGIApplication([
-            (BASE + r'/wdpa/\d+', api.FormaWdpaHandler),
-            (BASE + r'/admin/[A-z]{3,3}/\d+', api.FormaIsoId1Handler),
-            (BASE + r'/admin/[A-z]{3,3}', api.FormaIsoHandler),
-            (BASE + r'/use/[A-z]+/\d+', api.FormaUseHandler),
-            (BASE, api.FormaAllHandler),
-            ])
-
+        app = webapp2.WSGIApplication([(r'/forest-change.*', api.Handler)])
         self.testapp = webtest.TestApp(app)
 
         self.content_types = dict(
@@ -105,131 +97,128 @@ class BaseTest(unittest.TestCase):
                     self.content_types[fmt], response.headers['Content-Type'])
 
 
-class FormaAllHandlerTest(BaseTest):
-    """Test for the FormaAllHandler."""
-
-    def setUp(self):
-        super(FormaAllHandlerTest, self).setUp()
-        self.args = [
-            ('bust', 1),
-            ('period', '2008-01-01,2009-01-01'),
-            ('geojson', json.dumps({
-                "type": "Polygon",
-                "coordinates": [
-                    [[-51.50390625, -11.695272733029402],
-                     [-51.50390625, -13.154376055418515],
-                     [-49.21875, -13.154376055418515],
-                     [-49.21875, -11.60919340793894],
-                     [-51.50390625, -11.695272733029402]]]}))]
-
-    def test_get(self):
-        path = r'/forest-change/forma-alerts'
-
-        for combo in combos(self.args):
-            args = dict(combo)
-            r = self.testapp.get(path, args)
-            self.assertIn('value', r.json)
-            self.assertEqual(200, r.status_code)
-            self.download_helper(path, args)
-
-
-class FormaIsoHandlerTest(BaseTest):
+class FunctionTest(unittest.TestCase):
 
     """Test for the FormaIsoHandler."""
 
     def setUp(self):
-        super(FormaIsoHandlerTest, self).setUp()
         self.args = [
             ('bust', 1),
             ('period', '2008-01-01,2009-01-01')]
 
-    def test_get(self):
+    def test_dataset_from_path(self):
+        path = '/forest-change/forma-alerts/admin/bra'
+        dataset = api._dataset_from_path(path)
+
+        self.assertEqual('forma-alerts', dataset)
+
+        path = '/forest-change/forma-alerts'
+        dataset = api._dataset_from_path(path)
+
+    def test_classify_request(self):
+        path = '/forest-change/forma-alerts'
+        self.assertEqual(('forma-alerts', 'all'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/admin/bra'
+        self.assertEqual(('forma-alerts', 'iso'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/admin/bra/123'
+        self.assertEqual(('forma-alerts', 'id1'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/wdpa/123'
+        self.assertEqual(('forma-alerts', 'wdpa'), api._classify_request(path))
+
+
+class UmdTest(BaseTest):
+
+    """Test for UMD requests."""
+
+    def setUp(self):
+        super(UmdTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('dev', 1),
+            ('thresh', 10)]
+
+    def testGetNational(self):
+        path = r'/forest-change/umd-loss-gain/admin/bra'
+
+        for thresh in [10, 15, 20, 25, 30, 50, 75]:
+            for combo in combos(self.args):
+                args = dict(combo)
+                args['thresh'] = thresh
+                print '%s %s' % (path, args)
+                r = self.testapp.get(path, args)
+                self.assertIn('years', r.json)
+                self.assertEqual(len(r.json['years']), 13)
+                self.assertIn('params', r.json)
+                self.assertIn('iso', r.json['params'])
+                self.assertEqual(r.json['params']['iso'], 'bra')
+                self.assertEqual(200, r.status_code)
+
+    def testGetSubnational(self):
+        path = r'/forest-change/umd-loss-gain/admin/bra/2'
+
+        for thresh in [10, 15, 20, 25, 30, 50, 75]:
+            for combo in combos(self.args):
+                args = dict(combo)
+                args['thresh'] = thresh
+                print '%s %s' % (path, args)
+                r = self.testapp.get(path, args)
+                self.assertIn('years', r.json)
+                self.assertEqual(len(r.json['years']), 13)
+                self.assertIn('params', r.json)
+                self.assertIn('iso', r.json['params'])
+                self.assertEqual(r.json['params']['iso'], 'bra')
+                self.assertIn('id1', r.json['params'])
+                self.assertEqual(r.json['params']['id1'], '2')
+                self.assertEqual(200, r.status_code)
+
+
+class FormaTest(BaseTest):
+
+    """Test for FORMA requests."""
+
+    def setUp(self):
+        super(FormaTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('dev', 1),
+            ('period', '2008-01-01,2014-01-01')]
+
+    def testGetNational(self):
         path = r'/forest-change/forma-alerts/admin/bra'
 
         for combo in combos(self.args):
             args = dict(combo)
+            print '%s %s' % (path, args)
             r = self.testapp.get(path, args)
             self.assertIn('value', r.json)
-            self.assertIn('iso', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
             self.assertEqual(200, r.status_code)
-            self.download_helper(path, args)
+            # self.download_helper(path, args)
 
-
-class FormaIsoId1HandlerTest(BaseTest):
-
-    """Test for the FormaIsoId1Handler."""
-
-    def setUp(self):
-        super(FormaIsoId1HandlerTest, self).setUp()
-        self.args = [
-            ('bust', 1),
-            ('period', '2008-01-01,2009-01-01')]
-
-    def test_get(self):
-        path = r'/forest-change/forma-alerts/admin/bra/1'
+    def testGetSubnational(self):
+        path = r'/forest-change/forma-alerts/admin/bra/2'
 
         for combo in combos(self.args):
             args = dict(combo)
+            print '%s %s' % (path, args)
             r = self.testapp.get(path, args)
             self.assertIn('value', r.json)
-            self.assertIn('iso', r.json)
-            self.assertEqual('bra', r.json['iso'])
-            self.assertIn('id1', r.json)
-            self.assertEqual('1', r.json['id1'])
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(r.json['params']['iso'], 'bra')
+            self.assertIn('id1', r.json['params'])
+            self.assertEqual(r.json['params']['id1'], '2')
             self.assertEqual(200, r.status_code)
-            self.download_helper(path, args)
+            # self.download_helper(path, args)
 
-
-class FormaUseHandlerTest(BaseTest):
-
-    """Test for the FormaUseHandler."""
-
-    def setUp(self):
-        super(FormaUseHandlerTest, self).setUp()
-        self.args = [
-            ('bust', 1),
-            ('period', '2008-01-01,2009-01-01')]
-
-    def test_get(self):
-        path = r'/forest-change/forma-alerts/use/logging/1'
-
-        for combo in combos(self.args):
-            args = dict(combo)
-            r = self.testapp.get(path, args)
-            self.assertIn('value', r.json)
-            self.assertIn('useid', r.json)
-            self.assertEqual('1', r.json['useid'])
-            self.assertIn('use', r.json)
-            self.assertEqual('logging', r.json['use'])
-            self.assertEqual(200, r.status_code)
-            self.download_helper(path, args)
-
-
-class FormaWdpaHandlerTest(BaseTest):
-
-    """Test for the FormaWdpaHandler."""
-
-    def setUp(self):
-        super(FormaWdpaHandlerTest, self).setUp()
-        self.args = [
-            ('bust', 1),
-            ('period', '2008-01-01,2009-01-01')]
-
-    def test_get(self):
-        path = r'/forest-change/forma-alerts/wdpa/8950'
-
-        for combo in combos(self.args):
-            args = dict(combo)
-            r = self.testapp.get(path, args)
-            self.assertIn('value', r.json)
-            self.assertIn('wdpaid', r.json)
-            self.assertEqual('8950', r.json['wdpaid'])
-            self.assertEqual(200, r.status_code)
-            self.download_helper(path, args)
 
 if __name__ == '__main__':
     reload(common)
     reload(api)
     reload(args)
     reload(sql)
-    unittest.main(exit=False)
+    unittest.main(exit=False, failfast=True)

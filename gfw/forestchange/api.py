@@ -19,193 +19,170 @@
 
 import json
 import logging
+import re
 import webapp2
 
-from google.appengine.api import memcache
+from gfw.forestchange import forma
+from gfw.forestchange import umd
+from gfw.forestchange import args
+from gfw.common import CORSRequestHandler
+from gfw.common import APP_BASE_URL
 
-from gfw.forestchange import forma, args
-from gfw.common import CORSRequestHandler, APP_BASE_URL
-
-FORMA_API_BASE = '%s/forma-alerts' % APP_BASE_URL
+FORMA_API = '%s/forma-alerts' % APP_BASE_URL
+UMD_API = '%s/umd-loss-gain' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
-        'meta': forma.META,
+        'meta': {
+            "description": "Forest disturbances alerts.",
+            "resolution": "500 x 500 meters",
+            "coverage": "Humid tropical forest biome",
+            "timescale": "January 2006 to present",
+            "updates": "16 day",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "FORMA",
+            "id": "forma-alerts"
+        },
         'apis': {
-            'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API_BASE,
+            'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
-            FORMA_API_BASE,
+            FORMA_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
-            FORMA_API_BASE,
+            FORMA_API,
             'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
-            FORMA_API_BASE,
+            FORMA_API,
             'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
-            FORMA_API_BASE
+            FORMA_API
         }
     },
+    'umd-loss-gain': {
+        'meta': {
+            "description": "Identifies areas of tree cover loss and gain.",
+            "resolution": "30 x 30 meters",
+            "coverage": "Global land area (excluding Antarctica and other \
+                Arctic islands)",
+            "timescale": "January 2000-2012",
+            "updates": "Loss: Annual, Gain: 12-year cumulative, updated \
+                annually",
+            "source": "Landsat 7 ETM+",
+            "units": "Percents and hectares",
+            "name": "University of Maryland tree cover loss and gain",
+            "id": "umd-loss-gain"
+        },
+        'apis': {
+            'national': '%s/admin{/iso}{?bust,dev,thresh}' %
+            UMD_API,
+            'subnational': '%s/admin{/iso}{/id1}{?bust,dev,thresh}' %
+            UMD_API,
+        }
+    }
+}
+
+# Maps query type to accepted query params
+PARAMS = {
+    'forma-alerts': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wpda': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
+    'umd-loss-gain': {
+        'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
+        'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
+    }
+}
+
+# Maps dataset name to target module for execution
+TARGETS = {
+    'forma-alerts': forma,
+    'umd-loss-gain': umd
 }
 
 
-def dispatch(path, args):
-    if '/forest-change/forma-alerts' in path:
-        target = forma
-    return target.execute(args)
+def _dataset_from_path(path):
+    """Return dataset name from supplied request path.
+
+    Path format: /forest-change/{dataset}/..."""
+    tokens = path.split('/')
+    return tokens[2] if len(tokens) >= 1 else None
+
+
+def _classify_request(path):
+    """Classify request based on supplied path.
+
+    Returns 2-tuple (dataset,request_type)
+
+    Example: /forest-change/forma-alerts/admin/iso => (forma-alerts, iso)"""
+    dataset = _dataset_from_path(path)
+    rtype = None
+    hit = None
+
+    hit = re.match(r'/forest-change/%s$' % dataset, path)
+    if hit:
+        return dataset, 'all'
+
+    hit = re.match(r'/forest-change/%s/admin/[A-z]{3,3}$' % dataset, path)
+    if hit:
+        return dataset, 'iso'
+
+    hit = re.match(r'/forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path)
+    if hit:
+        return dataset, 'id1'
+
+    hit = re.match(r'/forest-change/%s/wdpa/\d+$' % dataset, path)
+    if hit:
+        return dataset, 'wdpa'
+
+    hit = re.match(r'/forest-change/%s/use/[A-z]+/\d+$' % dataset, path)
+    if hit:
+        rtype = 'use'
+
+    return dataset, rtype
 
 
 class Handler(CORSRequestHandler):
-    """Default handler that returns META json."""
-    def get(self):
-        self.write(json.dumps(META, sort_keys=True))
-
-
-class APIHandler(CORSRequestHandler):
-
-    def complete(self, args):
-        if 'bust' in args:
-            result = dispatch(self.request.path, args)
-        else:
-            rid = self.get_id(args)
-            result = memcache.get(rid)
-            if not result:
-                result = dispatch(self.request.path, args)
-                memcache.set(key=rid, value=result)
-        action, data = result
-        if action == 'respond':
-            self.write(json.dumps(data, sort_keys=True))
-        elif action == 'redirect':
-            self.redirect(data)
-        elif action == 'error':
-            self.write_error(400, data.message)
-        else:
-            self.write_error(400, 'Unknown action %s' % action)
-
-
-class FormaAllHandler(APIHandler):
-    """Handler for /forest-change/forma-alerts"""
-
-    PARAMS = ['period', 'download', 'geojson', 'dev', 'bust']
+    """API handler for all datasets."""
 
     def post(self):
         self.get()
 
     def get(self):
         try:
-            raw_args = self.args(only=self.PARAMS)
-            query_args = args.process(raw_args)
-            self.complete(query_args)
+            path = self.request.path
+
+            # Return API meta
+            if path == '/forest-change':
+                self.complete('respond', META)
+                return
+
+            dataset, rtype = _classify_request(path)
+
+            # Unsupported dataset or reqest type
+            if not dataset or not rtype:
+                self.error(404)
+                return
+
+            # Handle request
+            query_args = args.process(self.args(only=PARAMS[dataset][rtype]))
+            path_args = args.process_path(path, rtype)
+            params = dict(query_args, **path_args)
+            rid = self.get_id(params)
+            target = TARGETS[dataset]
+            action, data = self.get_or_execute(params, target, rid)
+
+            # Redirect if needed
+            if action != 'redirect':
+                data.update(META[dataset])
+
+            self.complete(action, data)
         except args.ArgError, e:
             logging.exception(e)
             self.write_error(400, e.message)
+            self.write(json.dumps(META, sort_keys=True))
 
-
-class FormaIsoHandler(APIHandler):
-    """"Handler for /forest-change/forma-alerts/admin/{iso}"""
-
-    PARAMS = ['period', 'download', 'dev', 'bust']
-
-    @classmethod
-    def iso_from_path(cls, path):
-        """Return iso code from supplied request path."""
-        return path.split('/')[4]
-
-    def post(self):
-        self.get()
-
-    def get(self):
-        try:
-            raw_args = self.args(only=self.PARAMS)
-            raw_args['iso'] = self.iso_from_path(self.request.path)
-            query_args = args.process(raw_args)
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-
-class FormaIsoId1Handler(APIHandler):
-    """"Handler for /forest-change/forma-alerts/admin/{iso}/{id1}"""
-
-    PARAMS = ['period', 'download', 'dev', 'bust']
-
-    @classmethod
-    def iso_id1_from_path(cls, path):
-        """Return iso code and id1 from supplied request path."""
-        return path.split('/')[4], path.split('/')[5]
-
-    def post(self):
-        self.get()
-
-    def get(self):
-        try:
-            raw_args = self.args(only=self.PARAMS)
-            iso, id1 = self.iso_id1_from_path(self.request.path)
-            raw_args['iso'] = iso
-            raw_args['id1'] = id1
-            query_args = args.process(raw_args)
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-
-class FormaWdpaHandler(APIHandler):
-    """"Handler for /forest-change/forma-alerts/wdpa/{wdpaid}"""
-
-    PARAMS = ['period', 'download', 'dev', 'bust']
-
-    @classmethod
-    def wdpaid_from_path(cls, path):
-        """Return wdpaid from supplied request path."""
-        return path.split('/')[4]
-
-    def post(self):
-        self.get()
-
-    def get(self):
-        try:
-            raw_args = self.args(only=self.PARAMS)
-            raw_args['wdpaid'] = self.wdpaid_from_path(self.request.path)
-            query_args = args.process(raw_args)
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-
-class FormaUseHandler(APIHandler):
-    """"Handler for /forest-change/forma-alerts/use/{use}/{useid}"""
-
-    PARAMS = ['period', 'download', 'dev', 'bust']
-
-    @classmethod
-    def use_useid_from_path(cls, path):
-        """Return nameid from supplied request path."""
-        return path.split('/')[4], path.split('/')[5]
-
-    def post(self):
-        self.get()
-
-    def get(self):
-        try:
-            raw_args = self.args(only=self.PARAMS)
-            use, useid = self.use_useid_from_path(self.request.path)
-            raw_args['use'] = use
-            raw_args['useid'] = useid
-            query_args = args.process(raw_args)
-            self.complete(query_args)
-        except args.ArgError, e:
-            logging.exception(e)
-            self.write_error(400, e.message)
 
 handlers = webapp2.WSGIApplication([
-    (r'/forest-change', Handler),
-
-    # FORMA endpoints
-    (r'/forest-change/forma-alerts', FormaAllHandler),
-    (r'/forest-change/forma-alerts/admin/[A-z]{3,3}', FormaIsoHandler),
-    (r'/forest-change/forma-alerts/admin/[A-z]{3,3}/\d+', FormaIsoId1Handler),
-    (r'/forest-change/forma-alerts/wdpa/\d+', FormaWdpaHandler),
-    (r'/forest-change/forma-alerts/use/[A-z]+/\d+',
-        FormaUseHandler),
-    ],
+    (r'/forest-change.*', Handler)],
     debug=True)
