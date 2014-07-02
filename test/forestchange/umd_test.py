@@ -48,7 +48,7 @@ class UmdTest(BaseTest):
     def testIso(self):
         action, data = umd.execute({'iso': 'bra', 'thresh': 10})
         self.assertEqual(action, 'respond')
-        print data
+        self.assertEqual(len(data['years']), 13)
 
 if __name__ == '__main__':
     reload(common)
