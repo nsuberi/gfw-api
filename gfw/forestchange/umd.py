@@ -32,12 +32,12 @@ class UmdSql(Sql):
 
     ID1 = """
         SELECT iso, country, region, year, thresh, extent, extent_perc, loss,
-               loss_perc, gain, gain_perc
+               loss_perc, gain, gain_perc, id1
         FROM umd_subnat
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND id1 = {id1}
-        ORDER BY iso, country, region, thresh, year"""
+        ORDER BY year"""
 
     @classmethod
     def iso(cls, params, args):
@@ -49,8 +49,29 @@ class UmdSql(Sql):
         else:
             return cls.ISO.format(**params)
 
+    @classmethod
+    def id1(cls, params, args):
+        params['iso'] = args['iso']
+        params['id1'] = args['id1']
+        params['thresh'] = args['thresh']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.ID1.format(**params)
+        else:
+            return cls.ID1.format(**params)
+
 
 def _executeIso(args):
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    rows = data['rows']
+    data.pop('rows')
+    data['years'] = rows
+    return action, data
+
+
+def _executeId1(args):
+    import logging
+    logging.info('ARGS %s' % args)
     action, data = CartoDbExecutor.execute(args, UmdSql)
     rows = data['rows']
     data.pop('rows')
@@ -61,7 +82,14 @@ def _executeIso(args):
 def execute(args):
     query_type = classify_query(args)
 
-    if query_type == 'iso' or query_type == 'id1':
+    # Set default threshold
+    if not 'thresh' in args:
+        args['thresh'] = 10
+
+    if query_type == 'iso':
         return _executeIso(args)
+    elif query_type == 'id1':
+        return _executeId1(args)
+
 
     # TODO: Query new EE assets

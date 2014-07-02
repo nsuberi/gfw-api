@@ -110,35 +110,39 @@ class PathProcessor():
     @classmethod
     def iso(cls, path):
         try:
-            return path.split('/')[4]
+            return dict(iso=path.split('/')[4])
         except:
             raise Exception('Unable to process iso from request path')
 
     @classmethod
     def id1(cls, path):
         try:
-            return path.split('/')[5]
+            arg = dict(id1=path.split('/')[5])
+            arg.update(cls.iso(path))
+            return arg
         except:
             raise Exception('Unable to process id1 from request path')
 
     @classmethod
     def wdpaid(cls, path):
         try:
-            return path.split('/')[4]
+            return dict(wdpaid=path.split('/')[4])
         except:
             raise Exception('Unable to process wpdaid from request path')
 
     @classmethod
     def use(cls, path):
         try:
-            return path.split('/')[4]
+            arg = dict(use=path.split('/')[4])
+            arg.update(cls.useid(path))
+            return arg
         except:
-            raise Exception('Unable to process nameid from request path')
+            raise Exception('Unable to process name from request path')
 
     @classmethod
     def useid(cls, path):
         try:
-            return path.split('/')[5]
+            return dict(useid=path.split('/')[5])
         except:
             raise Exception('Unable to process nameid from request path')
 
@@ -148,7 +152,7 @@ class PathProcessor():
         result = {}
         for param in params:
             if hasattr(cls, param):
-                result.update({param: getattr(cls, param)(path)})
+                result.update(getattr(cls, param)(path))
         return result
 
 
