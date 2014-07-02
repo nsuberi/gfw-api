@@ -71,7 +71,7 @@ class CountrySql():
 
 def _handler(response):
     if response.status_code == 200:
-        data = json.loads(response.content)
+        data = json.loads(response.content, sort_keys=True)
         if 'rows' in data:
             return data['rows']
         else:
@@ -88,11 +88,17 @@ def _getTopoJson(args):
     return dict(topojson=rows)
 
 
+def _processSubnatRow(x):
+    x['bounds'] = json.loads(x['bounds'])
+    return x
+
+
 def _getSubnatBounds(args):
     query = CountrySql.SUBNAT_BOUNDS.format(**args)
 
     rows = _handler(cdb.execute(query))
-    return dict(subnat_bounds=json.loads(rows[0]['bounds']))
+    results = map(_processSubnatRow, rows)
+    return dict(subnat_bounds=results)
 
 
 def _getForma(args):
