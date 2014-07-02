@@ -693,17 +693,3 @@ class FormaSql(Sql):
         else:
             return cls.WDPA.format(**params)
 
-    @classmethod
-    def classify_query(cls, args):
-        if 'iso' in args and not 'id1' in args:
-            return 'iso'
-        elif 'iso' in args and 'id1' in args:
-            return 'id1'
-        elif 'use' in args:
-            return 'use'
-        elif 'pa' in args:
-            return 'pa'
-        elif 'wdpaid' in args:
-            return 'wdpa'
-        else:
-            return 'world'

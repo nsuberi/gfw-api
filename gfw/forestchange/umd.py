@@ -17,7 +17,9 @@
 
 """This module supports accessing UMD data."""
 
-from gfw.forestchange.common import CartoDbExecutor, Sql, classify_query
+from gfw.forestchange.common import CartoDbExecutor
+from gfw.forestchange.common import Sql
+from gfw.forestchange.common import classify_query
 
 
 class UmdSql(Sql):
@@ -70,8 +72,6 @@ def _executeIso(args):
 
 
 def _executeId1(args):
-    import logging
-    logging.info('ARGS %s' % args)
     action, data = CartoDbExecutor.execute(args, UmdSql)
     rows = data['rows']
     data.pop('rows')

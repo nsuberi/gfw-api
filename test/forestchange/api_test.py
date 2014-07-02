@@ -62,7 +62,7 @@ class BaseTest(unittest.TestCase):
         self.testbed.init_urlfetch_stub()
         self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
 
-        app = webapp2.WSGIApplication([(r'/forest-change/.*', api.Handler)])
+        app = webapp2.WSGIApplication([(r'/forest-change.*', api.Handler)])
         self.testapp = webtest.TestApp(app)
 
         self.content_types = dict(
@@ -129,25 +129,89 @@ class FunctionTest(unittest.TestCase):
         self.assertEqual(('forma-alerts', 'wdpa'), api._classify_request(path))
 
 
-class IsoHandlerTest(BaseTest):
+class UmdTest(BaseTest):
 
-    """Test for iso requests."""
+    """Test for UMD requests."""
 
     def setUp(self):
-        super(IsoHandlerTest, self).setUp()
+        super(UmdTest, self).setUp()
         self.args = [
             ('bust', 1),
-            ('period', '2008-01-01,2009-01-01')]
+            ('dev', 1),
+            ('thresh', 10)]
 
-    def test_get(self):
+    def testGetNational(self):
+        path = r'/forest-change/umd-loss-gain/admin/bra'
+
+        for thresh in [10, 15, 20, 25, 30, 50, 75]:
+            for combo in combos(self.args):
+                args = dict(combo)
+                args['thresh'] = thresh
+                print '%s %s' % (path, args)
+                r = self.testapp.get(path, args)
+                self.assertIn('years', r.json)
+                self.assertEqual(len(r.json['years']), 13)
+                self.assertIn('params', r.json)
+                self.assertIn('iso', r.json['params'])
+                self.assertEqual(r.json['params']['iso'], 'bra')
+                self.assertEqual(200, r.status_code)
+
+    def testGetSubnational(self):
+        path = r'/forest-change/umd-loss-gain/admin/bra/2'
+
+        for thresh in [10, 15, 20, 25, 30, 50, 75]:
+            for combo in combos(self.args):
+                args = dict(combo)
+                args['thresh'] = thresh
+                print '%s %s' % (path, args)
+                r = self.testapp.get(path, args)
+                self.assertIn('years', r.json)
+                self.assertEqual(len(r.json['years']), 13)
+                self.assertIn('params', r.json)
+                self.assertIn('iso', r.json['params'])
+                self.assertEqual(r.json['params']['iso'], 'bra')
+                self.assertIn('id1', r.json['params'])
+                self.assertEqual(r.json['params']['id1'], '2')
+                self.assertEqual(200, r.status_code)
+
+
+class FormaTest(BaseTest):
+
+    """Test for FORMA requests."""
+
+    def setUp(self):
+        super(FormaTest, self).setUp()
+        self.args = [
+            ('bust', 1),
+            ('dev', 1),
+            ('period', '2008-01-01,2014-01-01')]
+
+    def testGetNational(self):
         path = r'/forest-change/forma-alerts/admin/bra'
 
         for combo in combos(self.args):
             args = dict(combo)
+            print '%s %s' % (path, args)
             r = self.testapp.get(path, args)
             self.assertIn('value', r.json)
-            self.assertIn('iso', r.json)
-            self.assertEqual(r.json.get('iso'), 'bra')
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(200, r.status_code)
+            # self.download_helper(path, args)
+
+    def testGetSubnational(self):
+        path = r'/forest-change/forma-alerts/admin/bra/2'
+
+        for combo in combos(self.args):
+            args = dict(combo)
+            print '%s %s' % (path, args)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(r.json['params']['iso'], 'bra')
+            self.assertIn('id1', r.json['params'])
+            self.assertEqual(r.json['params']['id1'], '2')
             self.assertEqual(200, r.status_code)
             # self.download_helper(path, args)
 
@@ -157,4 +221,4 @@ if __name__ == '__main__':
     reload(api)
     reload(args)
     reload(sql)
-    unittest.main(exit=False)
+    unittest.main(exit=False, failfast=True)

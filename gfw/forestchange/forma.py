@@ -15,42 +15,68 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module provides functions for dealing with FORMA data."""
+"""This module supports acessing FORMA data."""
 
-import json
-import logging
-
-import sql
-from gfw import cdb
+from gfw.forestchange.common import CartoDbExecutor
+from gfw.forestchange.common import Sql
 
 
-def _query_response(response, params, query):
-    """Return world response."""
-    if response.status_code == 200:
-        rows = json.loads(response.content)['rows']
-        if rows:
-            result = rows[0]
+class FormaSql(Sql):
+
+    ISO = """
+        SELECT t.iso, count(t.*) AS value
+        FROM forma_api t
+        WHERE date >= '{begin}'::date
+              AND date <= '{end}'::date
+              AND iso = UPPER('{iso}')
+        GROUP BY t.iso"""
+
+    ID1 = """
+        SELECT g.id_1 AS id1, count(*) AS value
+        FROM forma_api t
+        INNER JOIN (
+            SELECT *
+            FROM gadm2
+            WHERE id_1 = {id1}
+                  AND iso = UPPER('{iso}')) g
+            ON t.gadm2::int = g.objectid
+        WHERE t.date >= '{begin}'::date
+              AND t.date <= '{end}'::date
+        GROUP BY id1
+        ORDER BY id1"""
+
+    @classmethod
+    def iso(cls, params, args):
+        params['iso'] = args['iso']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.ISO.format(**params)
         else:
-            result = {'value': 0}
-        result.update(params)
-        if 'geojson' in params:
-            result['geojson'] = json.loads(params['geojson'])
-        if 'dev' in params:
-            result['dev'] = {'sql': query}
-        return result
+            return cls.ISO.format(**params)
+
+    @classmethod
+    def id1(cls, params, args):
+        params['iso'] = args['iso']
+        params['id1'] = args['id1']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.ID1.format(**params)
+        else:
+            return cls.ID1.format(**params)
+
+
+def _processResults(action, data):
+    if data['rows']:
+        result = data['rows'][0]
+        data.pop('rows')
     else:
-        logging.info(query)
-        raise Exception(response.content)
+        result = dict(value=0)
+
+    data['value'] = result['value']
+
+    return action, data
 
 
 def execute(args):
-    logging.info(args)
-    try:
-        query = sql.FormaSql.process(args)
-        if 'format' in args:
-            return 'redirect', cdb.get_url(query, args)
-        else:
-            action, response = 'respond', cdb.execute(query)
-            return action, _query_response(response, args, query)
-    except sql.SqlError, e:
-        return 'error', e
+    action, data = CartoDbExecutor.execute(args, FormaSql)
+    return _processResults(action, data)
