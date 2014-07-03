@@ -60,6 +60,7 @@ class CORSRequestHandler(webapp2.RequestHandler):
     @classmethod
     def get_or_execute(cls, args, target, rid):
         if 'bust' in args:
+            memcache.delete(rid)
             result = target.execute(args)
         else:
             result = memcache.get(rid)

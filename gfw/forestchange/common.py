@@ -73,7 +73,6 @@ class CartoDbExecutor():
 
     @classmethod
     def execute(cls, args, sql):
-        logging.info(args)
         try:
             query = sql.process(args)
             if 'format' in args:
