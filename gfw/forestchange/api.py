@@ -45,7 +45,7 @@ META = {
             "id": "forma-alerts"
         },
         'apis': {
-            'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
+            #'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
             FORMA_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
@@ -85,7 +85,7 @@ PARAMS = {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
         'iso': ['period', 'download', 'dev', 'bust'],
         'id1': ['period', 'download', 'dev', 'bust'],
-        'wpda': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
     },
     'umd-loss-gain': {

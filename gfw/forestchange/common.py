@@ -42,8 +42,8 @@ class Sql(object):
 
     @classmethod
     def process(cls, args):
-        begin = args['begin'] if 'begin' in args else '1969-01-01'
-        end = args['end'] if 'end' in args else '3014-01-01'
+        begin = args['begin'] if 'begin' in args else '2000-01-01'
+        end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')
         classification = classify_query(args)
         if hasattr(cls, classification):

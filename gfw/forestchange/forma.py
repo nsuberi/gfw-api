@@ -45,6 +45,24 @@ class FormaSql(Sql):
         GROUP BY id1
         ORDER BY id1"""
 
+    WDPA = """
+        SELECT p.wdpaid, count(f.*) AS value
+        FROM forma_api f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
+        WHERE ST_Intersects(f.the_geom, p.the_geom)
+              AND f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
+        GROUP BY p.wdpaid
+        ORDER BY p.wdpaid"""
+
+    USE = """
+        SELECT u.cartodb_id AS pid, count(f.*) AS value
+        FROM {use_table} u, forma_api f
+        WHERE u.cartodb_id = {pid}
+              AND ST_Intersects(f.the_geom, u.the_geom)
+              AND f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
+        GROUP BY u.cartodb_id"""
+
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
@@ -64,13 +82,40 @@ class FormaSql(Sql):
         else:
             return cls.ID1.format(**params)
 
+    @classmethod
+    def wdpa(cls, params, args):
+        params['wdpaid'] = args['wdpaid']
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return cls.WDPA_DOWNLOAD.format(**params)
+        else:
+            return cls.WDPA.format(**params)
+
+    @classmethod
+    def use(cls, params, args):
+        concessions = {
+            'mining': 'mining_permits_merge',
+            'oilpalm': 'oil_palm_permits_merge',
+            'fiber': 'fiber_all_merged',
+            'logging': 'logging_all_merged'
+        }
+        params['use_table'] = concessions[args['use']]
+        params['pid'] = args['useid']
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return cls.USE_DOWNLOAD.format(**params)
+        else:
+            return cls.USE.format(**params)
+
 
 def _processResults(action, data):
-    if data['rows']:
+    if 'rows' in data:
         result = data['rows'][0]
         data.pop('rows')
     else:
-        result = dict(value=0)
+        result = dict(value=None)
 
     data['value'] = result['value']
 
