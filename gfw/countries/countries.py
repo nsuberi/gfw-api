@@ -23,7 +23,7 @@ from gfw import cdb
 from gfw.forestchange import umd
 
 
-class CountrySql():
+class CountrySql(object):
 
     TOPO_JSON = """
         SELECT the_geom
