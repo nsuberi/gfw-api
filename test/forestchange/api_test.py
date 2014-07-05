@@ -197,7 +197,6 @@ class FormaTest(BaseTest):
             self.assertIn('params', r.json)
             self.assertIn('iso', r.json['params'])
             self.assertEqual(200, r.status_code)
-            # self.download_helper(path, args)
 
     def testGetSubnational(self):
         path = r'/forest-change/forma-alerts/admin/bra/2'
@@ -213,8 +212,36 @@ class FormaTest(BaseTest):
             self.assertIn('id1', r.json['params'])
             self.assertEqual(r.json['params']['id1'], '2')
             self.assertEqual(200, r.status_code)
-            # self.download_helper(path, args)
 
+    def testGetWdpa(self):
+        path = r'/forest-change/forma-alerts/wdpa/180'
+
+        for combo in combos(self.args):
+            args = dict(combo)
+            print '%s %s' % (path, args)
+            r = self.testapp.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('wdpaid', r.json['params'])
+            self.assertEqual(r.json['params']['wdpaid'], '180')
+            self.assertEqual(200, r.status_code)
+
+    def testGetUse(self):
+        path = r'/forest-change/forma-alerts/use/%s/1'
+
+        for use in ['logging', 'oilpalm', 'fiber', 'mining']:
+            p = path % use
+            for combo in combos(self.args):
+                args = dict(combo)
+                print '%s %s' % (p, args)
+                r = self.testapp.get(p, args)
+                self.assertIn('value', r.json)
+                self.assertIn('params', r.json)
+                self.assertIn('use', r.json['params'])
+                self.assertEqual(r.json['params']['use'], use)
+                self.assertIn('useid', r.json['params'])
+                self.assertEqual(r.json['params']['useid'], '1')
+                self.assertEqual(200, r.status_code)
 
 if __name__ == '__main__':
     reload(common)

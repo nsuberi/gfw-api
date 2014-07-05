@@ -124,6 +124,10 @@ class PathProcessor():
             raise Exception('Unable to process id1 from request path')
 
     @classmethod
+    def wdpa(cls, path):
+        return cls.wdpaid(path)
+
+    @classmethod
     def wdpaid(cls, path):
         try:
             return dict(wdpaid=path.split('/')[4])

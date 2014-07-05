@@ -57,10 +57,22 @@ class FormaTest(BaseTest):
         self.assertTrue("date <= '2002'::date" in sql)
 
     def testExecuteNational(self):
+        # valid iso
         action, data = forma.execute(
             {'iso': 'bra', 'begin': '2001-01-01', 'end': '2014-01-01'})
         self.assertEqual(action, 'respond')
         self.assertIn('value', data)
+        self.assertIsNot(data['value'], None)
+
+        # invalid iso
+        action, data = forma.execute(
+            {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
+        self.assertEqual(action, 'respond')
+        self.assertIn('value', data)
+        self.assertEqual(data['value'], None)
+
+        # no iso
+        self.assertRaises(Exception, forma.execute, {})
 
 if __name__ == '__main__':
     reload(common)
