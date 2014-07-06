@@ -50,7 +50,7 @@ class FiresSql(Sql):
         ORDER BY p.id_1"""
 
     WDPA = """
-        SELECT p.wdpaid, count(pt.*) AS total
+        SELECT p.wdpaid, count(pt.*) AS value
         FROM global_7d pt,
             (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -60,7 +60,7 @@ class FiresSql(Sql):
         ORDER BY p.wdpaid"""
 
     USE = """
-        SELECT p.cartodb_id, count(pt.*) AS total
+        SELECT p.cartodb_id, count(pt.*) AS value
         FROM global_7d pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -77,7 +77,7 @@ def _processResults(action, data):
     else:
         result = dict(value=None)
 
-    data['value'] = result
+    data['value'] = result['value']
 
     return action, data
 

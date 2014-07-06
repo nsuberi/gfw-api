@@ -15,21 +15,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports acessing NASA QUICC alert data."""
+"""This module supports acessing IMAZON data."""
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 
 
-class QuiccSql(Sql):
+class ImazonSql(Sql):
 
     ISO = """
-        SELECT p.iso, count(pt.*) AS value
-        FROM modis_forest_change_copy pt,
-            (SELECT * FROM gadm2 WHERE iso = UPPER('{iso}')) as p
-        WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
+        SELECT p.iso,
+            SUM(ST_Area(i.the_geom_webmercator)/(100*100)) AS total_ha
+        FROM imazon_clean2 i,
+            (SELECT * FROM gadm2_countries WHERE iso = UPPER('{iso}')) AS p
+        WHERE ST_Intersection(i.the_geom, p.the_geom)
+            AND i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
         GROUP BY p.iso"""
 
     ID1 = """
@@ -77,5 +78,5 @@ def _processResults(action, data):
 
 
 def execute(args):
-    action, data = CartoDbExecutor.execute(args, QuiccSql)
+    action, data = CartoDbExecutor.execute(args, ImazonSql)
     return _processResults(action, data)
