@@ -25,6 +25,7 @@ import webapp2
 from gfw.forestchange import forma
 from gfw.forestchange import fires
 from gfw.forestchange import umd
+from gfw.forestchange import quicc
 from gfw.forestchange import args
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
@@ -58,6 +59,7 @@ META = {
         }
     },
     'nasa-active-fires': {},
+    'quicc-alerts': {},
     'umd-loss-gain': {
         'meta': {
             "description": "Identifies areas of tree cover loss and gain.",
@@ -97,6 +99,13 @@ PARAMS = {
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
     },
+    'quicc-alerts': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
     'umd-loss-gain': {
         'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
         'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
@@ -107,7 +116,8 @@ PARAMS = {
 TARGETS = {
     'forma-alerts': forma,
     'umd-loss-gain': umd,
-    'nasa-active-fires': fires
+    'nasa-active-fires': fires,
+    'quicc-alerts': quicc
 }
 
 

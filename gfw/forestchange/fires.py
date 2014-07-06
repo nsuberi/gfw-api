@@ -77,7 +77,7 @@ def _processResults(action, data):
     else:
         result = dict(value=None)
 
-    data['value'] = result['value']
+    data['value'] = result
 
     return action, data
 
