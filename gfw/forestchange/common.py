@@ -49,6 +49,52 @@ class Sql(object):
         if hasattr(cls, classification):
             return getattr(cls, classification)(params, args)
 
+    @classmethod
+    def iso(cls, params, args):
+        params['iso'] = args['iso']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.ISO.format(**params)
+        else:
+            return cls.ISO.format(**params)
+
+    @classmethod
+    def id1(cls, params, args):
+        params['iso'] = args['iso']
+        params['id1'] = args['id1']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.ID1.format(**params)
+        else:
+            return cls.ID1.format(**params)
+
+    @classmethod
+    def wdpa(cls, params, args):
+        params['wdpaid'] = args['wdpaid']
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return cls.WDPA_DOWNLOAD.format(**params)
+        else:
+            return cls.WDPA.format(**params)
+
+    @classmethod
+    def use(cls, params, args):
+        concessions = {
+            'mining': 'mining_permits_merge',
+            'oilpalm': 'oil_palm_permits_merge',
+            'fiber': 'fiber_all_merged',
+            'logging': 'logging_all_merged'
+        }
+        params['use_table'] = concessions[args['use']]
+        params['pid'] = args['useid']
+        query_type, params = cls.get_query_type(
+            params, args, the_geom_table='f')
+        if query_type == 'download':
+            return cls.USE_DOWNLOAD.format(**params)
+        else:
+            return cls.USE.format(**params)
+
 
 class CartoDbExecutor():
 

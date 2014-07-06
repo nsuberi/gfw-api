@@ -43,24 +43,13 @@ class UmdSql(Sql):
 
     @classmethod
     def iso(cls, params, args):
-        params['iso'] = args['iso']
         params['thresh'] = args['thresh']
-        query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.ISO.format(**params)
-        else:
-            return cls.ISO.format(**params)
+        return super(UmdSql, cls).iso(params, args)
 
     @classmethod
     def id1(cls, params, args):
-        params['iso'] = args['iso']
-        params['id1'] = args['id1']
         params['thresh'] = args['thresh']
-        query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.ID1.format(**params)
-        else:
-            return cls.ID1.format(**params)
+        return super(UmdSql, cls).id1(params, args)
 
 
 def _executeIso(args):
