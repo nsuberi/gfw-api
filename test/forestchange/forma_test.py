@@ -19,60 +19,57 @@
 
 import unittest
 
-from google.appengine.ext import testbed
+from test.forestchange.common import BaseTest
 
 from gfw.forestchange import forma
+from gfw.forestchange.forma import FormaSql
+from gfw.forestchange.forma import execute
 from gfw.forestchange import common
 
 
-class BaseTest(unittest.TestCase):
+class FormaSqlTest(BaseTest):
 
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_urlfetch_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
+    """Test FORMA SQL for national, subnational, concessions, and protected
+    areas by executing queries for all combinations of args via direct
+    requests to CartoDB.
+    """
 
-    def tearDown(self):
-        self.testbed.deactivate()
+    def testNational(self):
+        print 'hi'
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for args in self.combos(args):
+            args = dict(args)
+            args['iso'] = 'idn'
+            sql = FormaSql.process(args)
+            url = self.getCdbUrl(sql)
+            print sql
+            response = self.fetch(url)
+            self.assertEqual(200, response.status_code)
+            self.assertIsNot(None, response.json()['rows'])
+            self.assertIsNot(None, 'value' in response.json()['rows'][0])
 
 
-class FormaTest(BaseTest):
+# class FormaExecuteTest(BaseTest):
 
-    def testNationalSql(self):
-        sql = forma.FormaSql.process(
-            {'iso': 'bra', 'begin': '2001', 'end': '2002'})
-        self.assertTrue("iso = UPPER('bra')" in sql)
-        self.assertTrue("date >= '2001'::date" in sql)
-        self.assertTrue("date <= '2002'::date" in sql)
+#     def testExecuteNational(self):
+#         # valid iso
+#         action, data = execute(
+#             {'iso': 'bra', 'begin': '2001-01-01', 'end': '2014-01-01'})
+#         self.assertEqual(action, 'respond')
+#         self.assertIn('value', data)
+#         self.assertIsNot(data['value'], None)
 
-    def testSubnationalSql(self):
-        sql = forma.FormaSql.process(
-            {'iso': 'bra', 'id1': '1', 'begin': '2001', 'end': '2002'})
-        self.assertTrue("iso = UPPER('bra')" in sql)
-        self.assertTrue("id_1 = 1" in sql)
-        self.assertTrue("date >= '2001'::date" in sql)
-        self.assertTrue("date <= '2002'::date" in sql)
+#         # invalid iso
+#         action, data = execute(
+#             {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
+#         self.assertEqual(action, 'respond')
+#         self.assertIn('value', data)
+#         self.assertEqual(data['value'], None)
 
-    def testExecuteNational(self):
-        # valid iso
-        action, data = forma.execute(
-            {'iso': 'bra', 'begin': '2001-01-01', 'end': '2014-01-01'})
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        self.assertIsNot(data['value'], None)
-
-        # invalid iso
-        action, data = forma.execute(
-            {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        self.assertEqual(data['value'], None)
-
-        # no iso
-        self.assertRaises(Exception, forma.execute, {})
+#         # no iso
+#         self.assertRaises(Exception, execute, {})
 
 if __name__ == '__main__':
     reload(common)
