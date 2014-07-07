@@ -34,35 +34,13 @@ class ImazonSql(Sql):
         GROUP BY p.iso"""
 
     ID1 = """
-        SELECT p.id_1, p.name_1, count(pt.*) AS value
-        FROM modis_forest_change_copy pt,
-            (SELECT * FROM gadm2 WHERE iso = UPPER('{iso}')
-                AND id_1 = {id1}) as p
-        WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.id_1, p.name_1
-        ORDER BY p.id_1"""
+        """
 
     WDPA = """
-        SELECT p.wdpaid, count(pt.*) AS value
-        FROM modis_forest_change_copy pt,
-            (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
-        WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.wdpaid
-        ORDER BY p.wdpaid"""
+        """
 
     USE = """
-        SELECT p.cartodb_id, count(pt.*) AS value
-        FROM modis_forest_change_copy pt,
-            (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
-        WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.cartodb_id
-        ORDER BY p.cartodb_id"""
+        """
 
 
 def _processResults(action, data):

@@ -35,24 +35,116 @@ class FormaSqlTest(BaseTest):
     """
 
     def testNational(self):
-        print 'hi'
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
-        for args in self.combos(args):
-            args = dict(args)
-            args['iso'] = 'idn'
-            sql = FormaSql.process(args)
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            sql = FormaSql.process(params)
             url = self.getCdbUrl(sql)
-            print sql
             response = self.fetch(url)
             self.assertEqual(200, response.status_code)
             self.assertIsNot(None, response.json()['rows'])
             self.assertIsNot(None, 'value' in response.json()['rows'][0])
 
+    def testSubnational(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            params['id1'] = '1'
+            sql = FormaSql.process(params)
+            url = self.getCdbUrl(sql)
+            response = self.fetch(url)
+            self.assertEqual(200, response.status_code)
+            self.assertIsNot(None, response.json()['rows'])
+            self.assertIsNot(None, 'value' in response.json()['rows'][0])
 
-# class FormaExecuteTest(BaseTest):
+    def testWdpa(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['wdpaid'] = '1'
+            sql = FormaSql.process(params)
+            url = self.getCdbUrl(sql)
+            response = self.fetch(url)
+            self.assertEqual(200, response.status_code)
+            self.assertIsNot(None, response.json()['rows'])
 
+    def testUse(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for use in ['mining', 'logging', 'fiber', 'logging']:
+            for params in self.combos(args):
+                params = dict(args)
+                params['useid'] = '1'
+                params['use'] = use
+                sql = FormaSql.process(params)
+                url = self.getCdbUrl(sql)
+                response = self.fetch(url)
+                self.assertEqual(200, response.status_code)
+
+
+class FormaExecuteTest(BaseTest):
+
+    def testNational(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            action, data = execute(params)
+            self.assertEqual('respond', action)
+            self.assertIsNot(None, data)
+            self.assertIn('value', data)
+
+    def testSubnational(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            params['id1'] = '1'
+            action, data = execute(params)
+            self.assertEqual('respond', action)
+            self.assertIsNot(None, data)
+            self.assertIn('value', data)
+
+
+    # def testWdpa(self):
+    #     args = [
+    #         ('begin', '2010-01-01'),
+    #         ('end', '2014-01-01')]
+    #     for params in self.combos(args):
+    #         params = dict(params)
+    #         params['wdpaid'] = '1'
+    #         sql = FormaSql.process(params)
+    #         url = self.getCdbUrl(sql)
+    #         response = self.fetch(url)
+    #         self.assertEqual(200, response.status_code)
+    #         self.assertIsNot(None, response.json()['rows'])
+
+    # def testUse(self):
+    #     args = [
+    #         ('begin', '2010-01-01'),
+    #         ('end', '2014-01-01')]
+    #     for use in ['mining', 'logging', 'fiber', 'logging']:
+    #         for params in self.combos(args):
+    #             params = dict(args)
+    #             params['useid'] = '1'
+    #             params['use'] = use
+    #             sql = FormaSql.process(params)
+    #             url = self.getCdbUrl(sql)
+    #             response = self.fetch(url)
+    #             self.assertEqual(200, response.status_code)
 #     def testExecuteNational(self):
 #         # valid iso
 #         action, data = execute(

@@ -32,6 +32,8 @@ from gfw.common import APP_BASE_URL
 
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL
 UMD_API = '%s/umd-loss-gain' % APP_BASE_URL
+FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
+QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -58,8 +60,56 @@ META = {
             FORMA_API
         }
     },
-    'nasa-active-fires': {},
-    'quicc-alerts': {},
+    'nasa-active-fires': {
+        'meta': {
+            "description": "Displays fire alert data for the past 7 days.",
+            "resolution": "1 x 1 kilometer",
+            "coverage": "Global",
+            "timescale": "Last 7 days",
+            "updates": "Daily",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "NASA Active Fires",
+            "id": "nasa-active-fires"
+        },
+        'apis': {
+            #'global': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            FIRES_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            FIRES_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            FIRES_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            FIRES_API
+        }
+    },
+    'quicc-alerts': {
+        'meta': {
+            "description": "Identifies areas of land that have lost at least \
+            40% of their green vegetation cover from the previous quarterly \
+            product.",
+            "resolution": "5 x 5 kilometer",
+            "coverage": "Global, except for areas >37 degrees north",
+            "timescale": "October 2011-present",
+            "updates": "Quarterly (April, July, October, January)",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "QUICC Alerts",
+            "id": "quicc-alerts"
+        },
+        'apis': {
+            #'global': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            QUICC_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            QUICC_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            QUICC_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            QUICC_API
+        }
+    },
     'umd-loss-gain': {
         'meta': {
             "description": "Identifies areas of tree cover loss and gain.",
@@ -83,7 +133,7 @@ META = {
     }
 }
 
-# Maps query type to accepted query params
+# Maps dataset to accepted query params
 PARAMS = {
     'forma-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
