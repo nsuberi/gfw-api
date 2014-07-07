@@ -23,6 +23,14 @@ from gfw.forestchange.common import Sql
 
 class FormaSql(Sql):
 
+    WORLD = """
+        SELECT count(pt.*) AS value
+        FROM forma_api pt
+        WHERE date >= '{begin}'::date
+              AND date <= '{end}'::date
+              AND ST_INTERSECTS(
+                ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
+
     ISO = """
         SELECT t.iso, count(t.*) AS value
         FROM forma_api t

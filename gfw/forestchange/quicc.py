@@ -23,6 +23,14 @@ from gfw.forestchange.common import Sql
 
 class QuiccSql(Sql):
 
+    WORLD = """
+        SELECT count(pt.*) AS value
+        FROM modis_forest_change_copy pt
+        WHERE pt.date >= '{begin}'::date
+            AND pt.date <= '{end}'::date
+            AND ST_INTERSECTS(
+                ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
+
     ISO = """
         SELECT p.iso, count(pt.*) AS value
         FROM modis_forest_change_copy pt,

@@ -49,7 +49,7 @@ META = {
             "id": "forma-alerts"
         },
         'apis': {
-            #'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
+            'world': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
             FORMA_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
@@ -73,7 +73,7 @@ META = {
             "id": "nasa-active-fires"
         },
         'apis': {
-            #'global': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
+            'world': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
             FIRES_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
@@ -99,7 +99,7 @@ META = {
             "id": "quicc-alerts"
         },
         'apis': {
-            #'global': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
+            'global': '%s{?period,geojson,download,bust,dev}' % QUICC_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
             QUICC_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %

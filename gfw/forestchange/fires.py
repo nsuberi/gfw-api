@@ -23,6 +23,14 @@ from gfw.forestchange.common import Sql
 
 class FiresSql(Sql):
 
+    WORLD = """
+        SELECT count(pt.*) AS value
+        FROM global_7d pt
+        WHERE acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+            AND ST_INTERSECTS(
+                ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
+
     ISO = """
         SELECT p.iso, count(pt.*) AS value
         FROM global_7d pt,

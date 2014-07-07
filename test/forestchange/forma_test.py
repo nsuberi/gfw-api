@@ -34,6 +34,20 @@ class FormaSqlTest(BaseTest):
     requests to CartoDB.
     """
 
+    def testWolrd(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
+            sql = FormaSql.process(params)
+            url = self.getCdbUrl(sql)
+            response = self.fetch(url)
+            self.assertEqual(200, response.status_code)
+            self.assertIsNot(None, response.json()['rows'])
+            self.assertIsNot(None, 'value' in response.json()['rows'][0])
+
     def testNational(self):
         args = [
             ('begin', '2010-01-01'),
@@ -92,6 +106,18 @@ class FormaSqlTest(BaseTest):
 
 
 class FormaExecuteTest(BaseTest):
+
+    def testWorld(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.1386718 7499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
+            action, data = execute(params)
+            self.assertEqual('respond', action)
+            self.assertIsNot(None, data)
+            self.assertIn('value', data)
 
     def testNational(self):
         args = [

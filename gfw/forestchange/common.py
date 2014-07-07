@@ -50,6 +50,15 @@ class Sql(object):
             return getattr(cls, classification)(params, args)
 
     @classmethod
+    def world(cls, params, args):
+        params['geojson'] = args['geojson']
+        query_type, params = cls.get_query_type(params, args)
+        if query_type == 'download':
+            return cls.WORLD.format(**params)
+        else:
+            return cls.WORLD.format(**params)
+
+    @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
@@ -109,7 +118,7 @@ class CartoDbExecutor():
                 result = {}
             result['params'] = params
             if 'geojson' in params:
-                result['geojson'] = json.loads(params['geojson'])
+                result['params']['geojson'] = json.loads(params['geojson'])
             if 'dev' in params:
                 result['dev'] = {'sql': query}
             return result
