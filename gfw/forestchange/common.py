@@ -62,6 +62,7 @@ class Sql(object):
     def iso(cls, params, args):
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
+        logging.info('PARAMS: %s, SQL: %s' % (params, cls.ISO))
         if query_type == 'download':
             return cls.ISO.format(**params)
         else:

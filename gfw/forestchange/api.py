@@ -26,6 +26,7 @@ from gfw.forestchange import forma
 from gfw.forestchange import fires
 from gfw.forestchange import umd
 from gfw.forestchange import quicc
+from gfw.forestchange import imazon
 from gfw.forestchange import args
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
@@ -34,6 +35,7 @@ FORMA_API = '%s/forma-alerts' % APP_BASE_URL
 UMD_API = '%s/umd-loss-gain' % APP_BASE_URL
 FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
 QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
+IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -110,7 +112,31 @@ META = {
             QUICC_API
         }
     },
-    'umd-loss-gain': {
+    'imazon-alerts': {
+        'meta': {
+            "description": "Deforestation alert system that monitors forest \
+            cover loss and forest degradation.",
+            "resolution": "250 x 250 meters",
+            "coverage": "Brazilian Amazon",
+            "timescale": "January 2007-present",
+            "updates": "Monthly",
+            "source": "MODIS, validated with Landsat and CBERS",
+            "units": "Alerts",
+            "name": "IMAZON Alerts",
+            "id": "imazon-alerts"
+        },
+        'apis': {
+            'global': '%s{?period,geojson,download,bust,dev}' % IMAZON_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            IMAZON_API
+        }
+    },    'umd-loss-gain': {
         'meta': {
             "description": "Identifies areas of tree cover loss and gain.",
             "resolution": "30 x 30 meters",
@@ -156,6 +182,13 @@ PARAMS = {
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
     },
+    'imazon-alerts': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
     'umd-loss-gain': {
         'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
         'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
@@ -167,7 +200,8 @@ TARGETS = {
     'forma-alerts': forma,
     'umd-loss-gain': umd,
     'nasa-active-fires': fires,
-    'quicc-alerts': quicc
+    'quicc-alerts': quicc,
+    'imazon-alerts': imazon
 }
 
 

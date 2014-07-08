@@ -23,24 +23,59 @@ from gfw.forestchange.common import Sql
 
 class ImazonSql(Sql):
 
-    ISO = """
-        SELECT p.iso,
-            SUM(ST_Area(i.the_geom_webmercator)/(100*100)) AS total_ha
-        FROM imazon_clean2 i,
-            (SELECT * FROM gadm2_countries WHERE iso = UPPER('{iso}')) AS p
-        WHERE ST_Intersection(i.the_geom, p.the_geom)
-            AND i.date >= '{begin}'::date
+    WORLD = """
+        SELECT data_type,
+            sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
+        FROM imazon_monthly i
+        WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
-        GROUP BY p.iso"""
+        GROUP BY data_type"""
+
+    ISO = """
+        SELECT p.iso, i.data_type,
+            SUM(ST_Area(ST_Intersection(
+                    i.the_geom_webmercator,
+                    p.the_geom_webmercator))/(100*100)) AS value
+        FROM imazon_monthly i,
+            (SELECT * FROM gadm2_countries WHERE iso = UPPER('{iso}')) as p
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
+        GROUP BY p.iso, i.data_type
+        """
 
     ID1 = """
-        """
+        SELECT p.iso, p.id_1, p.name_1, i.data_type,
+            SUM(ST_Area(ST_Intersection(
+                i.the_geom_webmercator,
+                p.the_geom_webmercator))/(100*100)) AS value
+        FROM imazon_monthly i,
+            (SELECT *
+                FROM gadm2 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
+        GROUP BY p.iso, p.id_1, p.name_1, i.data_type"""
 
     WDPA = """
-        """
+        SELECT p.cartodb_id, i.data_type,
+            SUM(ST_Area(ST_Intersection(
+                i.the_geom_webmercator,
+                p.the_geom_webmercator))/(100*100)) AS value
+        FROM (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) p,
+            imazon_monthly i
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
+        GROUP BY p.cartodb_id, i.data_type"""
 
     USE = """
-        """
+        SELECT p.cartodb_id, i.data_type,
+            SUM(ST_Area(ST_Intersection(
+                i.the_geom_webmercator,
+                p.the_geom_webmercator))/(100*100)) AS value
+        FROM {use_table} p, imazon_monthly i
+        WHERE p.cartodb_id = {pid}
+            AND i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
+        GROUP BY p.cartodb_id, i.data_type"""
 
 
 def _processResults(action, data):
