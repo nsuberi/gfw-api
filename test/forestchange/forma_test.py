@@ -42,6 +42,7 @@ class FormaSqlTest(BaseTest):
             params = dict(params)
             params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
             sql = FormaSql.process(params)
+            print sql
             url = self.getCdbUrl(sql)
             response = self.fetch(url)
             self.assertEqual(200, response.status_code)
@@ -113,7 +114,9 @@ class FormaExecuteTest(BaseTest):
             ('end', '2014-01-01')]
         for params in self.combos(args):
             params = dict(params)
-            params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.1386718 7499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
+            params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
+            sql = FormaSql.process(params)
+            print sql
             action, data = execute(params)
             self.assertEqual('respond', action)
             self.assertIsNot(None, data)

@@ -17,6 +17,7 @@
 
 """This module supports executing CartoDB queries."""
 
+import copy
 import urllib
 import logging
 
@@ -46,10 +47,15 @@ def get_format(media_type):
 
 def get_url(query, params, auth=False):
     """Return CartoDB query URL for supplied params."""
+    params = copy.copy(params)
     params['q'] = query
     if auth:
         params['api_key'] = _get_api_key()
-    url = '%s?%s' % (ENDPOINT, urllib.urlencode(params))
+    clean_params = {}
+    for key, value in params.iteritems():
+        if key in ['api_key', 'format', 'q']:
+            clean_params[key] = value
+    url = '%s?%s' % (ENDPOINT, urllib.urlencode(clean_params))
     if runtime_config['IS_DEV']:
         logging.info(url)
     return str(url)

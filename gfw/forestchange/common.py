@@ -1,4 +1,5 @@
 
+import copy
 import json
 import logging
 
@@ -42,7 +43,7 @@ class Sql(object):
 
     @classmethod
     def process(cls, args):
-        begin = args['begin'] if 'begin' in args else '2000-01-01'
+        begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')
         classification = classify_query(args)
@@ -53,40 +54,34 @@ class Sql(object):
     def world(cls, params, args):
         params['geojson'] = args['geojson']
         query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.WORLD.format(**params)
-        else:
-            return cls.WORLD.format(**params)
+        query = cls.WORLD.format(**params)
+        download_query = cls.download(cls.WORLD.format(**params))
+        return query, download_query
 
     @classmethod
     def iso(cls, params, args):
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
-        logging.info('PARAMS: %s, SQL: %s' % (params, cls.ISO))
-        if query_type == 'download':
-            return cls.ISO.format(**params)
-        else:
-            return cls.ISO.format(**params)
+        query = cls.ISO.format(**params)
+        download_query = cls.download(cls.ISO.format(**params))
+        return query, download_query
 
     @classmethod
     def id1(cls, params, args):
         params['iso'] = args['iso']
         params['id1'] = args['id1']
         query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.ID1.format(**params)
-        else:
-            return cls.ID1.format(**params)
+        query = cls.ID1.format(**params)
+        download_query = cls.download(cls.ID1.format(**params))
+        return query, download_query
 
     @classmethod
     def wdpa(cls, params, args):
         params['wdpaid'] = args['wdpaid']
-        query_type, params = cls.get_query_type(
-            params, args, the_geom_table='f')
-        if query_type == 'download':
-            return cls.WDPA_DOWNLOAD.format(**params)
-        else:
-            return cls.WDPA.format(**params)
+        query_type, params = cls.get_query_type(params, args)
+        query = cls.WDPA.format(**params)
+        download_query = cls.download(cls.WDPA.format(**params))
+        return query, download_query
 
     @classmethod
     def use(cls, params, args):
@@ -98,12 +93,19 @@ class Sql(object):
         }
         params['use_table'] = concessions[args['use']]
         params['pid'] = args['useid']
-        query_type, params = cls.get_query_type(
-            params, args, the_geom_table='f')
-        if query_type == 'download':
-            return cls.USE_DOWNLOAD.format(**params)
-        else:
-            return cls.USE.format(**params)
+        query_type, params = cls.get_query_type(params, args)
+        query = cls.USE.format(**params)
+        download_query = cls.download(cls.USE.format(**params))
+        return query, download_query
+
+
+def get_download_urls(query, params):
+    urls = {}
+    args = copy.copy(params)
+    for fmt in ['csv', 'geojson', 'svg', 'kml', 'shp']:
+        args['format'] = fmt
+        urls[fmt] = cdb.get_url(query, args)
+    return urls
 
 
 class CartoDbExecutor():
@@ -130,11 +132,15 @@ class CartoDbExecutor():
     @classmethod
     def execute(cls, args, sql):
         try:
-            query = sql.process(args)
+            query, download_query = sql.process(args)
+            download_url = cdb.get_url(download_query, args)
             if 'format' in args:
-                return 'redirect', cdb.get_url(query, args)
+                return 'redirect', download_url
             else:
                 action, response = 'respond', cdb.execute(query)
-                return action, cls._query_response(response, args, query)
+                response = cls._query_response(response, args, query)
+                response['download_urls'] = get_download_urls(
+                    download_query, args)
+                return action, response
         except SqlError, e:
             return 'error', e

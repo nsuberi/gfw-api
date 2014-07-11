@@ -24,52 +24,52 @@ from gfw.forestchange.common import Sql
 class FormaSql(Sql):
 
     WORLD = """
-        SELECT count(pt.*) AS value
-        FROM forma_api pt
-        WHERE date >= '{begin}'::date
-              AND date <= '{end}'::date
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
               AND ST_INTERSECTS(
-                ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
+                ST_SetSRID(
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
 
     ISO = """
-        SELECT t.iso, count(t.*) AS value
-        FROM forma_api t
-        WHERE date >= '{begin}'::date
-              AND date <= '{end}'::date
-              AND iso = UPPER('{iso}')
-        GROUP BY t.iso"""
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
+              AND f.iso = UPPER('{iso}')"""
 
     ID1 = """
-        SELECT g.id_1 AS id1, count(*) AS value
-        FROM forma_api t
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
         INNER JOIN (
             SELECT *
             FROM gadm2
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
-            ON t.gadm2::int = g.objectid
-        WHERE t.date >= '{begin}'::date
-              AND t.date <= '{end}'::date
-        GROUP BY id1
-        ORDER BY id1"""
+            ON f.gadm2::int = g.objectid
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date"""
 
     WDPA = """
-        SELECT p.wdpaid, count(f.*) AS value
+        SELECT COUNT(f.*) AS value
         FROM forma_api f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-        GROUP BY p.wdpaid
-        ORDER BY p.wdpaid"""
+              AND f.date <= '{end}'::date"""
 
     USE = """
-        SELECT u.cartodb_id AS pid, count(f.*) AS value
+        SELECT COUNT(f.*) AS value
         FROM {use_table} u, forma_api f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
               AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-        GROUP BY u.cartodb_id"""
+              AND f.date <= '{end}'::date"""
+
+    @classmethod
+    def download(cls, sql):
+        return ' '.join(
+            sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*").split())
 
 
 def _processResults(action, data):
@@ -86,4 +86,6 @@ def _processResults(action, data):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, FormaSql)
+    if action == 'redirect':
+        return action, data
     return _processResults(action, data)
