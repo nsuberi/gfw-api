@@ -42,6 +42,10 @@ class UmdSql(Sql):
         ORDER BY year"""
 
     @classmethod
+    def download(cls, sql):
+        return 'TODO'
+
+    @classmethod
     def iso(cls, params, args):
         params['thresh'] = args['thresh']
         return super(UmdSql, cls).iso(params, args)

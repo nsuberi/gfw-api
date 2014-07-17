@@ -272,6 +272,11 @@ class Handler(CORSRequestHandler):
             query_args = args.process(self.args(only=PARAMS[dataset][rtype]))
             path_args = args.process_path(path, rtype)
             params = dict(query_args, **path_args)
+
+            # Queries for all require a geojson constraint for performance
+            if rtype == 'all' and 'geojson' not in params:
+                raise args.GeoJsonArgError()
+
             rid = self.get_id(params)
             target = TARGETS[dataset]
             action, data = self.get_or_execute(params, target, rid)
@@ -284,7 +289,6 @@ class Handler(CORSRequestHandler):
         except args.ArgError, e:
             logging.exception(e)
             self.write_error(400, e.message)
-            self.write(json.dumps(META, sort_keys=True))
 
 
 handlers = webapp2.WSGIApplication([

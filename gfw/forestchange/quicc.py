@@ -71,6 +71,10 @@ class QuiccSql(Sql):
         GROUP BY p.cartodb_id
         ORDER BY p.cartodb_id"""
 
+    @classmethod
+    def download(cls, sql):
+        return 'TODO'
+
 
 def _processResults(action, data):
     if 'rows' in data:
