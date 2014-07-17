@@ -29,6 +29,9 @@ class ImazonSql(Sql):
         FROM imazon_monthly i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
+            AND ST_INTERSECTS(
+                ST_SetSRID(
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), i.the_geom)
         GROUP BY data_type"""
 
     # ISO same as WORLD since imazon only in Brazil

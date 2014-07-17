@@ -19,38 +19,42 @@
 
 import unittest
 
-from google.appengine.ext import testbed
+from test.forestchange.common import BaseTest
 
-from gfw.forestchange import umd, common
-
-
-class BaseTest(unittest.TestCase):
-
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_urlfetch_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
-
-    def tearDown(self):
-        self.testbed.deactivate()
+from gfw.forestchange import umd
+from gfw.forestchange.umd import UmdSql
+from gfw.forestchange.umd import execute
 
 
-class UmdTest(BaseTest):
+class UmdSqlTest(BaseTest):
 
-    def testSql(self):
-        sql = umd.UmdSql.process({'iso': 'bra', 'thresh': 10})
-        self.assertTrue("iso = UPPER('bra')" in sql)
-        self.assertTrue("thresh = 10" in sql)
+    def testNational(self):
+        sql = UmdSql.process({'iso': 'bra', 'thresh': 10})
+        self.assertIsNot(None, sql)
 
-    def testIso(self):
-        action, data = umd.execute({'iso': 'bra', 'thresh': 10})
-        self.assertEqual(action, 'respond')
-        self.assertEqual(len(data['years']), 13)
+    def testSubnational(self):
+        sql = UmdSql.process({'iso': 'bra', 'id1': 1, 'thresh': 10})
+        self.assertIsNot(None, sql)
+
+
+class UmdExecuteTest(BaseTest):
+
+    def checkResponse(self, action, data):
+        self.assertIsNot(None, action)
+        self.assertIsNot(None, data)
+        if 'error' in data:
+            print 'WARNING - %s' % data['error']
+        else:
+            self.assertIn('years', data)
+
+    def testNational(self):
+        action, data = execute({'iso': 'bra', 'thresh': 10})
+        self.checkResponse(action, data)
+
+    def testSubnational(self):
+        action, data = execute({'iso': 'bra', 'id1': 1, 'thresh': 10})
+        self.checkResponse(action, data)
 
 if __name__ == '__main__':
-    reload(common)
     reload(umd)
     unittest.main(verbosity=2, exit=False)

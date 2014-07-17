@@ -16,6 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """Unit test coverage for the gfw.forestchange.forma module."""
+# import dev_appserver
+# dev_appserver.fix_sys_path()
 
 import itertools
 import requests
@@ -24,7 +26,6 @@ import urllib
 
 from google.appengine.ext import testbed
 from contextlib import closing
-
 
 CDB_URL = 'http://wri-01.cartodb.com/api/v2/sql?%s'
 

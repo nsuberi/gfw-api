@@ -24,7 +24,6 @@ from test.forestchange.common import BaseTest
 from gfw.forestchange import forma
 from gfw.forestchange.forma import FormaSql
 from gfw.forestchange.forma import execute
-from gfw.forestchange import common
 
 
 class FormaSqlTest(BaseTest):
@@ -36,18 +35,13 @@ class FormaSqlTest(BaseTest):
 
     def testWolrd(self):
         args = [
-            ('begin', '2010-01-01'),
+            ('begin', '2013-01-01'),
             ('end', '2014-01-01')]
         for params in self.combos(args):
             params = dict(params)
             params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
             sql = FormaSql.process(params)
-            print sql
-            url = self.getCdbUrl(sql)
-            response = self.fetch(url)
-            self.assertEqual(200, response.status_code)
-            self.assertIsNot(None, response.json()['rows'])
-            self.assertIsNot(None, 'value' in response.json()['rows'][0])
+            self.assertIsNot(sql, None)
 
     def testNational(self):
         args = [
@@ -57,11 +51,7 @@ class FormaSqlTest(BaseTest):
             params = dict(params)
             params['iso'] = 'idn'
             sql = FormaSql.process(params)
-            url = self.getCdbUrl(sql)
-            response = self.fetch(url)
-            self.assertEqual(200, response.status_code)
-            self.assertIsNot(None, response.json()['rows'])
-            self.assertIsNot(None, 'value' in response.json()['rows'][0])
+            self.assertIsNot(sql, None)
 
     def testSubnational(self):
         args = [
@@ -72,11 +62,7 @@ class FormaSqlTest(BaseTest):
             params['iso'] = 'idn'
             params['id1'] = '1'
             sql = FormaSql.process(params)
-            url = self.getCdbUrl(sql)
-            response = self.fetch(url)
-            self.assertEqual(200, response.status_code)
-            self.assertIsNot(None, response.json()['rows'])
-            self.assertIsNot(None, 'value' in response.json()['rows'][0])
+            self.assertIsNot(sql, None)
 
     def testWdpa(self):
         args = [
@@ -86,10 +72,7 @@ class FormaSqlTest(BaseTest):
             params = dict(params)
             params['wdpaid'] = '1'
             sql = FormaSql.process(params)
-            url = self.getCdbUrl(sql)
-            response = self.fetch(url)
-            self.assertEqual(200, response.status_code)
-            self.assertIsNot(None, response.json()['rows'])
+            self.assertIsNot(sql, None)
 
     def testUse(self):
         args = [
@@ -102,11 +85,19 @@ class FormaSqlTest(BaseTest):
                 params['use'] = use
                 sql = FormaSql.process(params)
                 url = self.getCdbUrl(sql)
-                response = self.fetch(url)
-                self.assertEqual(200, response.status_code)
+                self.assertIsNot(sql, None)
+                self.assertIsNot(url, None)
 
 
 class FormaExecuteTest(BaseTest):
+
+    def checkResponse(self, action, data):
+        self.assertIsNot(None, action)
+        self.assertIsNot(None, data)
+        if 'error' in data:
+            print 'WARNING - %s' % data['error']
+        else:
+            self.assertIn('value', data)
 
     def testWorld(self):
         args = [
@@ -115,12 +106,8 @@ class FormaExecuteTest(BaseTest):
         for params in self.combos(args):
             params = dict(params)
             params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
-            sql = FormaSql.process(params)
-            print sql
             action, data = execute(params)
-            self.assertEqual('respond', action)
-            self.assertIsNot(None, data)
-            self.assertIn('value', data)
+            self.checkResponse(action, data)
 
     def testNational(self):
         args = [
@@ -130,9 +117,7 @@ class FormaExecuteTest(BaseTest):
             params = dict(params)
             params['iso'] = 'idn'
             action, data = execute(params)
-            self.assertEqual('respond', action)
-            self.assertIsNot(None, data)
-            self.assertIn('value', data)
+            self.checkResponse(action, data)
 
     def testSubnational(self):
         args = [
@@ -143,56 +128,8 @@ class FormaExecuteTest(BaseTest):
             params['iso'] = 'idn'
             params['id1'] = '1'
             action, data = execute(params)
-            self.assertEqual('respond', action)
-            self.assertIsNot(None, data)
-            self.assertIn('value', data)
-
-
-    # def testWdpa(self):
-    #     args = [
-    #         ('begin', '2010-01-01'),
-    #         ('end', '2014-01-01')]
-    #     for params in self.combos(args):
-    #         params = dict(params)
-    #         params['wdpaid'] = '1'
-    #         sql = FormaSql.process(params)
-    #         url = self.getCdbUrl(sql)
-    #         response = self.fetch(url)
-    #         self.assertEqual(200, response.status_code)
-    #         self.assertIsNot(None, response.json()['rows'])
-
-    # def testUse(self):
-    #     args = [
-    #         ('begin', '2010-01-01'),
-    #         ('end', '2014-01-01')]
-    #     for use in ['mining', 'logging', 'fiber', 'logging']:
-    #         for params in self.combos(args):
-    #             params = dict(args)
-    #             params['useid'] = '1'
-    #             params['use'] = use
-    #             sql = FormaSql.process(params)
-    #             url = self.getCdbUrl(sql)
-    #             response = self.fetch(url)
-    #             self.assertEqual(200, response.status_code)
-#     def testExecuteNational(self):
-#         # valid iso
-#         action, data = execute(
-#             {'iso': 'bra', 'begin': '2001-01-01', 'end': '2014-01-01'})
-#         self.assertEqual(action, 'respond')
-#         self.assertIn('value', data)
-#         self.assertIsNot(data['value'], None)
-
-#         # invalid iso
-#         action, data = execute(
-#             {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
-#         self.assertEqual(action, 'respond')
-#         self.assertIn('value', data)
-#         self.assertEqual(data['value'], None)
-
-#         # no iso
-#         self.assertRaises(Exception, execute, {})
+            self.checkResponse(action, data)
 
 if __name__ == '__main__':
-    reload(common)
     reload(forma)
     unittest.main(verbosity=2, exit=False)

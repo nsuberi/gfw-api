@@ -1,7 +1,6 @@
 
 import copy
 import json
-import logging
 
 from gfw import cdb
 
@@ -113,21 +112,22 @@ class CartoDbExecutor():
     @classmethod
     def _query_response(cls, response, params, query):
         """Return world response."""
+        result = {}
+
         if response.status_code == 200:
             rows = json.loads(response.content)['rows']
             if rows:
-                result = {'rows': rows}
-            else:
-                result = {}
-            result['params'] = params
-            if 'geojson' in params:
-                result['params']['geojson'] = json.loads(params['geojson'])
-            if 'dev' in params:
-                result['dev'] = {'sql': query}
-            return result
+                result['rows'] = rows
         else:
-            logging.info(query)
-            raise Exception(response.content)
+            result['error'] = 'CartoDB Error: %s' % response.content
+
+        result['params'] = params
+        if 'geojson' in params:
+            result['params']['geojson'] = json.loads(params['geojson'])
+        if 'dev' in params:
+            result['dev'] = {'sql': query}
+
+        return result
 
     @classmethod
     def execute(cls, args, sql):
@@ -141,6 +141,8 @@ class CartoDbExecutor():
                 response = cls._query_response(response, args, query)
                 response['download_urls'] = get_download_urls(
                     download_query, args)
+                if 'error' in response:
+                    action = 'error'
                 return action, response
         except SqlError, e:
             return 'error', e
