@@ -36,7 +36,7 @@ class FiresSql(Sql):
         FROM global_7d pt,
             (SELECT
                 *
-            FROM gadm2
+            FROM gadm2_countries_simple
             WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
@@ -48,7 +48,7 @@ class FiresSql(Sql):
         FROM global_7d pt,
              (SELECT
                 *
-             FROM gadm2
+             FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}')
                    AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)

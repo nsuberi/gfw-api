@@ -52,7 +52,8 @@ class ImazonSql(Sql):
                 p.the_geom_webmercator))/(100*100)) AS value
         FROM imazon_monthly i,
             (SELECT *
-                FROM gadm2 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
+                FROM gadm2_provinces_simple
+                WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
         GROUP BY i.data_type"""

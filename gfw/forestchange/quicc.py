@@ -34,7 +34,8 @@ class QuiccSql(Sql):
     ISO = """
         SELECT p.iso, count(pt.*) AS value
         FROM modis_forest_change_copy pt,
-            (SELECT * FROM gadm2 WHERE iso = UPPER('{iso}')) as p
+            (SELECT * FROM gadm2_countries_simple
+             WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
@@ -43,8 +44,8 @@ class QuiccSql(Sql):
     ID1 = """
         SELECT p.id_1, p.name_1, count(pt.*) AS value
         FROM modis_forest_change_copy pt,
-            (SELECT * FROM gadm2 WHERE iso = UPPER('{iso}')
-                AND id_1 = {id1}) as p
+            (SELECT * FROM gadm2_provinces_simple
+             WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
