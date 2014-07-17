@@ -144,5 +144,5 @@ class CartoDbExecutor():
                 if 'error' in response:
                     action = 'error'
                 return action, response
-        except SqlError, e:
+        except Exception, e:
             return 'error', e

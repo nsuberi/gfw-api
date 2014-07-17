@@ -18,14 +18,21 @@
 """Unit test coverage for the gfw.forestchange.forma module."""
 
 import unittest
+from functools import partial
 
 from test.forestchange.common import BaseTest
 
+from gfw.forestchange import fires
+from gfw.forestchange import umd
 from gfw.forestchange import forma
-from gfw.forestchange.forma import execute
+from gfw.forestchange import imazon
+from gfw.forestchange import quicc
 
 
-class FormaExecuteTest(BaseTest):
+DATASETS = [fires, umd, forma, imazon, quicc]
+
+
+class DatasetExecuteTest(BaseTest):
 
     def checkResponse(self, action, data):
         self.assertIsNot(None, action)
@@ -33,29 +40,39 @@ class FormaExecuteTest(BaseTest):
         if 'error' in data:
             print 'WARNING - %s' % data['error']
         else:
-            self.assertIn('value', data)
+            # years for umd, value for others
+            self.assertTrue('value' in data or 'years' in data)
 
     def testWorld(self):
+        map(self._testWorld, [fires, forma, imazon, quicc])
+
+    def _testWorld(self, dataset):
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
         for params in self.combos(args):
             params = dict(params)
             params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
-            action, data = execute(params)
+            action, data = dataset.execute(params)
             self.checkResponse(action, data)
 
     def testNational(self):
+        map(self._testNational, DATASETS)
+
+    def _testNational(self, dataset):
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
         for params in self.combos(args):
             params = dict(params)
             params['iso'] = 'idn'
-            action, data = execute(params)
+            action, data = dataset.execute(params)
             self.checkResponse(action, data)
 
     def testSubnational(self):
+        map(self._testSubnational, DATASETS)
+
+    def _testSubnational(self, dataset):
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
@@ -63,20 +80,26 @@ class FormaExecuteTest(BaseTest):
             params = dict(params)
             params['iso'] = 'idn'
             params['id1'] = '1'
-            action, data = execute(params)
+            action, data = dataset.execute(params)
             self.checkResponse(action, data)
 
     def testWdpa(self):
+        map(self._testWorld, [fires, forma, imazon, quicc])
+
+    def _testWdpa(self, dataset):
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
         for params in self.combos(args):
             params = dict(params)
             params['wdpaid'] = '1'
-            action, data = execute(params)
+            action, data = dataset.execute(params)
             self.checkResponse(action, data)
 
     def testUse(self):
+        map(self._testWorld, [fires, forma, imazon, quicc])
+
+    def _testUse(self, dataset):
         args = [
             ('begin', '2010-01-01'),
             ('end', '2014-01-01')]
@@ -85,10 +108,8 @@ class FormaExecuteTest(BaseTest):
                 params = dict(params)
                 params['useid'] = '1'
                 params['use'] = use
-                action, data = execute(params)
+                action, data = dataset.execute(params)
                 self.checkResponse(action, data)
 
-
 if __name__ == '__main__':
-    reload(forma)
     unittest.main(verbosity=2, exit=False)

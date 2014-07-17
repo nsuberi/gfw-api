@@ -19,86 +19,75 @@
 
 import unittest
 
-from google.appengine.ext import testbed
+from test.forestchange.common import BaseTest
 
 from gfw.forestchange import fires
-from gfw.forestchange import common
+from gfw.forestchange.fires import execute
 
 
-class BaseTest(unittest.TestCase):
+class FiresExecuteTest(BaseTest):
 
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_urlfetch_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
+    def checkResponse(self, action, data):
+        self.assertIsNot(None, action)
+        self.assertIsNot(None, data)
+        if 'error' in data:
+            print 'WARNING - %s' % data['error']
+        else:
+            self.assertIn('value', data)
 
-    def tearDown(self):
-        self.testbed.deactivate()
+    def testWorld(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['geojson'] = '{"type":"Polygon","coordinates":[[[-62.13867187499999,-1.845383988573187],[-64.6875,-7.972197714386866],[-61.083984375,-10.487811882056695],[-52.03125,-5.703447982149503],[-56.77734375,-0.26367094433665017],[-62.13867187499999,-1.845383988573187]]]}'
+            action, data = execute(params)
+            self.checkResponse(action, data)
 
+    def testNational(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            action, data = execute(params)
+            self.checkResponse(action, data)
 
-class FiresTest(BaseTest):
+    def testSubnational(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['iso'] = 'idn'
+            params['id1'] = '1'
+            action, data = execute(params)
+            self.checkResponse(action, data)
 
-    def testNationalSql(self):
-        sql = fires.FiresSql.process(
-            {'iso': 'idn', 'begin': '2001', 'end': '2002'})
-        self.assertTrue("iso = UPPER('idn')" in sql)
-        self.assertTrue("acq_date::date >= '2001'::date" in sql)
-        self.assertTrue("acq_date::date <= '2002'::date" in sql)
+    def testWdpa(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            params = dict(params)
+            params['wdpaid'] = '1'
+            action, data = execute(params)
+            self.checkResponse(action, data)
 
-    def testSubnationalSql(self):
-        config = {'iso': 'bra', 'id1': '1', 'begin': '2001', 'end': '2002'}
-        sql = fires.FiresSql.process(config)
-        print sql
-        self.assertTrue("iso = UPPER('bra')" in sql)
-        self.assertTrue("id_1 = 1" in sql)
-        self.assertTrue("acq_date::date >= '2001'::date" in sql)
-        self.assertTrue("acq_date::date <= '2002'::date" in sql)
-
-    def testExecuteNational(self):
-        # valid iso
-        config = {'iso': 'idn', 'begin': '2001-01-01', 'end': '2015-01-01'}
-        sql = fires.FiresSql.process(config)
-        print sql
-        action, data = fires.execute(config)
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        print data
-
-        # invalid iso
-        action, data = fires.execute(
-            {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        self.assertEqual(data['value'], None)
-
-        # no iso
-        self.assertRaises(Exception, fires.execute, {})
-
-    def testExecuteSubNational(self):
-        # valid iso
-        config = {'iso': 'idn', 'id1': 1, 'begin': '2001-01-01',
-                  'end': '2015-01-01'}
-        sql = fires.FiresSql.process(config)
-        print sql
-        action, data = fires.execute(config)
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        print data
-
-        # invalid iso
-        action, data = fires.execute(
-            {'iso': 'FOO', 'begin': '2001-01-01', 'end': '2014-01-01'})
-        self.assertEqual(action, 'respond')
-        self.assertIn('value', data)
-        self.assertEqual(data['value'], None)
-
-        # no iso
-        self.assertRaises(Exception, fires.execute, {})
+    def testUse(self):
+        args = [
+            ('begin', '2010-01-01'),
+            ('end', '2014-01-01')]
+        for params in self.combos(args):
+            for use in ['logging', 'mining', 'oilpalm', 'fiber']:
+                params = dict(params)
+                params['useid'] = '1'
+                params['use'] = use
+                action, data = execute(params)
+                self.checkResponse(action, data)
 
 if __name__ == '__main__':
-    reload(common)
     reload(fires)
     unittest.main(verbosity=2, exit=False)

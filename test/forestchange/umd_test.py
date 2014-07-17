@@ -22,19 +22,7 @@ import unittest
 from test.forestchange.common import BaseTest
 
 from gfw.forestchange import umd
-from gfw.forestchange.umd import UmdSql
 from gfw.forestchange.umd import execute
-
-
-class UmdSqlTest(BaseTest):
-
-    def testNational(self):
-        sql = UmdSql.process({'iso': 'bra', 'thresh': 10})
-        self.assertIsNot(None, sql)
-
-    def testSubnational(self):
-        sql = UmdSql.process({'iso': 'bra', 'id1': 1, 'thresh': 10})
-        self.assertIsNot(None, sql)
 
 
 class UmdExecuteTest(BaseTest):
