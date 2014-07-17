@@ -17,26 +17,13 @@
 
 """Unit test coverage for gfw.forestchange.args"""
 
-import json
 import unittest
 
-from google.appengine.ext import testbed
+from test.forestchange.common import BaseTest
+
+import json
 
 from gfw.forestchange import args
-
-
-class BaseTest(unittest.TestCase):
-
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_mail_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
-
-    def tearDown(self):
-        self.testbed.deactivate()
 
 
 class PathProcessorTest(BaseTest):
@@ -130,5 +117,4 @@ class ArgsTest(BaseTest):
             x)
 
 if __name__ == '__main__':
-    reload(args)
     unittest.main(exit=False)

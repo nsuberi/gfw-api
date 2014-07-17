@@ -21,14 +21,15 @@ These tests take the SQL generated from the sql module, hit the
 CartoDB SQL API with it, and check the response for any errors.
 """
 
-import json
 import unittest
+
+from test.forestchange.common import BaseTest
+
+import json
 import urllib
 import requests
 
 from contextlib import closing
-
-from google.appengine.ext import testbed
 
 from gfw.forestchange import sql
 
@@ -38,20 +39,6 @@ def fetch(query):
     url = 'http://wri-01.cartodb.com/api/v2/sql?%s' % params
     with closing(requests.get(url, stream=True)) as r:
         return r
-
-
-class BaseTest(unittest.TestCase):
-
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_mail_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
-
-    def tearDown(self):
-        self.testbed.deactivate()
 
 
 class SqlTest(BaseTest):
@@ -82,82 +69,5 @@ class SqlTest(BaseTest):
         self.assertEqual('pa', f(dict(pa='')))
         self.assertEqual('world', f(dict()))
 
-    def test_world(self):
-        f = sql.FormaSql.process
-        args = dict()
-        query = f(args)
-        self.assertIsNotNone(query)
-        response = fetch(query)
-        self.assertEqual(200, response.status_code)
-        self.assertIn('rows', response.json())
-        self.assertEqual(1, len(response.json()['rows']))
-        self.assertIn('value', response.json()['rows'][0])
-
-        geojson = {"type": "Polygon", "coordinates": [[
-            [-58.35937499999999, -5.615985819155327],
-            [-58.35937499999999, -17.97873309555617],
-            [-50.2734375, -16.97274101999901],
-            [-49.92187499999999, -4.565473550710278],
-            [-58.35937499999999, -5.615985819155327]]]}
-
-        # GeoJSON test
-        args = dict(geojson=json.dumps(geojson))
-        query = f(args)
-        self.assertIsNotNone(query)
-        response = fetch(query)
-        self.assertEqual(200, response.status_code)
-        self.assertIn('rows', response.json())
-        self.assertEqual(1, len(response.json()['rows']))
-        self.assertIn('value', response.json()['rows'][0])
-
-    def test_use(self):
-        f = sql.FormaSql.process
-        for use in ['logging', 'mining', 'oilpalm', 'fiber']:
-            args = dict(use=use, useid=1)
-            query = f(args)
-            self.assertIsNotNone(query)
-            response = fetch(query)
-            self.assertEqual(200, response.status_code)
-            self.assertIn('rows', response.json())
-            self.assertGreaterEqual(len(response.json()['rows']), 0)
-            if response.json()['rows']:
-                self.assertIn('value', response.json()['rows'][0])
-
-    def test_id1(self):
-        f = sql.FormaSql.process
-        args = dict(iso='bra', id1=1)
-        query = f(args)
-        self.assertIsNotNone(query)
-        response = fetch(query)
-        self.assertEqual(200, response.status_code)
-        self.assertIn('rows', response.json())
-        self.assertEqual(1, len(response.json()['rows']))
-        self.assertIn('value', response.json()['rows'][0])
-
-    def test_iso(self):
-        f = sql.FormaSql.process
-        for iso in ['bra', 'BRA']:
-            args = dict(iso=iso)
-            query = f(args)
-            self.assertIsNotNone(query)
-            response = fetch(query)
-            self.assertEqual(200, response.status_code)
-            self.assertIn('rows', response.json())
-            self.assertEqual(1, len(response.json()['rows']))
-            self.assertIn('value', response.json()['rows'][0])
-
-    def test_wdpa(self):
-        f = sql.FormaSql.process
-        args = dict(wdpaid=8950)
-        query = f(args)
-        self.assertIsNotNone(query)
-        response = fetch(query)
-        print response
-        self.assertEqual(200, response.status_code)
-        self.assertIn('rows', response.json())
-        self.assertEqual(1, len(response.json()['rows']))
-        self.assertIn('value', response.json()['rows'][0])
-
 if __name__ == '__main__':
-    reload(sql)
     unittest.main(exit=False)

@@ -19,24 +19,9 @@
 
 import unittest
 
-from google.appengine.ext import testbed
+from test.forestchange.common import BaseTest
 
 from gfw.countries import countries
-from gfw.forestchange import common
-
-
-class BaseTest(unittest.TestCase):
-
-    def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_urlfetch_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
-
-    def tearDown(self):
-        self.testbed.deactivate()
 
 
 class CountriesTest(BaseTest):
@@ -52,6 +37,5 @@ class CountriesTest(BaseTest):
 
 
 if __name__ == '__main__':
-    reload(common)
-    reload(countries)
+
     unittest.main(verbosity=2, exit=False)
