@@ -1,0 +1,4 @@
+ignore-paths:
+    - lib
+strictness: veryhigh
+max-line-length: 80
