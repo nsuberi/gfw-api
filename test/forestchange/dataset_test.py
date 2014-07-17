@@ -15,10 +15,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Unit test coverage for the gfw.forestchange.forma module."""
+"""Unit test coverage the execute function on all dataset modules."""
 
 import unittest
-from functools import partial
 
 from test.forestchange.common import BaseTest
 
@@ -27,7 +26,6 @@ from gfw.forestchange import umd
 from gfw.forestchange import forma
 from gfw.forestchange import imazon
 from gfw.forestchange import quicc
-
 
 DATASETS = [fires, umd, forma, imazon, quicc]
 

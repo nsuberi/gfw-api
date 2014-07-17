@@ -22,9 +22,12 @@ and download queries. This doesn't test the CartoDB SQL used. See the
 test/gfw.forestchange.sql for that.
 """
 
+import unittest
+
+from test.forestchange.common import BaseTest
+
 import itertools
 import requests
-import unittest
 import webapp2
 import webtest
 
@@ -32,9 +35,7 @@ from contextlib import closing
 
 from google.appengine.ext import testbed
 
-from gfw.forestchange import args, sql
 from gfw.forestchange import api
-from gfw import common
 
 
 def combos(params, repeat=None, min=None):
@@ -129,8 +130,4 @@ class FunctionTest(unittest.TestCase):
         self.assertEqual(('forma-alerts', 'wdpa'), api._classify_request(path))
 
 if __name__ == '__main__':
-    reload(common)
-    reload(api)
-    reload(args)
-    reload(sql)
     unittest.main(exit=False, failfast=True)

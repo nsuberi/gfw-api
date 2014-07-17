@@ -17,7 +17,6 @@
 
 """This module is the entry point for the forest change API."""
 
-import json
 import logging
 import re
 import webapp2
