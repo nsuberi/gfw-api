@@ -23,91 +23,53 @@ from gfw.forestchange.common import Sql
 
 class FormaSql(Sql):
 
+    WORLD = """
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
+              AND ST_INTERSECTS(
+                ST_SetSRID(
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
+
     ISO = """
-        SELECT t.iso, count(t.*) AS value
-        FROM forma_api t
-        WHERE date >= '{begin}'::date
-              AND date <= '{end}'::date
-              AND iso = UPPER('{iso}')
-        GROUP BY t.iso"""
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
+              AND f.iso = UPPER('{iso}')"""
 
     ID1 = """
-        SELECT g.id_1 AS id1, count(*) AS value
-        FROM forma_api t
+        SELECT COUNT(f.*) AS value
+        FROM forma_api f
         INNER JOIN (
             SELECT *
             FROM gadm2
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
-            ON t.gadm2::int = g.objectid
-        WHERE t.date >= '{begin}'::date
-              AND t.date <= '{end}'::date
-        GROUP BY id1
-        ORDER BY id1"""
+            ON f.gadm2::int = g.objectid
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date"""
 
     WDPA = """
-        SELECT p.wdpaid, count(f.*) AS value
+        SELECT COUNT(f.*) AS value
         FROM forma_api f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-        GROUP BY p.wdpaid
-        ORDER BY p.wdpaid"""
+              AND f.date <= '{end}'::date"""
 
     USE = """
-        SELECT u.cartodb_id AS pid, count(f.*) AS value
+        SELECT COUNT(f.*) AS value
         FROM {use_table} u, forma_api f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
               AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-        GROUP BY u.cartodb_id"""
+              AND f.date <= '{end}'::date"""
 
     @classmethod
-    def iso(cls, params, args):
-        params['iso'] = args['iso']
-        query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.ISO.format(**params)
-        else:
-            return cls.ISO.format(**params)
-
-    @classmethod
-    def id1(cls, params, args):
-        params['iso'] = args['iso']
-        params['id1'] = args['id1']
-        query_type, params = cls.get_query_type(params, args)
-        if query_type == 'download':
-            return cls.ID1.format(**params)
-        else:
-            return cls.ID1.format(**params)
-
-    @classmethod
-    def wdpa(cls, params, args):
-        params['wdpaid'] = args['wdpaid']
-        query_type, params = cls.get_query_type(
-            params, args, the_geom_table='f')
-        if query_type == 'download':
-            return cls.WDPA_DOWNLOAD.format(**params)
-        else:
-            return cls.WDPA.format(**params)
-
-    @classmethod
-    def use(cls, params, args):
-        concessions = {
-            'mining': 'mining_permits_merge',
-            'oilpalm': 'oil_palm_permits_merge',
-            'fiber': 'fiber_all_merged',
-            'logging': 'logging_all_merged'
-        }
-        params['use_table'] = concessions[args['use']]
-        params['pid'] = args['useid']
-        query_type, params = cls.get_query_type(
-            params, args, the_geom_table='f')
-        if query_type == 'download':
-            return cls.USE_DOWNLOAD.format(**params)
-        else:
-            return cls.USE.format(**params)
+    def download(cls, sql):
+        return ' '.join(
+            sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*").split())
 
 
 def _processResults(action, data):
@@ -124,4 +86,6 @@ def _processResults(action, data):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, FormaSql)
+    if action == 'redirect':
+        return action, data
     return _processResults(action, data)

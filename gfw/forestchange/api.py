@@ -23,13 +23,19 @@ import re
 import webapp2
 
 from gfw.forestchange import forma
+from gfw.forestchange import fires
 from gfw.forestchange import umd
+from gfw.forestchange import quicc
+from gfw.forestchange import imazon
 from gfw.forestchange import args
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL
 UMD_API = '%s/umd-loss-gain' % APP_BASE_URL
+FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
+QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
+IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -45,7 +51,7 @@ META = {
             "id": "forma-alerts"
         },
         'apis': {
-            #'global': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
+            'world': '%s{?period,geojson,download,bust,dev}' % FORMA_API,
             'national': '%s/admin{/iso}{?period,download,bust,dev}' %
             FORMA_API,
             'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
@@ -56,7 +62,81 @@ META = {
             FORMA_API
         }
     },
-    'umd-loss-gain': {
+    'nasa-active-fires': {
+        'meta': {
+            "description": "Displays fire alert data for the past 7 days.",
+            "resolution": "1 x 1 kilometer",
+            "coverage": "Global",
+            "timescale": "Last 7 days",
+            "updates": "Daily",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "NASA Active Fires",
+            "id": "nasa-active-fires"
+        },
+        'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % FIRES_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            FIRES_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            FIRES_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            FIRES_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            FIRES_API
+        }
+    },
+    'quicc-alerts': {
+        'meta': {
+            "description": "Identifies areas of land that have lost at least \
+            40% of their green vegetation cover from the previous quarterly \
+            product.",
+            "resolution": "5 x 5 kilometer",
+            "coverage": "Global, except for areas >37 degrees north",
+            "timescale": "October 2011-present",
+            "updates": "Quarterly (April, July, October, January)",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "QUICC Alerts",
+            "id": "quicc-alerts"
+        },
+        'apis': {
+            'global': '%s{?period,geojson,download,bust,dev}' % QUICC_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            QUICC_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            QUICC_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            QUICC_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            QUICC_API
+        }
+    },
+    'imazon-alerts': {
+        'meta': {
+            "description": "Deforestation alert system that monitors forest \
+            cover loss and forest degradation.",
+            "resolution": "250 x 250 meters",
+            "coverage": "Brazilian Amazon",
+            "timescale": "January 2007-present",
+            "updates": "Monthly",
+            "source": "MODIS, validated with Landsat and CBERS",
+            "units": "Alerts",
+            "name": "IMAZON Alerts",
+            "id": "imazon-alerts"
+        },
+        'apis': {
+            'global': '%s{?period,geojson,download,bust,dev}' % IMAZON_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            IMAZON_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            IMAZON_API
+        }
+    },    'umd-loss-gain': {
         'meta': {
             "description": "Identifies areas of tree cover loss and gain.",
             "resolution": "30 x 30 meters",
@@ -79,9 +159,30 @@ META = {
     }
 }
 
-# Maps query type to accepted query params
+# Maps dataset to accepted query params
 PARAMS = {
     'forma-alerts': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
+    'nasa-active-fires': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
+    'quicc-alerts': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+    },
+    'imazon-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
         'iso': ['period', 'download', 'dev', 'bust'],
         'id1': ['period', 'download', 'dev', 'bust'],
@@ -97,7 +198,10 @@ PARAMS = {
 # Maps dataset name to target module for execution
 TARGETS = {
     'forma-alerts': forma,
-    'umd-loss-gain': umd
+    'umd-loss-gain': umd,
+    'nasa-active-fires': fires,
+    'quicc-alerts': quicc,
+    'imazon-alerts': imazon
 }
 
 
@@ -168,6 +272,11 @@ class Handler(CORSRequestHandler):
             query_args = args.process(self.args(only=PARAMS[dataset][rtype]))
             path_args = args.process_path(path, rtype)
             params = dict(query_args, **path_args)
+
+            # Queries for all require a geojson constraint for performance
+            if rtype == 'all' and 'geojson' not in params:
+                raise args.GeoJsonArgError()
+
             rid = self.get_id(params)
             target = TARGETS[dataset]
             action, data = self.get_or_execute(params, target, rid)
@@ -180,7 +289,6 @@ class Handler(CORSRequestHandler):
         except args.ArgError, e:
             logging.exception(e)
             self.write_error(400, e.message)
-            self.write(json.dumps(META, sort_keys=True))
 
 
 handlers = webapp2.WSGIApplication([

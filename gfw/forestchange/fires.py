@@ -15,40 +15,85 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module provides functions for dealing with NASA fires."""
+"""This module supports acessing NASA fires data."""
 
-import json
-import logging
-
-import sql
-from gfw import cdb
+from gfw.forestchange.common import CartoDbExecutor
+from gfw.forestchange.common import Sql
 
 
-def _query_response(response, params, query):
-    if response.status_code == 200:
-        rows = json.loads(response.content)['rows']
-        if rows:
-            result = rows[0]
-        else:
-            result = {'value': 0}
-        result.update(params)
-        if 'geojson' in params:
-            result['geojson'] = json.loads(params['geojson'])
-        if 'dev' in params:
-            result['dev'] = {'sql': query}
-        return result
+class FiresSql(Sql):
+
+    WORLD = """
+        SELECT count(pt.*) AS value
+        FROM global_7d pt
+        WHERE acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+            AND ST_INTERSECTS(
+                ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
+
+    ISO = """
+        SELECT p.iso, count(pt.*) AS value
+        FROM global_7d pt,
+            (SELECT
+                *
+            FROM gadm2
+            WHERE iso = UPPER('{iso}')) as p
+        WHERE ST_Intersects(pt.the_geom, p.the_geom)
+            AND acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+        GROUP BY p.iso"""
+
+    ID1 = """
+        SELECT p.id_1 AS id1, p.iso AS iso, count(pt.*) AS value
+        FROM global_7d pt,
+             (SELECT
+                *
+             FROM gadm2
+             WHERE iso = UPPER('{iso}')
+                   AND id_1 = {id1}) as p
+        WHERE ST_Intersects(pt.the_geom, p.the_geom)
+            AND acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+        GROUP BY p.id_1, p.iso
+        ORDER BY p.id_1"""
+
+    WDPA = """
+        SELECT p.wdpaid, count(pt.*) AS value
+        FROM global_7d pt,
+            (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
+        WHERE ST_Intersects(pt.the_geom, p.the_geom)
+            AND acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+        GROUP BY p.wdpaid
+        ORDER BY p.wdpaid"""
+
+    USE = """
+        SELECT p.cartodb_id, count(pt.*) AS value
+        FROM global_7d pt,
+            (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
+        WHERE ST_Intersects(pt.the_geom, p.the_geom)
+            AND acq_date::date >= '{begin}'::date
+            AND acq_date::date <= '{end}'::date
+        GROUP BY p.cartodb_id
+        ORDER BY p.cartodb_id"""
+
+    @classmethod
+    def download(cls, sql):
+        return 'TODO'
+
+
+def _processResults(action, data):
+    if 'rows' in data:
+        result = data['rows'][0]
+        data.pop('rows')
     else:
-        logging.exception(query)
-        raise Exception(response.content)
+        result = dict(value=None)
+
+    data['value'] = result['value']
+
+    return action, data
 
 
 def execute(args):
-    try:
-        query = sql.FiresSql.process(args)
-        if 'format' in args:
-            return 'redirect', cdb.get_url(query, args)
-        else:
-            action, response = 'respond', cdb.execute(query)
-            return action, _query_response(response, args, query)
-    except (sql.SqlError, Exception) as e:
-        return 'error', e
+    action, data = CartoDbExecutor.execute(args, FiresSql)
+    return _processResults(action, data)
