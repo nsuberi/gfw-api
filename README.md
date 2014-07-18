@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wri/gfw-api.svg?branch=feature%2Fv1)](https://travis-ci.org/wri/gfw-api)
+[![Build Status](https://travis-ci.org/wri/gfw-api.svg?branch=feature%2Fv1)](https://travis-ci.org/wri/gfw-api) [![Code Health](https://landscape.io/github/wri/gfw-api/feature/v1/landscape.png)](https://landscape.io/github/wri/gfw-api/feature/v1)
 
 # API Overview
 
