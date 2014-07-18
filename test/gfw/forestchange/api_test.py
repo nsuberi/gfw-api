@@ -22,10 +22,9 @@ and download queries. This doesn't test the CartoDB SQL used. See the
 test/gfw.forestchange.sql for that.
 """
 
+from test import common
+
 import unittest
-
-from test.forestchange.common import BaseTest
-
 import itertools
 import requests
 import webapp2
