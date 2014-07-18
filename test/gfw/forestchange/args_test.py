@@ -17,16 +17,15 @@
 
 """Unit test coverage for gfw.forestchange.args"""
 
+from test import common
+
 import unittest
-
-from test.forestchange.common import BaseTest
-
 import json
 
 from gfw.forestchange import args
 
 
-class PathProcessorTest(BaseTest):
+class PathProcessorTest(common.BaseTest):
 
     def test_process_path(self):
         path = '/forest-change/forma-alerts/admin/bra'
@@ -46,7 +45,7 @@ class PathProcessorTest(BaseTest):
         self.assertEqual({'use': 'logging', 'useid': '123'}, value)
 
 
-class ArgsTest(BaseTest):
+class ArgsTest(common.BaseTest):
 
     def test_period(self):
         f = args.ArgProcessor.period

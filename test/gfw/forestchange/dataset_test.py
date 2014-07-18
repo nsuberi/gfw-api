@@ -18,7 +18,6 @@
 """Unit test coverage the execute function on all dataset modules."""
 
 from test import common
-from test.gfw.forestchange import responses
 from test.gfw.forestchange import sqls
 
 import unittest
