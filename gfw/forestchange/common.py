@@ -43,6 +43,7 @@ class Sql(object):
 
     @classmethod
     def clean(cls, sql):
+        """Return sql with extra whitespace removed."""
         return ' '.join(sql.split())
 
     @classmethod

@@ -18,6 +18,7 @@
 """Unit test coverage the execute function on all dataset modules."""
 
 from test import common
+
 from test.gfw.forestchange import sqls
 
 import unittest
@@ -40,6 +41,9 @@ class FormaSqlTest(unittest.TestCase):
         # World
         sql = forma.FormaSql.process({'geojson': 'foo'})[0]
         self.assertEqual(sql, sqls.forma_world)
+
+        with self.assertRaises(Exception):  # GeoJson required
+            forma.FormaSql.process({})[0]
 
         # National
         sql = forma.FormaSql.process({'iso': 'bra'})[0]
