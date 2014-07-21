@@ -1,7 +1,6 @@
 
 import copy
 import json
-import re
 
 from gfw import cdb
 
@@ -151,4 +150,4 @@ class CartoDbExecutor():
                     action = 'error'
                 return action, response
         except Exception, e:
-            return 'error', e
+            return 'execute() error', e

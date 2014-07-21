@@ -285,7 +285,7 @@ class Handler(CORSRequestHandler):
                 data.update(META[dataset])
 
             self.complete(action, data)
-        except args.ArgError, e:
+        except (Exception, args.ArgError), e:
             logging.exception(e)
             self.write_error(400, e.message)
 

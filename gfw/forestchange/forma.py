@@ -86,6 +86,6 @@ def _processResults(action, data):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, FormaSql)
-    if action == 'redirect':
+    if action == 'redirect' or action == 'error':
         return action, data
     return _processResults(action, data)

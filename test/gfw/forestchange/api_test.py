@@ -26,13 +26,8 @@ from test import common
 
 import unittest
 import itertools
-import requests
 import webapp2
 import webtest
-
-from contextlib import closing
-
-from google.appengine.ext import testbed
 
 from gfw.forestchange import api
 
@@ -51,50 +46,146 @@ def combos(params, repeat=None, min=None):
     return result
 
 
-class BaseTest(unittest.TestCase):
+class BaseApiTest(common.FetchBaseTest):
 
     def setUp(self):
-        self.testbed = testbed.Testbed()
-        self.testbed.activate()
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.testbed.init_mail_stub()
-        self.testbed.init_urlfetch_stub()
-        self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
-
+        super(BaseApiTest, self).setUp()
         app = webapp2.WSGIApplication([(r'/forest-change.*', api.Handler)])
-        self.testapp = webtest.TestApp(app)
+        self.api = webtest.TestApp(app)
+        self.args = [
+            ('bust', 1),
+            ('dev', 1),
+            ('period', '2008-01-01,2014-01-01')]
 
-        self.content_types = dict(
-            csv='text/csv',
-            kml='application/kml',
-            geojson='application/json',
-            svg='image/svg+xml',
-            shp='application/zip'
-        )
+    def _testGetNational(self, dataset):
+        path = r'/forest-change/%s/admin/bra' % dataset
 
-    def tearDown(self):
-        self.testbed.deactivate()
+        for combo in combos(self.args):
+            args = dict(combo)
+            cdb_response = '{"rows":[{"value":9870}]}'
+            self.setResponse(content=cdb_response, status_code=200)
+            r = self.api.get(path, args)
+            self.assertTrue('value' in r.json or 'years' in r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(200, r.status_code)
 
-    def fetch(self, url, fmt):
-        with closing(requests.get(url, stream=True)) as r:
-            return r
+    def _testGetSubnational(self, dataset):
+        path = r'/forest-change/%s/admin/bra/2' % dataset
 
-    def download_helper(self, path, args={}):
-        """Test download for supplied path and args."""
-        for fmt in ['csv', 'geojson', 'kml', 'shp', 'svg']:
-            args['download'] = 'file.%s' % fmt
-            r = self.testapp.get(path, args)
-            self.assertEqual(302, r.status_code)
-            self.assertIn('location', r.headers)
-            self.assertIn('http://wri-01.cartodb.com', r.headers['location'])
-            response = self.fetch(r.headers['location'], fmt)
-            if response.status_code != 200:
-                print '\nERROR - %s\n%s\n%s\n%s\n' % \
-                    (path, args, response.json(), r.headers['location'])
-            else:
-                self.assertIn(
-                    self.content_types[fmt], response.headers['Content-Type'])
+        for combo in combos(self.args):
+            args = dict(combo)
+            cdb_response = '{"rows":[{"value":9870}]}'
+            self.setResponse(content=cdb_response, status_code=200)
+            r = self.api.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(r.json['params']['iso'], 'bra')
+            self.assertIn('id1', r.json['params'])
+            self.assertEqual(r.json['params']['id1'], '2')
+            self.assertEqual(200, r.status_code)
+
+    def _testGetWdpa(self, dataset):
+        path = r'/forest-change/%s/wdpa/180' % dataset
+
+        for combo in combos(self.args):
+            args = dict(combo)
+            cdb_response = '{"rows":[{"value":9870}]}'
+            self.setResponse(content=cdb_response, status_code=200)
+            r = self.api.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('wdpaid', r.json['params'])
+            self.assertEqual(r.json['params']['wdpaid'], '180')
+            self.assertEqual(200, r.status_code)
+
+    def _testGetUse(self, dataset):
+        path = r'/forest-change/%s/use/%s/1'
+
+        for use in ['logging', 'oilpalm', 'fiber', 'mining']:
+            p = path % (use, dataset)
+            for combo in combos(self.args):
+                args = dict(combo)
+                cdb_response = '{"rows":[{"value":9870}]}'
+                self.setResponse(content=cdb_response, status_code=200)
+                r = self.api.get(p, args)
+                self.assertIn('value', r.json)
+                self.assertIn('params', r.json)
+                self.assertIn('use', r.json['params'])
+                self.assertEqual(r.json['params']['use'], use)
+                self.assertIn('useid', r.json['params'])
+                self.assertEqual(r.json['params']['useid'], '1')
+                self.assertEqual(200, r.status_code)
+
+
+class FormaApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('forma-alerts')
+
+    def testGetSubnational(self):
+        self._testGetNational('forma-alerts')
+
+    def testGetWdpa(self):
+        self._testGetNational('forma-alerts')
+
+    def testGetUse(self):
+        self._testGetNational('forma-alerts')
+
+
+class FiresApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('nasa-active-fires')
+
+    def testGetSubnational(self):
+        self._testGetNational('nasa-active-fires')
+
+    def testGetWdpa(self):
+        self._testGetNational('nasa-active-fires')
+
+    def testGetUse(self):
+        self._testGetNational('nasa-active-fires')
+
+
+class QuiccApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('quicc-alerts')
+
+    def testGetSubnational(self):
+        self._testGetNational('quicc-alerts')
+
+    def testGetWdpa(self):
+        self._testGetNational('quicc-alerts')
+
+    def testGetUse(self):
+        self._testGetNational('quicc-alerts')
+
+
+class ImazonApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('imazon-alerts')
+
+    def testGetSubnational(self):
+        self._testGetNational('imazon-alerts')
+
+    def testGetWdpa(self):
+        self._testGetNational('imazon-alerts')
+
+    def testGetUse(self):
+        self._testGetNational('imazon-alerts')
+
+
+class UmdApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('umd-loss-gain')
+
+    def testGetSubnational(self):
+        self._testGetNational('umd-loss-gain')
 
 
 class FunctionTest(unittest.TestCase):

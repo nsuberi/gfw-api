@@ -73,29 +73,87 @@ class FormaSqlTest(unittest.TestCase):
         self.assertEqual(sql, sqls.forma_begin_end)
 
 
-class FormaExecuteTest(common.FetchBaseTest):
+class DatasetExecuteTest(common.FetchBaseTest):
 
-    def testWorld(self):
-
-        # World success
-        args = {'geojson': '"json"'}
-        cdb_response = '{"rows":[{"value":9870}]}'
-        self.setResponse(content=cdb_response, status_code=200)
-        action, data = forma.execute(args)
+    def _success(self, args, response, service):
+        self.setResponse(content=response, status_code=200)
+        action, data = service.execute(args)
         self.assertEqual(action, 'respond')
-        self.assertEqual(data['value'], 9870)
         self.assertEqual(data['params'], args)
+        return action, data
 
-        # World failure
-        args = {'geojson': '"json"'}
-        cdb_response = '{"error":["oops"]}'
-        self.setResponse(content=cdb_response, status_code=400)
-        action, data = forma.execute(args)
+    def _failure(self, args, response, service):
+        self.setResponse(content=response, status_code=400)
+        action, data = service.execute(args)
         self.assertEqual(action, 'error')
-        self.assertEqual(data['error'],  'CartoDB Error: %s' % cdb_response)
+        self.assertEqual(data['error'],  'CartoDB Error: %s' % response)
         self.assertEqual(data['params'], args)
+        return action, data
 
-        return
+    def _world(self, service):
+        args = {'geojson': '"json"'}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._success(args, response, service)
+        self.assertIn('value', data)
+        args = {'geojson': '"json"'}
+        response = '{"error":["oops"]}'
+        action, data = self._failure(args, response, service)
+
+    def _national(self, service):
+        args = {'iso': 'bra'}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._success(args, response, service)
+        self.assertIn('value', data)
+        args = {'geojson': '"json"'}
+        response = '{"error":["oops"]}'
+        action, data = self._failure(args, response, service)
+
+    def _wdpa(self, service):
+        args = {'wdpaid': 1}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._success(args, response, service)
+        self.assertIn('value', data)
+        args = {'geojson': '"json"'}
+        response = '{"error":["oops"]}'
+        action, data = self._failure(args, response, service)
+
+    def _use(self, service):
+        for use in ['logging', 'mining', 'oilpalm', 'fiber']:
+            args = {'use': use, 'useid': 1}
+            response = '{"rows":[{"value":9870}]}'
+            action, data = self._success(args, response, service)
+            self.assertIn('value', data)
+            args = {'geojson': '"json"'}
+            response = '{"error":["oops"]}'
+            action, data = self._failure(args, response, service)
+
+    def testExecute(self):
+        """Test datasets with common responses."""
+        for service in [forma, fires, quicc, imazon]:
+            self._world(service)
+            self._national(service)
+            self._wdpa(service)
+            self._use(service)
+
+    def testUmd(self):
+        # National
+        args = {'iso': 'bra'}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._success(args, response, umd)
+        self.assertEqual(data['years'], [{"value": 9870}])
+        args = {'iso': 'bra'}
+        response = '{"error":["oops"]}'
+        action, data = self._failure(args, response, umd)
+
+        # Subnational
+        args = {'iso': 'bra', 'id1': 1}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._success(args, response, umd)
+        self.assertEqual(data['years'], [{"value": 9870}])
+        args = {'iso': 'bra', 'id1': 1}
+        response = '{"error":["oops"]}'
+        action, data = self._failure(args, response, umd)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, exit=False)

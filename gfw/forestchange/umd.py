@@ -58,6 +58,8 @@ class UmdSql(Sql):
 
 def _executeIso(args):
     action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
     rows = data['rows']
     data.pop('rows')
     data['years'] = rows
@@ -66,6 +68,8 @@ def _executeIso(args):
 
 def _executeId1(args):
     action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
     rows = data['rows']
     data.pop('rows')
     data['years'] = rows
@@ -83,6 +87,5 @@ def execute(args):
         return _executeIso(args)
     elif query_type == 'id1':
         return _executeId1(args)
-
 
     # TODO: Query new EE assets
