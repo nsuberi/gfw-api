@@ -41,13 +41,18 @@ class Sql(object):
         return query_type, params
 
     @classmethod
+    def clean(cls, sql):
+        """Return sql with extra whitespace removed."""
+        return ' '.join(sql.split())
+
+    @classmethod
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')
         classification = classify_query(args)
         if hasattr(cls, classification):
-            return getattr(cls, classification)(params, args)
+            return map(cls.clean, getattr(cls, classification)(params, args))
 
     @classmethod
     def world(cls, params, args):
@@ -145,4 +150,4 @@ class CartoDbExecutor():
                     action = 'error'
                 return action, response
         except Exception, e:
-            return 'error', e
+            return 'execute() error', e
