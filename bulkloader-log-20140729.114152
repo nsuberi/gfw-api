@@ -1,0 +1,276 @@
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Logging to bulkloader-log-20140729.114152
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Throttling transfers:
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Bandwidth: 250000 bytes/second
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] HTTP connections: 8/second
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Entities inserted/fetched/modified: 20/second
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Batch Size: 10
+[INFO     2014-07-29 11:41:52,748 bulkloader.py] Opening database: bulkloader-progress-20140729.114152.sql3
+[INFO     2014-07-29 11:41:52,752 bulkloader.py] Opening database: bulkloader-results-20140729.114152.sql3
+[DEBUG    2014-07-29 11:41:52,755 adaptive_thread_pool.py] [WorkerThread-0] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,756 adaptive_thread_pool.py] [WorkerThread-1] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,756 adaptive_thread_pool.py] [WorkerThread-2] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,756 adaptive_thread_pool.py] [WorkerThread-3] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,756 adaptive_thread_pool.py] [WorkerThread-4] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,757 adaptive_thread_pool.py] [WorkerThread-5] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,757 adaptive_thread_pool.py] [WorkerThread-6] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,757 adaptive_thread_pool.py] [WorkerThread-7] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,758 adaptive_thread_pool.py] [WorkerThread-8] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,758 bulkloader.py] Configuring remote_api. url_path = /_ah/remote_api, servername = remote-api.gfw-apis.appspot.com
+[DEBUG    2014-07-29 11:41:52,758 adaptive_thread_pool.py] [WorkerThread-9] WorkerThread: started
+[DEBUG    2014-07-29 11:41:52,764 bulkloader.py] Bulkloader using app_id: s~gfw-apis
+[INFO     2014-07-29 11:41:52,764 bulkloader.py] Connecting to remote-api.gfw-apis.appspot.com/_ah/remote_api
+[DEBUG    2014-07-29 11:41:53,222 bulkloader.py] [Thread-11] ExportProgressThread: started
+[DEBUG    2014-07-29 11:41:53,222 bulkloader.py] [Thread-12] DataSourceThread: started
+[INFO     2014-07-29 11:41:53,222 bulkloader.py] Downloading kinds: ['Subscription']
+[DEBUG    2014-07-29 11:41:53,233 bulkloader.py] [Thread-12] DataSourceThread: exiting
+[DEBUG    2014-07-29 11:41:53,239 bulkloader.py] Waiting for worker threads to finish...
+[DEBUG    2014-07-29 11:41:53,282 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-ASC[None to None]
+[DEBUG    2014-07-29 11:41:53,419 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.002
+[DEBUG    2014-07-29 11:41:53,419 bulkloader.py] Entities transferred total: 10
+[DEBUG    2014-07-29 11:41:53,419 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:53,422 bulkloader.py] [WorkerThread-0] Subscription-ASC[None to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:41:53,422 adaptive_thread_pool.py] Increasing active thread count to 2
+[DEBUG    2014-07-29 11:41:53,423 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5077736896856064L, _app=u's~gfw-apis') to None]
+[INFO     2014-07-29 11:41:53,549 bulkloader.py] Subscription: No descending index on __key__, performing serial download
+[DEBUG    2014-07-29 11:41:53,643 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:41:53,643 bulkloader.py] Entities transferred total: 20
+[DEBUG    2014-07-29 11:41:53,652 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:53,655 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5077736896856064L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.2 seconds
+[DEBUG    2014-07-29 11:41:53,655 adaptive_thread_pool.py] Increasing active thread count to 3
+[DEBUG    2014-07-29 11:41:53,656 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5104816665657344L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:53,878 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:41:53,879 bulkloader.py] Entities transferred total: 30
+[DEBUG    2014-07-29 11:41:53,879 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:53,882 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5104816665657344L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.2 seconds
+[DEBUG    2014-07-29 11:41:53,882 adaptive_thread_pool.py] Increasing active thread count to 4
+[DEBUG    2014-07-29 11:41:53,882 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5123639896702976L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:54,002 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:41:54,003 bulkloader.py] Entities transferred total: 40
+[DEBUG    2014-07-29 11:41:54,004 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:54,007 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5123639896702976L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:41:54,007 adaptive_thread_pool.py] Increasing active thread count to 5
+[DEBUG    2014-07-29 11:41:54,007 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5152734005166080L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:54,890 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:41:54,890 bulkloader.py] Entities transferred total: 50
+[DEBUG    2014-07-29 11:41:54,899 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:54,902 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5152734005166080L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:41:54,902 adaptive_thread_pool.py] Increasing active thread count to 6
+[DEBUG    2014-07-29 11:41:54,902 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5175936492240896L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:55,024 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:41:55,024 bulkloader.py] Entities transferred total: 60
+[DEBUG    2014-07-29 11:41:55,024 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:55,027 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5175936492240896L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:41:55,028 adaptive_thread_pool.py] Increasing active thread count to 7
+[DEBUG    2014-07-29 11:41:55,028 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5195581135781888L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:55,910 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:41:55,910 bulkloader.py] Entities transferred total: 70
+[DEBUG    2014-07-29 11:41:55,919 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:55,925 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5195581135781888L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.9 seconds
+[DEBUG    2014-07-29 11:41:55,925 adaptive_thread_pool.py] Increasing active thread count to 8
+[DEBUG    2014-07-29 11:41:55,926 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5632242407702528L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:56,203 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:41:56,203 bulkloader.py] Entities transferred total: 80
+[DEBUG    2014-07-29 11:41:56,204 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:56,207 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5632242407702528L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.2 seconds
+[DEBUG    2014-07-29 11:41:56,207 adaptive_thread_pool.py] Increasing active thread count to 9
+[DEBUG    2014-07-29 11:41:56,208 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5636026810761216L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:56,987 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:41:56,987 bulkloader.py] Entities transferred total: 90
+[DEBUG    2014-07-29 11:41:56,996 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:56,998 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5636026810761216L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.7 seconds
+[DEBUG    2014-07-29 11:41:56,999 adaptive_thread_pool.py] Increasing active thread count to 10
+[DEBUG    2014-07-29 11:41:56,999 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5639955095224320L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:57,169 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:41:57,170 bulkloader.py] Entities transferred total: 100
+[DEBUG    2014-07-29 11:41:57,179 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:57,182 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5639955095224320L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:41:57,182 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5644230869385216L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:57,861 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:41:57,862 bulkloader.py] Entities transferred total: 110
+[DEBUG    2014-07-29 11:41:57,871 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:57,874 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5644230869385216L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.7 seconds
+[DEBUG    2014-07-29 11:41:57,874 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5647591547076608L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:58,002 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.002
+[DEBUG    2014-07-29 11:41:58,002 bulkloader.py] Entities transferred total: 120
+[DEBUG    2014-07-29 11:41:58,003 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:58,007 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5647591547076608L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:41:58,007 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5651757665353728L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:58,839 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:41:58,840 bulkloader.py] Entities transferred total: 130
+[DEBUG    2014-07-29 11:41:58,849 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:58,852 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5651757665353728L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:41:58,852 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5655298329018368L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:59,080 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.006
+[DEBUG    2014-07-29 11:41:59,081 bulkloader.py] Entities transferred total: 140
+[DEBUG    2014-07-29 11:41:59,090 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:59,095 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5655298329018368L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.2 seconds
+[DEBUG    2014-07-29 11:41:59,097 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5659118702428160L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:41:59,933 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.002
+[DEBUG    2014-07-29 11:41:59,933 bulkloader.py] Entities transferred total: 150
+[DEBUG    2014-07-29 11:41:59,943 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:41:59,946 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5659118702428160L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:41:59,946 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5662979341156352L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:00,121 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.008
+[DEBUG    2014-07-29 11:42:00,121 bulkloader.py] Entities transferred total: 160
+[DEBUG    2014-07-29 11:42:00,130 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:00,133 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5662979341156352L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:00,134 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5667766619078656L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:00,860 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.002
+[DEBUG    2014-07-29 11:42:00,861 bulkloader.py] Entities transferred total: 170
+[DEBUG    2014-07-29 11:42:00,863 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:00,866 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5667766619078656L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.7 seconds
+[DEBUG    2014-07-29 11:42:00,866 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5671617594130432L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:00,995 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.011
+[DEBUG    2014-07-29 11:42:00,995 bulkloader.py] Entities transferred total: 180
+[DEBUG    2014-07-29 11:42:00,997 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:01,002 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5671617594130432L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:01,002 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5676325415157760L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:01,841 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:01,841 bulkloader.py] Entities transferred total: 190
+[DEBUG    2014-07-29 11:42:01,850 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:01,853 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5676325415157760L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:01,853 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5679846214598656L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:01,975 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:01,975 bulkloader.py] Entities transferred total: 200
+[DEBUG    2014-07-29 11:42:01,976 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:01,979 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5679846214598656L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:01,979 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5683739602452480L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:03,307 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:03,308 bulkloader.py] Entities transferred total: 210
+[DEBUG    2014-07-29 11:42:03,309 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:03,312 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5683739602452480L, _app=u's~gfw-apis') to None] Transferred 10 entities in 1.3 seconds
+[DEBUG    2014-07-29 11:42:03,313 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5687280266117120L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:03,437 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:03,437 bulkloader.py] Entities transferred total: 220
+[DEBUG    2014-07-29 11:42:03,438 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:03,441 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5687280266117120L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:03,442 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5691726094139392L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:03,868 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:03,868 bulkloader.py] Entities transferred total: 230
+[DEBUG    2014-07-29 11:42:03,871 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:03,874 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5691726094139392L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.4 seconds
+[DEBUG    2014-07-29 11:42:03,874 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5695586732867584L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:04,000 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:04,000 bulkloader.py] Entities transferred total: 240
+[DEBUG    2014-07-29 11:42:04,001 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:04,004 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5695586732867584L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:04,006 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5700019675987968L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:04,840 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.002
+[DEBUG    2014-07-29 11:42:04,840 bulkloader.py] Entities transferred total: 250
+[DEBUG    2014-07-29 11:42:04,841 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:04,843 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5700019675987968L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:04,844 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5704147139559424L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:04,966 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.006
+[DEBUG    2014-07-29 11:42:04,967 bulkloader.py] Entities transferred total: 260
+[DEBUG    2014-07-29 11:42:04,971 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:04,976 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5704147139559424L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:04,976 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5708916163870720L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:05,860 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:05,860 bulkloader.py] Entities transferred total: 270
+[DEBUG    2014-07-29 11:42:05,861 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:05,865 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5708916163870720L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.9 seconds
+[DEBUG    2014-07-29 11:42:05,866 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5713050069893120L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:05,991 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:42:05,991 bulkloader.py] Entities transferred total: 280
+[DEBUG    2014-07-29 11:42:05,994 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:05,995 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5713050069893120L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:05,997 adaptive_thread_pool.py] [WorkerThread-0] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5716606839685120L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:06,880 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:42:06,881 bulkloader.py] Entities transferred total: 290
+[DEBUG    2014-07-29 11:42:06,889 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:06,893 bulkloader.py] [WorkerThread-0] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5716606839685120L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:06,894 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5720605454237696L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:07,023 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.007
+[DEBUG    2014-07-29 11:42:07,023 bulkloader.py] Entities transferred total: 300
+[DEBUG    2014-07-29 11:42:07,024 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:07,031 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5720605454237696L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:07,034 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5724681378201600L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:07,868 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.005
+[DEBUG    2014-07-29 11:42:07,868 bulkloader.py] Entities transferred total: 310
+[DEBUG    2014-07-29 11:42:07,877 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:07,883 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5724681378201600L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:07,885 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5728757302165504L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:08,011 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:08,011 bulkloader.py] Entities transferred total: 320
+[DEBUG    2014-07-29 11:42:08,012 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:08,018 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5728757302165504L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:08,018 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5732910535540736L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:08,852 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:08,852 bulkloader.py] Entities transferred total: 330
+[DEBUG    2014-07-29 11:42:08,861 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:08,864 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5732910535540736L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:08,865 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5736449051721728L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:08,990 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:08,990 bulkloader.py] Entities transferred total: 340
+[DEBUG    2014-07-29 11:42:08,991 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:08,994 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5736449051721728L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:08,994 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5740423507083264L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:09,878 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:09,878 bulkloader.py] Entities transferred total: 350
+[DEBUG    2014-07-29 11:42:09,888 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:09,892 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5740423507083264L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.9 seconds
+[DEBUG    2014-07-29 11:42:09,893 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5744733775200256L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:10,013 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:10,013 bulkloader.py] Entities transferred total: 360
+[DEBUG    2014-07-29 11:42:10,016 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:10,022 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5744733775200256L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:10,024 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5748418722922496L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:10,857 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.003
+[DEBUG    2014-07-29 11:42:10,858 bulkloader.py] Entities transferred total: 370
+[DEBUG    2014-07-29 11:42:10,867 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:10,872 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5748418722922496L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:10,874 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5753113524830208L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:10,996 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:10,996 bulkloader.py] Entities transferred total: 380
+[DEBUG    2014-07-29 11:42:10,997 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:11,001 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5753113524830208L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:11,002 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5756596743307264L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:11,888 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:11,888 bulkloader.py] Entities transferred total: 390
+[DEBUG    2014-07-29 11:42:11,896 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:11,901 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5756596743307264L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:11,902 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5761329797267456L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:12,034 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:12,035 bulkloader.py] Entities transferred total: 400
+[DEBUG    2014-07-29 11:42:12,037 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:12,041 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5761329797267456L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:12,042 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 5766752193478656L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:12,925 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.006
+[DEBUG    2014-07-29 11:42:12,926 bulkloader.py] Entities transferred total: 410
+[DEBUG    2014-07-29 11:42:12,935 bulkloader.py] delete: delta=0.001
+[DEBUG    2014-07-29 11:42:12,939 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 5766752193478656L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:12,940 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 6021898483793920L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:13,064 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:13,064 bulkloader.py] Entities transferred total: 420
+[DEBUG    2014-07-29 11:42:13,065 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:13,069 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 6021898483793920L, _app=u's~gfw-apis') to None] Transferred 10 entities in 0.1 seconds
+[DEBUG    2014-07-29 11:42:13,070 adaptive_thread_pool.py] [WorkerThread-6] Got work item Subscription-DESC(datastore_types.Key.from_path(u'Subscription', 6291365268815872L, _app=u's~gfw-apis') to None]
+[DEBUG    2014-07-29 11:42:13,854 bulkloader.py] bulkloader-results-20140729.114152.sql3 insert: delta=0.004
+[DEBUG    2014-07-29 11:42:13,854 bulkloader.py] Entities transferred total: 424
+[DEBUG    2014-07-29 11:42:13,863 bulkloader.py] delete: delta=0.000
+[DEBUG    2014-07-29 11:42:13,864 bulkloader.py] [WorkerThread-6] Subscription-ASC(datastore_types.Key.from_path(u'Subscription', 6291365268815872L, _app=u's~gfw-apis') to None] Transferred 4 entities in 0.8 seconds
+[DEBUG    2014-07-29 11:42:13,889 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,891 adaptive_thread_pool.py] [WorkerThread-3] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,896 adaptive_thread_pool.py] [WorkerThread-1] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,898 adaptive_thread_pool.py] [WorkerThread-6] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,898 adaptive_thread_pool.py] [WorkerThread-0] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,898 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,899 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,902 adaptive_thread_pool.py] [WorkerThread-2] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,902 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,903 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,903 adaptive_thread_pool.py] [WorkerThread-8] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,908 adaptive_thread_pool.py] [WorkerThread-7] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,922 adaptive_thread_pool.py] [WorkerThread-4] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,924 adaptive_thread_pool.py] [WorkerThread-9] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,925 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,940 adaptive_thread_pool.py] [WorkerThread-5] WorkerThread: exiting
+[DEBUG    2014-07-29 11:42:13,942 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,942 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,942 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,942 adaptive_thread_pool.py] Waiting for Anonymous_WorkerThread to exit
+[DEBUG    2014-07-29 11:42:13,953 bulkloader.py] Waiting for progress_thread to terminate...
+[DEBUG    2014-07-29 11:42:13,984 bulkloader.py] [Thread-11] ExportProgressThread: exiting
+[DEBUG    2014-07-29 11:42:13,989 bulkloader.py] ... done.
+[INFO     2014-07-29 11:42:13,995 bulkloader.py] Have 424 entities, 0 previously transferred
+[INFO     2014-07-29 11:42:13,995 bulkloader.py] 424 entities (1129985 bytes) transferred in 21.2 seconds
