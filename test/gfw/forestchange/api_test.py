@@ -25,25 +25,10 @@ test/gfw.forestchange.sql for that.
 from test import common
 
 import unittest
-import itertools
 import webapp2
 import webtest
 
 from gfw.forestchange import api
-
-
-def combos(params, repeat=None, min=None):
-    """Returns a sequence of param tuples (name, value)."""
-    result = set()
-    if not repeat:
-        repeat = len(params) + 1
-    if not min:
-        min = 1
-    for x in range(min, repeat):
-        result.update(itertools.combinations(params, x))
-    result = list(result)
-    result.append(())
-    return result
 
 
 class BaseApiTest(common.FetchBaseTest):
@@ -60,7 +45,7 @@ class BaseApiTest(common.FetchBaseTest):
     def _testGetNational(self, dataset):
         path = r'/forest-change/%s/admin/bra' % dataset
 
-        for combo in combos(self.args):
+        for combo in common.combos(self.args):
             args = dict(combo)
             cdb_response = '{"rows":[{"value":9870}]}'
             self.setResponse(content=cdb_response, status_code=200)
@@ -73,7 +58,7 @@ class BaseApiTest(common.FetchBaseTest):
     def _testGetSubnational(self, dataset):
         path = r'/forest-change/%s/admin/bra/2' % dataset
 
-        for combo in combos(self.args):
+        for combo in common.combos(self.args):
             args = dict(combo)
             cdb_response = '{"rows":[{"value":9870}]}'
             self.setResponse(content=cdb_response, status_code=200)
@@ -89,7 +74,7 @@ class BaseApiTest(common.FetchBaseTest):
     def _testGetWdpa(self, dataset):
         path = r'/forest-change/%s/wdpa/180' % dataset
 
-        for combo in combos(self.args):
+        for combo in common.combos(self.args):
             args = dict(combo)
             cdb_response = '{"rows":[{"value":9870}]}'
             self.setResponse(content=cdb_response, status_code=200)
@@ -105,7 +90,7 @@ class BaseApiTest(common.FetchBaseTest):
 
         for use in ['logging', 'oilpalm', 'fiber', 'mining']:
             p = path % (use, dataset)
-            for combo in combos(self.args):
+            for combo in common.combos(self.args):
                 args = dict(combo)
                 cdb_response = '{"rows":[{"value":9870}]}'
                 self.setResponse(content=cdb_response, status_code=200)

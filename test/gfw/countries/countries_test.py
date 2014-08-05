@@ -17,14 +17,17 @@
 
 """Unit test coverage for the gfw.countries module."""
 
+from test import common
+
 import unittest
+import webapp2
+import webtest
 
-from test.forestchange.common import BaseTest
-
+from gfw.countries import api
 from gfw.countries import countries
 
 
-class CountriesTest(BaseTest):
+class CountriesTest(common.BaseTest):
 
     def testExecute(self):
         action, data = countries.execute(dict(iso='bra'))
@@ -36,6 +39,36 @@ class CountriesTest(BaseTest):
             self.assertNotEqual(data[key], None)
 
 
-if __name__ == '__main__':
+class CountriesApiTest(common.BaseTest):
 
+    def setUp(self):
+        super(CountriesApiTest, self).setUp()
+        app = webapp2.WSGIApplication([(r'/countries.*', api.Handler)])
+        self.api = webtest.TestApp(app)
+        self.args = [
+            ('bust', 1),
+            ('dev', 1),
+            ('thresh', 10)]
+
+    def test_classify_request(self):
+        path = '/countries/foo'
+        self.assertEqual('iso', api._classify_request(path))
+        path = '/countries/foo/1'
+        self.assertEqual('id1', api._classify_request(path))
+
+    def testGetNational(self):
+        path = r'/countries/bra'
+        for combo in common.combos(self.args):
+            args = dict(combo)
+            for thresh in [10, 15, 20, 25, 30, 50, 75]:
+                args['thresh'] = thresh
+                r = self.api.get(path, args)
+                data = r.json
+                for year in data['umd']:
+                    self.assertEqual(thresh, year['thresh'])
+                self.assertIn('params', r.json)
+                self.assertIn('iso', r.json['params'])
+                self.assertEqual(200, r.status_code)
+
+if __name__ == '__main__':
     unittest.main(verbosity=2, exit=False)
