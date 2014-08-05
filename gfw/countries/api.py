@@ -19,9 +19,11 @@
 
 import json
 import logging
+import re
 import webapp2
 
 from gfw.countries import countries
+from gfw.countries import args
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
@@ -33,28 +35,17 @@ META = {
 }
 
 
-# Maps query type to accepted query params
-PARAMS = {
-    'forma-alerts': {
-        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
-        'iso': ['period', 'download', 'dev', 'bust'],
-        'id1': ['period', 'download', 'dev', 'bust'],
-        'wpda': ['period', 'download', 'dev', 'bust'],
-        'use': ['period', 'download', 'dev', 'bust'],
-    },
-    'umd-loss-gain': {
-        'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
-        'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
-    }
-}
+def _classify_request(path):
+    """Classify request based on supplied path."""
+    hit = None
 
+    hit = re.match(r'/countries/[A-z]{3,3}$', path)
+    if hit:
+        return 'iso'
 
-def _isoFromPath(path):
-    """Return ISO code from supplied request path.
-
-    Path format: /countries/{iso}"""
-    tokens = path.split('/')
-    return tokens[2] if len(tokens) >= 1 else None
+    hit = re.match(r'/countries/[A-z]{3,3}/\d+$', path)
+    if hit:
+        return 'id1'
 
 
 class Handler(CORSRequestHandler):
@@ -72,19 +63,20 @@ class Handler(CORSRequestHandler):
                 self.complete('respond', META)
                 return
 
-            iso = _isoFromPath(path)
+            rtype = _classify_request(path)
 
             # Unsupported dataset or reqest type
-            if not iso:
+            if not rtype:
                 self.error(404)
                 return
 
             # Handle request
-            params = dict(iso=iso)
-            bust = self.request.get('bust')
+            query_args = args.process(
+                self.args(only=['dev', 'bust', 'thresh']))
+            path_args = args.process_path(path, rtype)
+            params = dict(query_args, **path_args)
+
             rid = self.get_id(params)
-            if bust:
-                params['bust'] = 1
             action, data = self.get_or_execute(params, countries, rid)
             self.complete(action, data)
         except Exception, e:
