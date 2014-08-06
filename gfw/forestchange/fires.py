@@ -17,6 +17,8 @@
 
 """This module supports acessing NASA fires data."""
 
+import datetime
+
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 
@@ -82,6 +84,28 @@ class FiresSql(Sql):
         return 'TODO'
 
 
+def _get_meta_timecale(params):
+    """Return the timescale label based on begin/end dates."""
+    import logging
+    logging.info('PARAMS: %s' % params)
+    if 'begin' in params and 'end' in params:
+        begin = datetime.datetime.strptime(
+            params['begin'], '%Y-%m-%d').date()
+        end = datetime.datetime.strptime(
+            params['end'], '%Y-%m-%d').date()
+        days = (end - begin).days
+        logging.info('%s %s %s' % (begin, end, days))
+        if days == 1:
+            return 'Past 24 hours'
+        elif days == 2:
+            return 'Past 48 hours',
+        elif days == 3:
+            return 'Past 72 hours',
+        else:
+            return 'Past week'
+    return 'Past week'
+
+
 def _processResults(action, data):
     if 'rows' in data:
         result = data['rows'][0]
@@ -90,6 +114,7 @@ def _processResults(action, data):
         result = dict(value=None)
 
     data['value'] = result['value']
+    data['period'] = _get_meta_timecale(data['params'])
 
     return action, data
 
