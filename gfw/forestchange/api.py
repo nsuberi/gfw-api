@@ -189,6 +189,7 @@ PARAMS = {
         'use': ['period', 'download', 'dev', 'bust'],
     },
     'umd-loss-gain': {
+        'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
         'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
         'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
     }
