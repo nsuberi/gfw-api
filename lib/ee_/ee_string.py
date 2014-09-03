@@ -30,13 +30,7 @@ class String(computedobject.ComputedObject):
     if isinstance(string, basestring):
       super(String, self).__init__(None, None)
     elif isinstance(string, computedobject.ComputedObject):
-      if string.func and string.func.getSignature()['returns'] == 'String':
-        # If it's a call that's already returning a String, just cast.
-        super(String, self).__init__(string.func, string.args, string.varName)
-      else:
-        super(String, self).__init__(apifunction.ApiFunction('String'), {
-            'input': string
-        })
+      super(String, self).__init__(string.func, string.args)
     else:
       raise ee_exception.EEException(
           'Invalid argument specified for ee.String(): %s' % string)

@@ -18,9 +18,9 @@ class Element(computedobject.ComputedObject):
 
   _initialized = False
 
-  def __init__(self, func, args, opt_varName=None):
+  def __init__(self, func, args):
     """Constructs a collection by initializing its ComputedObject."""
-    super(Element, self).__init__(func, args, opt_varName)
+    super(Element, self).__init__(func, args)
 
   @classmethod
   def initialize(cls):
@@ -49,45 +49,48 @@ class Element(computedobject.ComputedObject):
     Returns:
       The element with the specified properties overridden.
     """
+    # TODO(user): Remove fallback once Element.set() is live.
+    result = self
     if len(args) == 1:
       properties = args[0]
+      if not isinstance(properties, (dict, computedobject.ComputedObject)):
+        raise ee_exception.EEException('Element.set() requires a dictionary.')
 
-      # If this is a keyword call, unwrap it.
+      # Try to be smart about interpreting the argument.
       if (isinstance(properties, dict) and
           properties.keys() == ['properties'] and
-          isinstance(properties['properties'],
-                     (dict, computedobject.ComputedObject))):
+          isinstance(properties['properties'], dict)):
         # Looks like a call with keyword parameters. Extract them.
         properties = properties['properties']
-
-      if isinstance(properties, dict):
-        # Still a plain object. Extract its keys. Setting the keys separately
-        # allows filter propagation.
-        result = self
+      try:
         for key, value in properties.iteritems():
           result = apifunction.ApiFunction.call_(
               'Element.set', result, key, value)
-      elif (isinstance(properties, computedobject.ComputedObject) and
-            apifunction.ApiFunction.lookupInternal('Element.setMulti')):
-        # A computed dictionary. Can't set each key separately.
+      except ee_exception.EEException:
+        # No Element.set() defined yet. Use Feature.set().
         result = apifunction.ApiFunction.call_(
-            'Element.setMulti', self, properties)
-      else:
-        raise ee_exception.EEException(
-            'When Element.set() is passed one argument, '
-            'it must be a dictionary.')
+            'Feature.set', result, properties)
     else:
       # Interpret as key1, value1, key2, value2, ...
       if len(args) % 2 != 0:
         raise ee_exception.EEException(
             'When Element.set() is passed multiple arguments, there '
             'must be an even number of them.')
-      result = self
-      for i in range(0, len(args), 2):
-        key = args[i]
-        value = args[i + 1]
+      try:
+        for i in range(0, len(args), 2):
+          key = args[i]
+          value = args[i + 1]
+          result = apifunction.ApiFunction.call_(
+              'Element.set', result, key, value)
+      except ee_exception.EEException:
+        # No Element.set() defined yet. Use Feature.set().
+        properties = {}
+        for i in range(0, len(args), 2):
+          key = args[i]
+          value = args[i + 1]
+          properties[key] = value
         result = apifunction.ApiFunction.call_(
-            'Element.set', result, key, value)
+            'Feature.set', result, properties)
 
     # Manually cast the result to an image.
     return self._cast(result)

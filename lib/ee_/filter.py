@@ -15,6 +15,7 @@ Example usage:
 # Our custom instance/static decorator is not recognized by lint.
 # pylint: disable=no-self-argument, no-method-argument, g-doc-args
 
+import datetime
 import functools
 
 import apifunction
@@ -89,8 +90,7 @@ class Filter(computedobject.ComputedObject):
         return
 
     if isinstance(opt_filter, computedobject.ComputedObject):
-      super(Filter, self).__init__(
-          opt_filter.func, opt_filter.args, opt_filter.varName)
+      super(Filter, self).__init__(opt_filter.func, opt_filter.args)
       self._filter = (opt_filter,)
     elif opt_filter is None:
       # A silly call with no arguments left for backward-compatibility.
@@ -272,6 +272,9 @@ class Filter(computedobject.ComputedObject):
     Returns:
       The modified filter.
     """
+    if opt_end is None:
+      # Can't create half-open DateRanges. Hack around it.
+      opt_end = datetime.datetime(9999, 1, 1)
     date_range = apifunction.ApiFunction.call_('DateRange', start, opt_end)
     return apifunction.ApiFunction.apply_('Filter.dateRangeContains', {
         'leftValue': date_range,

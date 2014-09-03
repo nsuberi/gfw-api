@@ -117,24 +117,11 @@ class ApiFunction(function.Function):
     Returns:
       The requested ApiFunction.
     """
-    result = cls.lookupInternal(name)
-    if not name:
+    cls.initialize()
+    if name not in cls._api:
       raise ee_exception.EEException(
           'Unknown built-in function name: %s' % name)
-    return result
-
-  @classmethod
-  def lookupInternal(cls, name):
-    """Looks up an API function by name.
-
-    Args:
-      name: The name of the function to get.
-
-    Returns:
-      The requested ApiFunction or None if not found.
-    """
-    cls.initialize()
-    return cls._api.get(name, None)
+    return cls._api[name]
 
   @classmethod
   def initialize(cls):
@@ -185,7 +172,7 @@ class ApiFunction(function.Function):
 
         # Don't overwrite existing versions of this function.
         if hasattr(target, fname):
-          continue
+          fname = '_' + fname
 
         # Create a new function so we can attach properties to it.
         def MakeBoundFunction(func):

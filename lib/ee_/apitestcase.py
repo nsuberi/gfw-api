@@ -20,7 +20,6 @@ class ApiTestCase(unittest.TestCase):
     """
     self.last_download_call = None
     self.last_thumb_call = None
-    self.last_table_call = None
 
     def MockSend(path, params, unused_method=None, unused_raw=None):
       if path == '/algorithms':
@@ -37,10 +36,6 @@ class ApiTestCase(unittest.TestCase):
         # Hang on to the call arguments.
         self.last_thumb_call = {'url': path, 'data': params}
         return {'thumbid': '3', 'token': '4'}
-      elif path == '/table':
-        # Hang on to the call arguments.
-        self.last_table_call = {'url': path, 'data': params}
-        return {'docid': '5', 'token': '6'}
       else:
         raise Exception('Unexpected API call to %s with %s' % (path, params))
     ee.data.send_ = MockSend
@@ -56,7 +51,7 @@ BUILTIN_FUNCTIONS = {
             {
                 'description': '',
                 'name': 'value',
-                'type': 'Object'
+                'type': 'Number'
             }
         ],
         'description': '',
@@ -142,14 +137,14 @@ BUILTIN_FUNCTIONS = {
             {
                 'description': '',
                 'name': 'bandSelectors',
-                'type': 'List<Object>'
+                'type': 'Array<Object>'
             },
             {
                 'default': None,
                 'description': '',
                 'optional': True,
                 'name': 'newNames',
-                'type': 'List<String>'
+                'type': 'Array<String>'
             }
         ],
         'description': '',
@@ -341,30 +336,6 @@ BUILTIN_FUNCTIONS = {
         'description': '',
         'returns': 'FeatureCollection'
     },
-    'Collection.iterate': {
-        'type': 'Algorithm',
-        'args': [
-            {
-                'description': '',
-                'name': 'collection',
-                'type': 'FeatureCollection'
-            },
-            {
-                'description': '',
-                'name': 'function',
-                'type': 'Algorithm'
-            },
-            {
-                'default': None,
-                'description': '',
-                'optional': True,
-                'name': 'first',
-                'type': 'Object'
-            }
-        ],
-        'description': '',
-        'returns': 'Object',
-    },
     'ImageCollection.load': {
         'type': 'Algorithm',
         'args': [
@@ -471,9 +442,7 @@ BUILTIN_FUNCTIONS = {
                 'type': 'Date'
             },
             {
-                'default': None,
                 'description': '',
-                'optional': True,
                 'name': 'end',
                 'type': 'Date'
             }
@@ -486,16 +455,9 @@ BUILTIN_FUNCTIONS = {
         'hidden': False,
         'args': [
             {
-                'type': 'Object',
+                'type': 'Long',
                 'description': '',
-                'name': 'value'
-            },
-            {
-                'type': 'String',
-                'default': None,
-                'description': '',
-                'optional': True,
-                'name': 'timeZone'
+                'name': 'microseconds'
             }
         ],
         'type': 'Algorithm',
@@ -973,20 +935,7 @@ BUILTIN_FUNCTIONS = {
         'type': 'Algorithm',
         'description': ''
     },
-    # Algorithms for testing ee.String.
-    'String': {
-        'returns': 'String',
-        'hidden': False,
-        'args': [
-            {
-                'type': 'Object',
-                'description': '',
-                'name': 'input'
-            }
-        ],
-        'type': 'Algorithm',
-        'description': ''
-    },
+    # An algorithm for testing ee.String.
     'String.cat': {
         'returns': 'String',
         'hidden': False,
@@ -1057,24 +1006,6 @@ BUILTIN_FUNCTIONS = {
         'type': 'Algorithm',
         'description': ''
     },
-    'Element.setMulti': {
-        'returns': 'Element',
-        'hidden': False,
-        'args': [
-            {
-                'type': 'Element',
-                'description': '',
-                'name': 'object'
-            },
-            {
-                'type': 'Dictionary<Object>',
-                'description': '',
-                'name': 'properties'
-            }
-        ],
-        'type': 'Algorithm',
-        'description': ''
-    },
     'Number.add': {
         'returns': 'Number',
         'hidden': False,
@@ -1093,88 +1024,6 @@ BUILTIN_FUNCTIONS = {
         'type': 'Algorithm',
         'description': ''
     },
-    'Array': {
-        'returns': 'Array',
-        'hidden': False,
-        'args': [
-            {
-                'name': 'values',
-                'type': 'Object'
-            },
-            {
-                'name': 'pixelType',
-                'type': 'PixelType',
-                'optional': True,
-                'default': None
-            }
-        ],
-        'type': 'Algorithm',
-        'description': ''
-    },
-    'List.slice': {
-        'returns': 'List<Object>',
-        'args': [
-            {
-                'type': 'List<Object>',
-                'name': 'list'
-            },
-            {
-                'type': 'Integer',
-                'name': 'start'
-            },
-            {
-                'default': None,
-                'type': 'Integer',
-                'optional': True,
-                'name': 'end'
-            }
-        ],
-        'type': 'Algorithm',
-        'description': '',
-    },
-    'List.map': {
-        'type': 'Algorithm',
-        'args': [
-            {
-                'description': '',
-                'name': 'list',
-                'type': 'List'
-            },
-            {
-                'description': '',
-                'name': 'baseAlgorithm',
-                'type': 'Algorithm'
-            },
-        ],
-        'description': '',
-        'returns': 'List'
-    },
-    'Projection': {
-        'returns': 'Projection',
-        'type': 'Algorithm',
-        'description': '',
-        'args': [
-            {
-                'name': 'crs',
-                'type': 'Object',
-                'description': ''
-            },
-            {
-                'name': 'transform',
-                'default': None,
-                'type': 'List<Number>',
-                'optional': True,
-                'description': ''
-            },
-            {
-                'name': 'transformWkt',
-                'default': None,
-                'type': 'String',
-                'optional': True,
-                'description': '',
-            }
-        ]
-    },
 }
 
 # A sample of encoded EE API JSON, used by SerializerTest and DeserializerTest.
@@ -1182,13 +1031,6 @@ ENCODED_JSON_SAMPLE = {
     'type': 'CompoundValue',
     'scope': [
         ['0', {
-            'type': 'Invocation',
-            'functionName': 'Date',
-            'arguments': {
-                'value': 1234567890000
-            }
-        }],
-        ['1', {
             'type': 'LineString',
             'coordinates': [[1, 2], [3, 4]],
             'crs': {
@@ -1198,7 +1040,7 @@ ENCODED_JSON_SAMPLE = {
                 }
             }
         }],
-        ['2', {
+        ['1', {
             'type': 'Polygon',
             'coordinates': [
                 [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
@@ -1206,11 +1048,11 @@ ENCODED_JSON_SAMPLE = {
                 [[1, 1], [2, 1], [2, 2], [1, 2]]
             ]
         }],
-        ['3', {
+        ['2', {
             'type': 'Bytes',
             'value': 'aGVsbG8='
         }],
-        ['4', {
+        ['3', {
             'type': 'Invocation',
             'functionName': 'String.cat',
             'arguments': {
@@ -1218,19 +1060,19 @@ ENCODED_JSON_SAMPLE = {
                 'string2': 'y'
             }
         }],
-        ['5', {
+        ['4', {
             'type': 'Dictionary',
             'value': {
                 'foo': 'bar',
-                'baz': {'type': 'ValueRef', 'value': '4'}
+                'baz': {'type': 'ValueRef', 'value': '3'}
             }
         }],
-        ['6', {
+        ['5', {
             'type': 'Function',
             'argumentNames': ['x', 'y'],
             'body': {'type': 'ArgumentRef', 'value': 'y'}
         }],
-        ['7', [
+        ['6', [
             None,
             True,
             5,
@@ -1238,14 +1080,14 @@ ENCODED_JSON_SAMPLE = {
             3.4,
             2.5,
             'hello',
+            {'type': 'Date', 'value': 1234567890000000},
             {'type': 'ValueRef', 'value': '0'},
             {'type': 'ValueRef', 'value': '1'},
             {'type': 'ValueRef', 'value': '2'},
-            {'type': 'ValueRef', 'value': '3'},
-            {'type': 'ValueRef', 'value': '5'},
             {'type': 'ValueRef', 'value': '4'},
-            {'type': 'ValueRef', 'value': '6'}
+            {'type': 'ValueRef', 'value': '3'},
+            {'type': 'ValueRef', 'value': '5'}
         ]]
     ],
-    'value': {'type': 'ValueRef', 'value': '7'}
+    'value': {'type': 'ValueRef', 'value': '6'}
 }
