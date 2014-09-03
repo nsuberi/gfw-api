@@ -46,7 +46,7 @@ META = {
             "updates": "16 day",
             "source": "MODIS",
             "units": "Alerts",
-            "name": "FORMA",
+            "name": "FORMA Alerts",
             "id": "forma-alerts"
         },
         'apis': {
