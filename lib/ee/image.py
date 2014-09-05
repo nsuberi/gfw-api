@@ -31,7 +31,8 @@ class Image(element.Element):
           - A string - an EarthEngine asset id,
           - A string and a number - an EarthEngine asset id and version,
           - A number - creates a constant image,
-          - An array - creates an image out of each element of the array and
+          - An EEArray - creates a constant array image,
+          - A list - creates an image out of each element of the array and
             combines them into a single image,
           - An ee.Image - returns the argument,
           - Nothing - results in an empty transparent image.
@@ -68,8 +69,13 @@ class Image(element.Element):
       image = Image.combine_([Image(i) for i in args])
       super(Image, self).__init__(image.func, image.args)
     elif isinstance(args, computedobject.ComputedObject):
-      # A custom object to reinterpret as an Image.
-      super(Image, self).__init__(args.func, args.args)
+      if args.name() == 'Array':
+        # A constant array image.
+        super(Image, self).__init__(
+            apifunction.ApiFunction.lookup('Image.constant'), {'value': args})
+      else:
+        # A custom object to reinterpret as an Image.
+        super(Image, self).__init__(args.func, args.args, args.varName)
     elif args is None:
       super(Image, self).__init__(
           apifunction.ApiFunction.lookup('Image.mask'),
@@ -224,14 +230,14 @@ class Image(element.Element):
 
     return result
 
-  def select(self, selectors, opt_names=None, *args):
+  def select(self, opt_selectors=None, opt_names=None, *args):
     """Select bands from an image.
 
     This is an override to the normal Image.select function to allow
     varargs specification of selectors.
 
     Args:
-      selectors: An array of names, regexes or numeric indices specifying
+      opt_selectors: An array of names, regexes or numeric indices specifying
           the bands to select.
       opt_names: An array of strings specifying the new names for the
           selected bands.  If supplied, the length must match the number
@@ -241,18 +247,22 @@ class Image(element.Element):
     Returns:
       An image with the selected bands.
     """
+    if opt_selectors is None:
+      opt_selectors = []
+
     arguments = {
         'input': self,
-        'bandSelectors': selectors,
+        'bandSelectors': opt_selectors,
     }
-    if isinstance(selectors, (basestring, int, long)):
+    if (isinstance(opt_selectors, (basestring, int, long)) or
+        ee_types.isString(opt_selectors) or ee_types.isNumber(opt_selectors)):
       # Varargs inputs.
-      selectors = [selectors]
+      opt_selectors = [opt_selectors]
       if opt_names is not None:
-        selectors.append(opt_names)
+        opt_selectors.append(opt_names)
         opt_names = None
-      selectors.extend(args)
-    arguments['bandSelectors'] = selectors
+      opt_selectors.extend(args)
+    arguments['bandSelectors'] = opt_selectors
     if opt_names:
       arguments['newNames'] = opt_names
     return apifunction.ApiFunction.apply_('Image.select', arguments)
@@ -285,6 +295,7 @@ class Image(element.Element):
     # Reinterpret the body call as an ee.Function by hand-generating the
     # signature so the computed function knows its input and output types.
     class ReinterpretedFunction(function.Function):
+
       def encode(self, encoder):
         return body.encode(encoder)
 
@@ -301,9 +312,6 @@ class Image(element.Element):
 
   def clip(self, clip_geometry):
     """Clips an image by a Geometry, Feature or FeatureCollection.
-
-    This is an override to the normal Image.select function to allow
-    varargs specification of selectors.
 
     Args:
       clip_geometry: The Geometry, Feature or FeatureCollection to clip to.

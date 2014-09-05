@@ -46,7 +46,7 @@ META = {
             "updates": "16 day",
             "source": "MODIS",
             "units": "Alerts",
-            "name": "FORMA",
+            "name": "FORMA Alerts",
             "id": "forma-alerts"
         },
         'apis': {
@@ -189,6 +189,7 @@ PARAMS = {
         'use': ['period', 'download', 'dev', 'bust'],
     },
     'umd-loss-gain': {
+        'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
         'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
         'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
     }

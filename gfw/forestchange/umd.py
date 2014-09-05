@@ -17,9 +17,93 @@
 
 """This module supports accessing UMD data."""
 
+import json
+import ee
+import logging
+import config
+import copy
+
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 from gfw.forestchange.common import classify_query
+
+
+def _get_coords(geojson):
+    return geojson.get('coordinates')
+
+
+def _sum_range(data, begin, end):
+    return sum(
+        [value for key, value in data.iteritems()
+            if (int(key) >= int(begin)) and (int(key) < int(end))])
+
+
+def _get_umd_range(result, begin, end):
+    _sum_range(result.get('area'), begin, end)
+
+
+def _get_range(result, begin, end):
+    loss_area = _sum_range(result.get('loss_area'), begin, end)
+    gain_area = _sum_range(result.get('gain_area'), begin, end)
+    return dict(loss_area=loss_area, gain_area=gain_area, begin=begin, end=end)
+
+
+def _get_thresh_image(thresh, asset_id):
+    """Renames image bands using supplied threshold and returns image."""
+    image = ee.Image(asset_id)
+
+    # Select out the gain band if it exists
+    if 'gain' in asset_id:
+        before = image.select('.*_' + thresh, 'gain').bandNames()
+    else:
+        before = image.select('.*_' + thresh).bandNames()
+
+    after = before.map(
+        lambda x: ee.String(x).replace('_.*', ''))
+    image = image.select(before, after)
+    return image
+
+
+def _get_region(geom):
+    """Return ee.Geometry from supplied GeoJSON object."""
+    poly = _get_coords(geom)
+    ptype = geom.get('type')
+    if ptype.lower() == 'multipolygon':
+        region = ee.Geometry.MultiPolygon(poly)
+    else:
+        region = ee.Geometry.Polygon(poly)
+    return region
+
+
+def _ee(geom, thresh, asset_id):
+    image = _get_thresh_image(thresh, asset_id)
+    region = _get_region(geom)
+
+    # Reducer arguments
+    reduce_args = {
+        'reducer': ee.Reducer.sum(),
+        'geometry': region,
+        'bestEffort': True,
+        'scale': 90
+    }
+
+    # Calculate stats
+    area_stats = image.divide(10000 * 255.0) \
+        .multiply(ee.Image.pixelArea()) \
+        .reduceRegion(**reduce_args)
+    area_results = area_stats.getInfo()
+
+    return area_results
+
+
+def _loss_area(row):
+    """Return hectares of loss."""
+    return row['year'], row['loss']
+
+
+def _gain_area(row):
+    """Return hectares of gain."""
+    return row['year'], row['gain']
 
 
 class UmdSql(Sql):
@@ -57,6 +141,7 @@ class UmdSql(Sql):
 
 
 def _executeIso(args):
+    """Query national by iso code."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
     if action == 'error':
         return action, data
@@ -67,6 +152,7 @@ def _executeIso(args):
 
 
 def _executeId1(args):
+    """Query subnational by iso code and GADM id."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
     if action == 'error':
         return action, data
@@ -74,6 +160,39 @@ def _executeId1(args):
     data.pop('rows')
     data['years'] = rows
     return action, data
+
+
+def _executeWorld(args):
+    """Query GEE using supplied args with threshold and polygon."""
+
+    # Authenticate to GEE and maximize the deadline
+    ee.Initialize(config.EE_CREDENTIALS, config.EE_URL)
+    ee.data.setDeadline(60000)
+
+    # The forest cover threshold and polygon
+    thresh = str(args.get('thresh'))
+    geojson = json.loads(args.get('geojson'))
+
+    # Gain (UMD doesn't permit disaggregation of forest gain by threshold).
+    gain = _ee(geojson, thresh, config.assets['hansen_all_thresh'])['gain']
+    logging.info('GAIN: %s' % gain)
+
+    # Loss by year
+    loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
+    logging.info('LOSS_RESULTS: %s' % loss_by_year)
+
+    # Reduce loss by year for supplied begin and end year
+    begin = args.get('begin').split('-')[0]
+    end = args.get('end').split('-')[0]
+    loss = _sum_range(loss_by_year, begin, end)
+
+    # Prepare result object
+    result = {}
+    result['params'] = args
+    result['params']['geojson'] = json.loads(result['params']['geojson'])
+    result['gain'] = gain
+    result['loss'] = loss
+    return 'respond', result
 
 
 def execute(args):
@@ -87,5 +206,7 @@ def execute(args):
         return _executeIso(args)
     elif query_type == 'id1':
         return _executeId1(args)
+    elif query_type == 'world':
+        return _executeWorld(args)
 
     # TODO: Query new EE assets
