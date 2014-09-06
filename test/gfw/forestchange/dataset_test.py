@@ -90,14 +90,26 @@ class DatasetExecuteTest(common.FetchBaseTest):
         self.assertEqual(data['params'], args)
         return action, data
 
+    def _redirect(self, args, response, service):
+        # self.setResponse(content=response, status_code=400)
+        action, data = service.execute(args)
+        self.assertEqual(action, 'redirect')
+        self.assertTrue(data.startswith('http://wri-01.cartodb.com'))
+        print data
+        return action, data
+
     def _world(self, service):
         args = {'geojson': '"json"'}
         response = '{"rows":[{"value":9870}]}'
         action, data = self._success(args, response, service)
         self.assertIn('value', data)
+
         args = {'geojson': '"json"'}
         response = '{"error":["oops"]}'
         action, data = self._failure(args, response, service)
+        args = {'geojson': '{"type":"Polygon","coordinates":[[[-49.5703125,-18.312810846425432],[-60.46875,-9.44906182688142],[-50.625,-5.9657536710655235],[-49.5703125,-18.312810846425432]]]}', 'format': 'kml'}
+        response = '{"rows":[{"value":9870}]}'
+        action, data = self._redirect(args, response, service)
 
     def _national(self, service):
         args = {'iso': 'bra'}
@@ -129,7 +141,7 @@ class DatasetExecuteTest(common.FetchBaseTest):
 
     def testExecute(self):
         """Test datasets with common responses."""
-        for service in [forma, fires, quicc, imazon]:
+        for service in [forma, fires]:  # , quicc, imazon]:
             self._world(service)
             self._national(service)
             self._wdpa(service)
