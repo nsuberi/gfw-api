@@ -84,8 +84,6 @@ class ImazonSql(Sql):
         x = sql.replace('SELECT data_type,', 'SELECT data_type, the_geom,')
         x = x.replace('GROUP BY data_type', 'GROUP BY data_type, the_geom')
         query = ' '.join(x.split())
-        import logging
-        logging.info(query)
         return query
 
 
