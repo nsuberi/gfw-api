@@ -141,7 +141,7 @@ class DatasetExecuteTest(common.FetchBaseTest):
 
     def testExecute(self):
         """Test datasets with common responses."""
-        for service in [forma, fires, quicc]:  # , quicc, imazon]:
+        for service in [forma, fires, quicc, imazon]:
             self._world(service)
             self._national(service)
             self._wdpa(service)
