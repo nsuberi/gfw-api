@@ -42,11 +42,10 @@ class ImazonSql(Sql):
         FROM imazon_monthly i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
-        GROUP BY data_type
-        """
+        GROUP BY data_type"""
 
     ID1 = """
-        SELECT i.data_type as disturbance,
+        SELECT data_type,
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
@@ -56,10 +55,10 @@ class ImazonSql(Sql):
                 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
-        GROUP BY i.data_type"""
+        GROUP BY data_type"""
 
     WDPA = """
-        SELECT i.data_type,
+        SELECT data_type,
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
@@ -67,10 +66,10 @@ class ImazonSql(Sql):
             imazon_monthly i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
-        GROUP BY i.data_type"""
+        GROUP BY data_type"""
 
     USE = """
-        SELECT i.data_type,
+        SELECT data_type,
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
@@ -78,11 +77,14 @@ class ImazonSql(Sql):
         WHERE p.cartodb_id = {pid}
             AND i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
-        GROUP BY i.data_type"""
+        GROUP BY data_type"""
 
     @classmethod
     def download(cls, sql):
-        return 'TODO'
+        x = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')
+        x = x.replace('GROUP BY data_type', 'GROUP BY i.data_type, i.the_geom')
+        query = ' '.join(x.split())
+        return query
 
 
 NO_DATA = [dict(disturbance='defor', value=None),
@@ -109,4 +111,6 @@ def _processResults(action, data, args):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, ImazonSql)
+    if action == 'redirect' or action == 'error':
+        return action, data
     return _processResults(action, data, args)

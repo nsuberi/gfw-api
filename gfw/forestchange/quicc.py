@@ -24,7 +24,7 @@ from gfw.forestchange.common import Sql
 class QuiccSql(Sql):
 
     WORLD = """
-        SELECT count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
@@ -32,49 +32,43 @@ class QuiccSql(Sql):
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
     ISO = """
-        SELECT p.iso, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt,
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.iso"""
+            AND pt.date <= '{end}'::date"""
 
     ID1 = """
-        SELECT p.id_1, p.name_1, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.id_1, p.name_1
-        ORDER BY p.id_1"""
+            AND pt.date <= '{end}'::date"""
 
     WDPA = """
-        SELECT p.wdpaid, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt,
             (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.wdpaid
-        ORDER BY p.wdpaid"""
+            AND pt.date <= '{end}'::date"""
 
     USE = """
-        SELECT p.cartodb_id, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
-        GROUP BY p.cartodb_id
-        ORDER BY p.cartodb_id"""
+            AND pt.date <= '{end}'::date"""
 
     @classmethod
     def download(cls, sql):
-        return 'TODO'
+        return ' '.join(
+            sql.replace("SELECT COUNT(pt.*) AS value", "SELECT pt.*").split())
 
 
 def _processResults(action, data):
@@ -91,4 +85,6 @@ def _processResults(action, data):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, QuiccSql)
+    if action == 'redirect' or action == 'error':
+        return action, data
     return _processResults(action, data)

@@ -26,7 +26,7 @@ from gfw.forestchange.common import Sql
 class FiresSql(Sql):
 
     WORLD = """
-        SELECT count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM global_7d pt
         WHERE acq_date::date >= '{begin}'::date
             AND acq_date::date <= '{end}'::date
@@ -34,7 +34,7 @@ class FiresSql(Sql):
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
     ISO = """
-        SELECT p.iso, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM global_7d pt,
             (SELECT
                 *
@@ -42,11 +42,10 @@ class FiresSql(Sql):
             WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
-            AND acq_date::date <= '{end}'::date
-        GROUP BY p.iso"""
+            AND acq_date::date <= '{end}'::date"""
 
     ID1 = """
-        SELECT p.id_1 AS id1, p.iso AS iso, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM global_7d pt,
              (SELECT
                 *
@@ -55,33 +54,28 @@ class FiresSql(Sql):
                    AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
-            AND acq_date::date <= '{end}'::date
-        GROUP BY p.id_1, p.iso
-        ORDER BY p.id_1"""
+            AND acq_date::date <= '{end}'::date"""
 
     WDPA = """
-        SELECT p.wdpaid, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM global_7d pt,
             (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
-            AND acq_date::date <= '{end}'::date
-        GROUP BY p.wdpaid
-        ORDER BY p.wdpaid"""
+            AND acq_date::date <= '{end}'::date"""
 
     USE = """
-        SELECT p.cartodb_id, count(pt.*) AS value
+        SELECT COUNT(pt.*) AS value
         FROM global_7d pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
-            AND acq_date::date <= '{end}'::date
-        GROUP BY p.cartodb_id
-        ORDER BY p.cartodb_id"""
+            AND acq_date::date <= '{end}'::date"""
 
     @classmethod
     def download(cls, sql):
-        return 'TODO'
+        return ' '.join(
+            sql.replace("SELECT COUNT(pt.*) AS value", "SELECT pt.*").split())
 
 
 def _get_meta_timecale(params):
@@ -121,4 +115,6 @@ def _processResults(action, data):
 
 def execute(args):
     action, data = CartoDbExecutor.execute(args, FiresSql)
+    if action == 'redirect' or action == 'error':
+        return action, data
     return _processResults(action, data)
