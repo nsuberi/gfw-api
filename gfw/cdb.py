@@ -53,9 +53,14 @@ def get_url(query, params, auth=False):
         params['api_key'] = _get_api_key()
     clean_params = {}
     for key, value in params.iteritems():
-        if key in ['api_key', 'format', 'q']:
+        if key in ['api_key', 'format', 'q', 'version']:
             clean_params[key] = value
     url = '%s?%s' % (ENDPOINT, urllib.urlencode(clean_params))
+
+    # TODO: Hack
+    if 'version' in clean_params:
+        url = url.replace('v2', clean_params['version'])
+
     if runtime_config['IS_DEV']:
         logging.info(url)
     return str(url)
