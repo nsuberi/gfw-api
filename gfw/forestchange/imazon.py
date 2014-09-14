@@ -81,8 +81,8 @@ class ImazonSql(Sql):
 
     @classmethod
     def download(cls, sql):
-        x = sql.replace('SELECT data_type,', 'SELECT data_type, the_geom,')
-        x = x.replace('GROUP BY data_type', 'GROUP BY data_type, the_geom')
+        x = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')
+        x = x.replace('GROUP BY data_type', 'GROUP BY i.data_type, i.the_geom')
         query = ' '.join(x.split())
         return query
 
