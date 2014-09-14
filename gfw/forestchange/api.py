@@ -135,7 +135,8 @@ META = {
             'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
             IMAZON_API
         }
-    },    'umd-loss-gain': {
+    },
+    'umd-loss-gain': {
         'meta': {
             "description": "Identifies areas of tree cover loss and gain.",
             "resolution": "30 x 30 meters",

@@ -147,6 +147,7 @@ def _executeIso(args):
         return action, data
     rows = data['rows']
     data.pop('rows')
+    data.pop('download_urls')
     data['years'] = rows
     return action, data
 
@@ -158,6 +159,7 @@ def _executeId1(args):
         return action, data
     rows = data['rows']
     data.pop('rows')
+    data.pop('download_urls')
     data['years'] = rows
     return action, data
 
