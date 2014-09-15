@@ -132,7 +132,7 @@ class UmdSql(Sql):
     WDPA = """
         SELECT ST_AsGeoJson(the_geom) AS geojson
         FROM wdpa_all
-        WHERE cartodb_id={wdpaid}"""
+        WHERE wdpaid={wdpaid}"""
 
     @classmethod
     def download(cls, sql):
