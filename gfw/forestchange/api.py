@@ -193,7 +193,8 @@ PARAMS = {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
         'iso': ['download', 'dev', 'bust', 'thresh'],
         'id1': ['download', 'dev', 'bust', 'thresh'],
-        'wdpa': ['download', 'dev', 'bust', 'thresh']
+        'wdpa': ['download', 'dev', 'bust', 'thresh'],
+        'use': ['download', 'dev', 'bust', 'thresh']
     }
 }
 
