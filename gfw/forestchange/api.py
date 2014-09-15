@@ -191,8 +191,9 @@ PARAMS = {
     },
     'umd-loss-gain': {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
-        'iso': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
-        'id1': ['download', 'dev', 'bust', 'thresh'],  # TODO: thresh
+        'iso': ['download', 'dev', 'bust', 'thresh'],
+        'id1': ['download', 'dev', 'bust', 'thresh'],
+        'wdpa': ['download', 'dev', 'bust', 'thresh']
     }
 }
 
