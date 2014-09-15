@@ -215,6 +215,7 @@ def _executeWdpa(args):
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
         args['end'] = args['end'] if 'end' in args else '2013-01-01'
         action, data = _execute_geojson(args)
+        data['params'].pop('geojson')
     return action, data
 
 
