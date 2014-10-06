@@ -21,7 +21,6 @@ import json
 import ee
 import logging
 import config
-import copy
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
@@ -125,6 +124,16 @@ class UmdSql(Sql):
               AND id1 = {id1}
         ORDER BY year"""
 
+    USE = """
+        SELECT ST_AsGeoJson(the_geom) AS geojson
+        FROM {use_table}
+        WHERE cartodb_id = {pid}"""
+
+    WDPA = """
+        SELECT ST_AsGeoJson(the_geom) AS geojson
+        FROM wdpa_all
+        WHERE wdpaid={wdpaid}"""
+
     @classmethod
     def download(cls, sql):
         return 'TODO'
@@ -138,6 +147,16 @@ class UmdSql(Sql):
     def id1(cls, params, args):
         params['thresh'] = args['thresh']
         return super(UmdSql, cls).id1(params, args)
+
+    @classmethod
+    def use(cls, params, args):
+        params['thresh'] = args['thresh']
+        return super(UmdSql, cls).use(params, args)
+
+    @classmethod
+    def wdpa(cls, params, args):
+        params['thresh'] = args['thresh']
+        return super(UmdSql, cls).wdpa(params, args)
 
 
 def _executeIso(args):
@@ -164,8 +183,8 @@ def _executeId1(args):
     return action, data
 
 
-def _executeWorld(args):
-    """Query GEE using supplied args with threshold and polygon."""
+def _execute_geojson(args):
+    """Query GEE using supplied args with threshold and geojson."""
 
     # Authenticate to GEE and maximize the deadline
     ee.Initialize(config.EE_CREDENTIALS, config.EE_URL)
@@ -197,6 +216,45 @@ def _executeWorld(args):
     return 'respond', result
 
 
+def _executeWdpa(args):
+    """Query GEE using supplied WDPA id."""
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
+    rows = data['rows']
+    data.pop('rows')
+    data.pop('download_urls')
+    if rows:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        action, data = _execute_geojson(args)
+        data['params'].pop('geojson')
+    return action, data
+
+
+def _executeUse(args):
+    """Query GEE using supplied concession id."""
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
+    rows = data['rows']
+    data.pop('rows')
+    data.pop('download_urls')
+    if rows:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        action, data = _execute_geojson(args)
+        data['params'].pop('geojson')
+    return action, data
+
+
+def _executeWorld(args):
+    """Query GEE using supplied args with threshold and polygon."""
+    return _execute_geojson(args)
+
+
 def execute(args):
     query_type = classify_query(args)
 
@@ -208,6 +266,10 @@ def execute(args):
         return _executeIso(args)
     elif query_type == 'id1':
         return _executeId1(args)
+    elif query_type == 'use':
+        return _executeUse(args)
+    elif query_type == 'wdpa':
+        return _executeWdpa(args)
     elif query_type == 'world':
         return _executeWorld(args)
 

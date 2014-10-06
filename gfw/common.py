@@ -20,6 +20,7 @@
 import json
 import os
 import re
+import logging
 import webapp2
 
 from google.appengine.api import memcache
@@ -66,7 +67,10 @@ class CORSRequestHandler(webapp2.RequestHandler):
             result = memcache.get(rid)
             if not result:
                 result = target.execute(args)
-                memcache.set(key=rid, value=result)
+                try:
+                    memcache.set(key=rid, value=result)
+                except Exception as e:
+                    logging.exception(e)
         action, data = result
         return action, data
 
