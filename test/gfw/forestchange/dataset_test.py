@@ -59,6 +59,7 @@ class FormaSqlTest(unittest.TestCase):
 
         # Use
         sql = forma.FormaSql.process({'use': 'logging', 'useid': 1})[0]
+        print sql
         self.assertEqual(sql, sqls.forma_use)
 
         # Dates
