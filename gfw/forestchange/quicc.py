@@ -52,7 +52,7 @@ class QuiccSql(Sql):
     WDPA = """
         SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt,
-            (SELECT * FROM wdpa_all WHERE wdpaid = {wdpaid}) as p
+            (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date"""
