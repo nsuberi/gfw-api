@@ -70,7 +70,7 @@ META = {
             "updates": "Daily",
             "source": "MODIS",
             "units": "Alerts",
-            "name": "NASA Active Fires",
+            "name": "NASA Active Fires Alerts",
             "id": "nasa-active-fires"
         },
         'apis': {
