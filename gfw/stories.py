@@ -37,11 +37,11 @@ INSERT = """INSERT INTO {table}
     location, cartodb_id as id, media, ST_AsGeoJSON(the_geom) as the_geom"""
 
 
-LIST = """SELECT details, email, name, title, visible, date,
+LIST = """SELECT details, email, created_at, name, title, visible, date,
     location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng,
     media
 FROM {table}
-WHERE visible = True {and_where}"""
+WHERE visible = True {and_where} ORDER BY created_at ASC"""
 
 
 GET = """SELECT details, email, name, title, visible, date,
