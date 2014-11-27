@@ -20,7 +20,6 @@
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 
-select  grid_code, DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 ) AS thedate, MOD(grid_code,23)*16+1 as julian_day
 class TerraiSql(Sql):
 
     WORLD = """
