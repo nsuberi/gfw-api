@@ -28,7 +28,7 @@ FROM
   (SELECT COUNT(*), iso, date
    FROM %s
    WHERE iso = upper('{iso}')
-         AND date <= now() - INTERVAL '1 Months'
+         AND date >= now() - INTERVAL '2 Months'
    GROUP BY date, iso
    ORDER BY iso, date) AS alias""" % FORMA_TABLE
 
@@ -37,7 +37,7 @@ GEOJSON_SUB_SQL = """SELECT SUM(count) as value, 'FORMA' as name,
 FROM
   (SELECT COUNT(*) AS count
    FROM %s
-   WHERE date <= now() - INTERVAL '1 Months'
+   WHERE date >= now() - INTERVAL '2 Months'
      AND ST_INTERSECTS(ST_SetSRID(ST_GeomFromGeoJSON('{geom!s}'), 4326),
         the_geom)
    GROUP BY date, iso

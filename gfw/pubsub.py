@@ -20,6 +20,7 @@
 import json
 import webapp2
 import monitor
+import datetime
 from gfw import polyline
 from gfw import forma
 from gfw import cdb
@@ -114,6 +115,85 @@ class Subscriber(InboundMailHandler):
         s = ndb.Key(urlsafe=urlsafe).get()
         s.confirmed = True
         s.put()
+
+
+NOTIFY_BODY = """You have subscribed to forest change alerts through Global
+Forest Watch. This message reports new forest change alerts for one of your
+areas of interest (a country or self-drawn polygon).
+
+A total of {value} {name} {unit} were detected within your area of interest in
+the past {interval}. Explore the details of this dataset on Global Forest
+Watch:
+
+{link}
+
+You can unsubscribe or manage your subscriptions by emailing: gfw@wri.org
+
+You will receive a separate e-mail for each distinct polygon, country, or shape
+on the GFW map. You will also receive a separate e-mail for each dataset for
+which you have requested alerts (FORMA alerts, Imazon SAD Alerts, and NASA
+QUICC alerts.)
+
+Please note that this information is subject to the Global Forest Watch <a
+href='http://globalforestwatch.com/terms'>Terms of Service</a>.
+"""
+
+LINK_GEOM = """http://www.globalforestwatch.org/map/3/{lat}/{lon}/ALL/grayscale/forma?geojson={geom}&begin={begin}&end={end}"""
+
+LINK_ISO = """http://www.globalforestwatch.org/country/{iso}"""
+
+
+class Notify(webapp2.RequestHandler):
+
+    def _center(self, geom):
+        return json.loads(geom)['coordinates'][0][0]
+
+    def _period(self):
+        month = int(datetime.datetime.now().strftime("%m"))
+        year = datetime.datetime.now().strftime("%Y")
+        return '%s-%i-01' % (year, month), '%s-%s-01' % (year, month + 1)
+
+    def _body(self, result, n, e, s):
+        begin, end = self._period()
+        result['end'] = end
+        result['begin'] = begin
+        result['interval'] = 'month'
+        logging.info(s)
+        if not result['value']:
+            result['value'] = 0
+        if 'geom' in s:
+            result['aoi'] = 'a user drawn polygon'
+            lat, lon = self._center(s['geom'])
+            result['lat'] = lat
+            result['lon'] = lon
+            result['geom'] = s['geom']
+            result['link'] = LINK_GEOM.format(**result)
+        else:
+            result['aoi'] = 'a country (%s)' % s['iso']
+            result['iso'] = s['iso']
+            result['link'] = LINK_ISO.format(**result)
+        return NOTIFY_BODY.format(**result)
+
+    def post(self):
+        try:
+            n = ndb.Key(urlsafe=self.request.get('notification')).get()
+            e = n.params['event']
+            s = n.params['subscription']
+            response = forma.subsription(s)
+            if response.status_code == 200:
+                result = json.loads(response.content)['rows'][0]
+                body = self._body(result, n, e, s)
+                mail.send_mail(
+                    sender='noreply@gfw-apis.appspotmail.com',
+                    to=s['email'],
+                    subject='New Alerts from Global Forest Watch',
+                    body=body,
+                    html=body)
+            else:
+                raise Exception('CartoDB Failed (status=%s, content=%s)' %
+                               (response.status_code, response.content))
+        except Exception, e:
+            logging.exception(e)
 
 
 class Notifier(webapp2.RequestHandler):
