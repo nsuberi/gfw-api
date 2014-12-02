@@ -33,10 +33,8 @@ class TerraiSql(Sql):
 
     ISO = """
         SELECT COUNT(f.*) AS value
-        FROM terra_i_decrease f,
-            (SELECT * FROM gadm2_countries_simple
-             WHERE iso = UPPER('{iso}')) as p
-        WHERE ST_Intersects(f.the_geom, p.the_geom)
+        FROM terra_i_decrease f
+        WHERE iso = UPPER('{iso}')
             AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
             AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
 
