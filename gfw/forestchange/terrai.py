@@ -83,7 +83,7 @@ def _processResults(action, data):
 
 
 def execute(args):
-    args['version'] = 'v1'
+    args['version'] = 'v2'
     action, data = CartoDbExecutor.execute(args, TerraiSql)
     if action == 'redirect' or action == 'error':
         return action, data
