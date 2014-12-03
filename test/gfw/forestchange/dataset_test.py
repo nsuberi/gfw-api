@@ -28,8 +28,9 @@ from gfw.forestchange import umd
 from gfw.forestchange import forma
 from gfw.forestchange import imazon
 from gfw.forestchange import quicc
+from gfw.forestchange import terrai
 
-DATASETS = [fires, umd, forma, imazon, quicc]
+DATASETS = [fires, umd, forma, imazon, quicc, terrai]
 
 
 class FormaSqlTest(unittest.TestCase):
@@ -142,7 +143,7 @@ class DatasetExecuteTest(common.FetchBaseTest):
 
     def testExecute(self):
         """Test datasets with common responses."""
-        for service in [forma, fires, quicc, imazon]:
+        for service in [forma, fires, quicc, imazon, terrai]:
             self._world(service)
             self._national(service)
             self._wdpa(service)

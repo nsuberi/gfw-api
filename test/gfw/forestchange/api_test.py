@@ -172,6 +172,20 @@ class UmdApiTest(BaseApiTest):
     def testGetSubnational(self):
         self._testGetNational('umd-loss-gain')
 
+class TerraiApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('terrai-alerts')
+
+    def testGetSubnational(self):
+        self._testGetNational('terrai-alerts')
+
+    def testGetWdpa(self):
+        self._testGetNational('terrai-alerts')
+
+    def testGetUse(self):
+        self._testGetNational('terrai-alerts')
+
 
 class FunctionTest(unittest.TestCase):
 

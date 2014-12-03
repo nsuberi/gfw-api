@@ -72,7 +72,7 @@ handlers:
 - url: /countries.*
   script: gfw.countries.api.handlers
 
-- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires).*
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts).*
   script: gfw.forestchange.api.handlers
 
 # - url: /.*
