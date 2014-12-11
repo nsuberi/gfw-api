@@ -193,6 +193,8 @@ class Notify(webapp2.RequestHandler):
                     tester, subscriber = e['dry_run'].split(',')
                     if subscriber == to:
                         to = tester
+                    else: 
+                        return
                 mail.send_mail(
                     sender='noreply@gfw-apis.appspotmail.com',
                     to=to,
