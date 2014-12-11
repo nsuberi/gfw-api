@@ -204,6 +204,6 @@ def subsription(params):
         query = ISO_SUB_SQL.format(**params)
     else:
         raise ValueError('FORMA subscription expects geom or iso param')
-    import logging
-    logging.info(query)
+    #import logging
+    #logging.info(query)
     return cdb.execute(query)

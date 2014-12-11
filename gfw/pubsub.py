@@ -30,6 +30,8 @@ from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 import logging
+import re
+from google.appengine.api import users
 
 
 class Subscription(ndb.Model):
@@ -43,6 +45,10 @@ class Subscription(ndb.Model):
     def get_by_topic(cls, topic):
         """Return all confirmed Subscription entities for supplied topic."""
         return cls.query(cls.topic == topic, cls.confirmed == True).iter()
+
+    @classmethod
+    def get_by_email(cls, email):
+        return cls.query(cls.email == email).iter()
 
     @classmethod
     def unsubscribe(cls, topic, email):
@@ -121,18 +127,24 @@ NOTIFY_BODY = """You have subscribed to forest change alerts through Global
 Forest Watch. This message reports new forest change alerts for one of your
 areas of interest (a country or self-drawn polygon).
 
+<br><br>
+
 A total of {value} {name} {unit} were detected within your area of interest in
 the past {interval}. Explore the details of this dataset on Global Forest
-Watch:
+Watch by <a href='{link}'>clicking here</a>.
 
-{link}
+<br><br>
 
 You can unsubscribe or manage your subscriptions by emailing: gfw@wri.org
+
+<br><br>
 
 You will receive a separate e-mail for each distinct polygon, country, or shape
 on the GFW map. You will also receive a separate e-mail for each dataset for
 which you have requested alerts (FORMA alerts, Imazon SAD Alerts, and NASA
 QUICC alerts.)
+
+<br><br>
 
 Please note that this information is subject to the Global Forest Watch <a
 href='http://globalforestwatch.com/terms'>Terms of Service</a>.
@@ -172,7 +184,9 @@ class Notify(webapp2.RequestHandler):
             result['aoi'] = 'a country (%s)' % s['iso']
             result['iso'] = s['iso']
             result['link'] = LINK_ISO.format(**result)
+        result['link'] = re.sub('\s+', '', result['link']).strip()
         return NOTIFY_BODY.format(**result)
+
 
     def post(self):
         try:
@@ -191,9 +205,12 @@ class Notify(webapp2.RequestHandler):
                 if 'dry_run' in e:
                     # eightysteele@gmail.com,asteele.wri.org
                     tester, subscriber = e['dry_run'].split(',')
+                    logging.info('PUB DRYRUN tester=%s subscriber=%s to=%s' %
+                                (tester, subscriber, to))
                     if subscriber == to:
                         to = tester
-                    else: 
+                        logging.info('PUB DRYRUN sending email to %s' % to)
+                    else:
                         return
                 mail.send_mail(
                     sender='noreply@gfw-apis.appspotmail.com',
@@ -249,5 +266,15 @@ class Publisher(webapp2.RequestHandler):
                     params=dict(notification=n.key.urlsafe()))
         e.multicasted = True
         e.put()
+
+
+class SubscriptionDump(webapp2.RequestHandler):
+    def get(self):
+        email = self.request.get('email')
+        subs = [x.to_dict(exclude=['created']) for x in Subscription.get_by_email(email)]
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(json.dumps(subs, sort_keys=True))
+
 
 handlers = webapp2.WSGIApplication([Subscriber.mapping()], debug=True)
