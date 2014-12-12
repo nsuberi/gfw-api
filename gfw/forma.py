@@ -28,7 +28,7 @@ FROM
   (SELECT COUNT(*), iso, date
    FROM %s
    WHERE iso = upper('{iso}')
-         AND date >= now() - INTERVAL '2 Months'
+         AND date >= '{forma_date}'::date - INTERVAL '1 Months'
    GROUP BY date, iso
    ORDER BY iso, date) AS alias""" % FORMA_TABLE
 
@@ -37,7 +37,7 @@ GEOJSON_SUB_SQL = """SELECT SUM(count) as value, 'FORMA' as name,
 FROM
   (SELECT COUNT(*) AS count
    FROM %s
-   WHERE date >= now() - INTERVAL '2 Months'
+   WHERE date >= '{forma_date}'::date - INTERVAL '1 Months'
      AND ST_INTERSECTS(ST_SetSRID(ST_GeomFromGeoJSON('{geom!s}'), 4326),
         the_geom)
    GROUP BY date, iso
@@ -204,6 +204,6 @@ def subsription(params):
         query = ISO_SUB_SQL.format(**params)
     else:
         raise ValueError('FORMA subscription expects geom or iso param')
-    #import logging
-    #logging.info(query)
+    # import logging
+    # logging.info(query)
     return cdb.execute(query)

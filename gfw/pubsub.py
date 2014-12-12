@@ -17,6 +17,7 @@
 
 """This module supports pubsub."""
 
+import arrow
 import json
 import webapp2
 import monitor
@@ -152,7 +153,9 @@ href='http://globalforestwatch.com/terms'>Terms of Service</a>.
 
 LINK_GEOM = """http://www.globalforestwatch.org/map/3/{lat}/{lon}/ALL/grayscale/forma?geojson={geom}&begin={begin}&end={end}"""
 
-LINK_ISO = """http://www.globalforestwatch.org/country/{iso}"""
+# LINK_ISO = """http://www.globalforestwatch.org/country/{iso}"""
+
+LINK_ISO = """http://www.globalforestwatch.org/map/4/0/0/{iso}/grayscale/forma?begin={begin}&end={end}"""
 
 
 class Notify(webapp2.RequestHandler):
@@ -160,10 +163,22 @@ class Notify(webapp2.RequestHandler):
     def _center(self, geom):
         return json.loads(geom)['coordinates'][0][0]
 
+    def _get_max_forma_date(self):
+        sql = 'SELECT MAX(date) FROM forma_api;'
+        response = cdb.execute(sql)
+        if response.status_code == 200:
+            max_date = json.loads(response.content)['rows'][0]['max']
+            return arrow.get(max_date)
+
     def _period(self):
-        month = int(datetime.datetime.now().strftime("%m"))
-        year = datetime.datetime.now().strftime("%Y")
-        return '%s-%i-01' % (year, month), '%s-%s-01' % (year, month + 1)
+        max_forma_date = self._get_max_forma_date()
+        past_month = max_forma_date.replace(months=-1)
+        #month = int(datetime.datetime.now().strftime("%m"))
+        #year = datetime.datetime.now().strftime("%Y")
+        end = '%s-01' % max_forma_date.format('YYYY-MM')
+        begin = '%s-01' % past_month.format('YYYY-MM')
+        return begin, end
+        #return '%s-%i-01' % (year, month), '%s-%s-01' % (year, month + 1)
 
     def _body(self, result, n, e, s):
         begin, end = self._period()
@@ -182,11 +197,10 @@ class Notify(webapp2.RequestHandler):
             result['link'] = LINK_GEOM.format(**result)
         else:
             result['aoi'] = 'a country (%s)' % s['iso']
-            result['iso'] = s['iso']
+            result['iso'] = s['iso'].upper()
             result['link'] = LINK_ISO.format(**result)
         result['link'] = re.sub('\s+', '', result['link']).strip()
         return NOTIFY_BODY.format(**result)
-
 
     def post(self):
         try:
@@ -196,6 +210,7 @@ class Notify(webapp2.RequestHandler):
                 return
             e = n.params['event']
             s = n.params['subscription']
+            s['forma_date'] = self._get_max_forma_date().format('YYYY-MM-DD')
             response = forma.subsription(s)
             if response.status_code == 200:
                 result = json.loads(response.content)['rows'][0]
