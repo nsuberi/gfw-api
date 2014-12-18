@@ -24,16 +24,14 @@ from gfw.forestchange.common import Sql
 class ImazonSql(Sql):
 
     WORLD = """
+        WITH poly AS (SELECT * FROM ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326) geojson)
         SELECT data_type,
-            sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
-        FROM imazon_monthly i
-        WHERE i.date >= '{begin}'::date
-            AND i.date <= '{end}'::date
-            AND ST_INTERSECTS(
-                ST_SetSRID(
-                  ST_GeomFromGeoJSON('{geojson}'), 4326), i.the_geom)
+        SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
+        FROM imazon_monthly i, poly
+            WHERE i.date >= '{begin}'::date
+        AND i.date <= '{end}'::date
         GROUP BY data_type"""
-
+        
     # ISO same as WORLD since imazon only in Brazil
 
     ISO = """
