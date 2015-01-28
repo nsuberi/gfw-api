@@ -168,7 +168,7 @@ META = {
             "updates": "16 day",
             "source": "MODIS",
             "units": "Alerts",
-            "name": "TERRAI Alerts",
+            "name": "Terra-i Alerts",
             "id": "terrai-alerts"
         },
         'apis': {
