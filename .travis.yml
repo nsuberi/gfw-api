@@ -3,7 +3,7 @@ python:
   - '2.7'
 cache:
   directories:
-  - $HOME/google_appengine_1.9.15
+  - $HOME/google_appengine_*
 before_script:
   - sh setup.sh
 script:
