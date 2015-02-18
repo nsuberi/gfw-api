@@ -90,10 +90,10 @@ class Sql(object):
     @classmethod
     def use(cls, params, args):
         concessions = {
-            'mining': 'mining_permits_merge',
-            'oilpalm': 'oil_palm_permits_merge',
-            'fiber': 'fiber_all_merged',
-            'logging': 'logging_gcs_wgs84'
+            'mining': 'gfw_mining',
+            'oilpalm': 'gfw_oil_palm',
+            'fiber': 'gfw_wood_fiber',
+            'logging': 'gfw_logging'
         }
         params['use_table'] = concessions[args['use']]
         params['pid'] = args['useid']
