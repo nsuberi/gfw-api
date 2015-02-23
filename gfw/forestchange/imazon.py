@@ -27,7 +27,7 @@ class ImazonSql(Sql):
         WITH poly AS (SELECT * FROM ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326) geojson)
         SELECT data_type,
         SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
-        FROM imazon_monthly i, poly
+        FROM imazon_clean i, poly
             WHERE i.date >= '{begin}'::date
         AND i.date <= '{end}'::date
         GROUP BY data_type"""
@@ -37,7 +37,7 @@ class ImazonSql(Sql):
     ISO = """
         SELECT data_type,
             sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
-        FROM imazon_monthly i
+        FROM imazon_clean i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
         GROUP BY data_type"""
@@ -47,7 +47,7 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
-        FROM imazon_monthly i,
+        FROM imazon_clean i,
             (SELECT *
                 FROM gadm2_provinces_simple
                 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
@@ -61,7 +61,7 @@ class ImazonSql(Sql):
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
         FROM (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) p,
-            imazon_monthly i
+            imazon_clean i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
         GROUP BY data_type"""
@@ -71,7 +71,7 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
-        FROM {use_table} p, imazon_monthly i
+        FROM {use_table} p, imazon_clean i
         WHERE p.cartodb_id = {pid}
             AND i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
