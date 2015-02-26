@@ -26,7 +26,7 @@ class ImazonSql(Sql):
     WORLD = """
         WITH poly AS (SELECT * FROM ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326) geojson)
         SELECT data_type,
-        SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), st_makevalid(i.the_geom_webmercator)))/(100*100)) AS value
+        SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
         FROM imazon_clean i, poly
             WHERE i.date >= '{begin}'::date
         AND i.date <= '{end}'::date
@@ -36,7 +36,7 @@ class ImazonSql(Sql):
 
     ISO = """
         SELECT data_type,
-            sum(ST_Area(st_makevalid(i.the_geom_webmercator))/(100*100)) AS value
+            sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
         FROM imazon_clean i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
@@ -45,7 +45,7 @@ class ImazonSql(Sql):
     ID1 = """
         SELECT data_type,
             SUM(ST_Area(ST_Intersection(
-                st_makevalid(i.the_geom_webmercator),
+                i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
         FROM imazon_clean i,
             (SELECT *
@@ -58,7 +58,7 @@ class ImazonSql(Sql):
     WDPA = """
         SELECT data_type,
             SUM(ST_Area(ST_Intersection(
-                st_makevalid(i.the_geom_webmercator),
+                i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
         FROM (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) p,
             imazon_clean i
@@ -69,7 +69,7 @@ class ImazonSql(Sql):
     USE = """
         SELECT data_type,
             SUM(ST_Area(ST_Intersection(
-                st_makevalid(i.the_geom_webmercator),
+                i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
         FROM {use_table} p, imazon_clean i
         WHERE p.cartodb_id = {pid}
