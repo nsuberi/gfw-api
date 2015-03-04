@@ -95,7 +95,7 @@ class Sql(object):
             'fiber': 'gfw_wood_fiber',
             'logging': 'gfw_logging'
         }
-        params['use_table'] = concessions[args['use']]
+        params['use_table'] = concessions.get(args['use']) or args['use']
         params['pid'] = args['useid']
         query_type, params = cls.get_query_type(params, args)
         query = cls.USE.format(**params)
