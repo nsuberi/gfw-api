@@ -194,9 +194,14 @@ def _execute_geojson(args):
     thresh = str(args.get('thresh'))
     geojson = json.loads(args.get('geojson'))
 
-    # Gain (UMD doesn't permit disaggregation of forest gain by threshold).
-    gain = _ee(geojson, thresh, config.assets['hansen_all_thresh'])['gain']
+    # hansen_all_thresh
+    hansen_all = _ee(geojson, thresh, config.assets['hansen_all_thresh'])
+    # gain (UMD doesn't permit disaggregation of forest gain by threshold).
+    gain = hansen_all['gain']
     logging.info('GAIN: %s' % gain)
+    # tree extent in 2000
+    tree_extent = hansen_all['tree']
+    logging.info('TREE_EXTENT: %s' % tree_extent )
 
     # Loss by year
     loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
@@ -213,6 +218,8 @@ def _execute_geojson(args):
     result['params']['geojson'] = json.loads(result['params']['geojson'])
     result['gain'] = gain
     result['loss'] = loss
+    result['tree-extent'] = tree_extent
+
     return 'respond', result
 
 
