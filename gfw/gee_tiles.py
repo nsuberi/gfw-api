@@ -116,7 +116,7 @@ class MapInit():
                  'bands':'30,20,10', 
                  'min':10, 
                  'max':120, 
-                 'gamma':1.6})
+                 'gamma':2.0})
 
             if reqid == 'simple_green_coverage':
               # The Green Forest Coverage background created by Andrew Hill
