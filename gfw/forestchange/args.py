@@ -124,6 +124,21 @@ class PathProcessor():
             raise Exception('Unable to process id1 from request path')
 
     @classmethod
+    def ifl(cls, path):
+        try:
+            return dict(ifl=True,iso=path.split('/')[5])
+        except:
+            raise Exception('Unable to process iso from request path')
+
+    @classmethod
+    def ifl_id1(cls, path):
+        try:
+            parts = path.split('/')
+            return dict(ifl_id1=True,iso=parts[5],id1=parts[6])
+        except:
+            raise Exception('Unable to process iso from request path')
+
+    @classmethod
     def wdpa(cls, path):
         return cls.wdpaid(path)
 

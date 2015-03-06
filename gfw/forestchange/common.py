@@ -10,6 +10,10 @@ def classify_query(args):
         return 'iso'
     elif 'iso' in args and 'id1' in args:
         return 'id1'
+    elif 'ifl' in args:
+        return 'ifl'
+    elif 'ifl_id1' in args:
+        return 'ifl_id1'
     elif 'use' in args:
         return 'use'
     elif 'pa' in args:
