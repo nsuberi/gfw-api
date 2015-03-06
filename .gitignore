@@ -1,3 +1,17 @@
+# Mac / Local
+.DS_Store
+
+# Python / Tests
+*.pyc
+pip-selfcheck.json
+man
+
+# Virtualenv
+.Python
+bin
+lib
+include
+
 *.pyc
 *.sublime-*
 .storage
