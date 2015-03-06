@@ -71,6 +71,36 @@ class BaseApiTest(common.FetchBaseTest):
             self.assertEqual(r.json['params']['id1'], '2')
             self.assertEqual(200, r.status_code)
 
+    def _testGetIflNational(self, dataset):
+        path = r'/forest-change/%s/admin/ifl/bra' % dataset
+
+        for combo in common.combos(self.args):
+            args = dict(combo)
+            cdb_response = '{"rows":[{"value":9870}]}'
+            self.setResponse(content=cdb_response, status_code=200)
+            r = self.api.get(path, args)
+            self.assertTrue('value' in r.json or 'years' in r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(200, r.status_code)
+
+    def _testGetIflSubnational(self, dataset):
+        path = r'/forest-change/%s/admin/ifl/bra/2' % dataset
+
+        for combo in common.combos(self.args):
+            args = dict(combo)
+            cdb_response = '{"rows":[{"value":9870}]}'
+            self.setResponse(content=cdb_response, status_code=200)
+            r = self.api.get(path, args)
+            self.assertIn('value', r.json)
+            self.assertIn('params', r.json)
+            self.assertIn('iso', r.json['params'])
+            self.assertEqual(r.json['params']['iso'], 'bra')
+            self.assertIn('id1', r.json['params'])
+            self.assertEqual(r.json['params']['id1'], '2')
+            self.assertEqual(200, r.status_code)
+
+
     def _testGetWdpa(self, dataset):
         path = r'/forest-change/%s/wdpa/180' % dataset
 
@@ -170,6 +200,12 @@ class UmdApiTest(BaseApiTest):
         self._testGetNational('umd-loss-gain')
 
     def testGetSubnational(self):
+        self._testGetNational('umd-loss-gain')
+
+    def testGetIflNational(self):
+        self._testGetNational('umd-loss-gain')
+
+    def testGetIflSubnational(self):
         self._testGetNational('umd-loss-gain')
 
 class TerraiApiTest(BaseApiTest):
