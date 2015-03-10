@@ -22,8 +22,9 @@ import webapp2
 import monitor
 import re
 
-from gfw.mailers import gfw_subscribe
-from gfw.notifiers.gfw_notify import GFWNotify
+from gfw.pubsub.event import Event
+from gfw.pubsub.notification import Notification
+from gfw.pubsub.subscription import Subscription
 
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
@@ -51,9 +52,9 @@ class Confirmer(webapp2.RequestHandler):
     def get(self):
         token = self.request.get('token')
         if Subscription.confirm(token):
-          self.response.write('Subscription confirmed!')
+            self.response.write('Subscription confirmed!')
         else:
-          self.error(404)        
+            self.error(404)        
 
 
 class Publisher(webapp2.RequestHandler):
@@ -140,9 +141,11 @@ class PubSubApi(BaseApi):
         try:
             params = self._get_params(body=True)
             topic, email = map(params.get, ['topic', 'email'])
-            Subscription.subscribe(topic, email)
-            self.response.set_status(201)
-            self._send_response(json.dumps(dict(subscribe=True)))
+            if Subscription.subscribe(topic, email):
+                self.response.set_status(201)
+                self._send_response(json.dumps(dict(subscribe=True)))
+            else:
+                self.error(404)  
 
         except Exception, e:
             name = e.__class__.__name__

@@ -16,10 +16,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module contains request handlers for the Global Forest Watch API."""
+import webapp2
+
 from gfw.pubsub import handlers
+from gfw.pubsub import notifiers
 
 """ ROUTES """
 routes = [
+
   webapp2.Route(
     r'/subscribe', 
     handler=handlers.PubSubApi,
@@ -53,7 +57,7 @@ routes = [
   ),
   webapp2.Route(
     r'/pubsub/notify',
-    handler=handlers.GFWNotify,
+    handler=notifiers.DigestNotifer,
     handler_method='post',
     methods=['POST']
   ),
@@ -63,6 +67,7 @@ routes = [
     handler_method='get',
     methods=['GET']
   )
+
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=True)

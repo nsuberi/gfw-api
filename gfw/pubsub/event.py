@@ -49,17 +49,18 @@ class Event(ndb.Model):
         event = Event(topic=topic, params=params)
         event_key = event.put()
         if event_key:
-            event.sendToQueue()
+            event.send_to_queue(event_key,dry_run)
 
 
     #
     #   Instance Methods
     #
-    def sendToQueue(self,event_key):    
-    taskqueue.add(
+    def send_to_queue(self,event_key,dry_run=True):   
+        taskqueue.add(
           url='/pubsub/publish',
           queue_name='pubsub-publish',
-          params=dict(event=event_key.urlsafe(), dry_run=dry_run))
+          params=dict(event=event_key.urlsafe(), dry_run=dry_run)
+        )
 
 
 

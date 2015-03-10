@@ -2,16 +2,15 @@ import logging
 import re
 import json
 
-from gfw.mailers import digest_mailer
-
 import webapp2
 import logging
-import arrow
 import json
 import re
 
 from google.appengine.api import mail
 from google.appengine.ext import ndb
+
+from gfw.mailers import digest_mailer
 
 from gfw import cdb
 from gfw.forestchange import forma
@@ -50,7 +49,16 @@ class NotiferBase(webapp2.RequestHandler):
         response = cdb.execute(sql)
         if response.status_code == 200:
             max_date = json.loads(response.content)['rows'][0]['max']
-            return arrow.get(max_date)
+            print "================="
+            print "Notifer _get_max_forma_date"
+            print ""
+            print ""
+            print max_date
+            print ""
+            print ""
+            print ""
+            print "================="
+            return None #arrow.get(max_date)
 
     def _period(self):
         max_forma_date = self._get_max_forma_date()

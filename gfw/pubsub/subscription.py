@@ -24,6 +24,8 @@ import datetime
 import re
 import logging
 
+from gfw.mailers import subscribe_mailer
+
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import mail
@@ -65,21 +67,21 @@ class Subscription(ndb.Model):
             x.key.delete()
     
     @classmethod
-    def subscribe(cls, topic, email):
-        subscription = Subscription(topic=topic, email=email, params=params)
+    def subscribe(cls, topic, email):        
+        subscription = Subscription(topic=topic, email=email)
         token = subscription.put()
-        if token:
-            subscription.send_mail(token)
+        if token:           
+            subscription.send_mail(token,email)
 
     @classmethod
     def confirm(cls,token):
+        subscription = cls.get_by_token(token)
         try:
-            subscription = cls.get_by_token(token)
             if not subscription or subscription.confirmed:
                 return False
             else:
-                s.confirmed = True
-                return s.put()
+                subscription.confirmed = True
+                return subscription.put()
         except:
             return False
 
@@ -87,15 +89,15 @@ class Subscription(ndb.Model):
     #
     #   Instance Methods
     #            
-    def send_mail(self,token):  
+    def send_mail(self,token,email):  
         reply_to = 'sub+%s@gfw-apis.appspotmail.com' % token.urlsafe()
         conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], token.urlsafe())
         mail.send_mail(
             sender=reply_to,
             to=email,
             reply_to=reply_to,
-            subject=gfw_subscribe.subject,
-            body=gfw_subscribe.body % conf_url
+            subject=subscribe_mailer.subject,
+            body=subscribe_mailer.body % conf_url
         )
 
 
