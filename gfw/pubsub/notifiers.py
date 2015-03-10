@@ -157,11 +157,11 @@ class DigestNotifer(NotiferBase):
                 result['lat'] = lat
                 result['lon'] = lon
                 result['geom'] = s['geom']
-                result['link'] = mailer.link_geom.format(**result)
+                result['link'] = self.mailer.link_geom.format(**result)
             else:
                 result['aoi'] = 'a country (%s)' % s['iso']
                 result['iso'] = s['iso'].upper()
-                result['link'] = mailer.link_iso.format(**result)
+                result['link'] = self.mailer.link_iso.format(**result)
             result['link'] = re.sub('\s+', '', result['link']).strip()
             self.body += self.mailer.summary.format(**result)
 
