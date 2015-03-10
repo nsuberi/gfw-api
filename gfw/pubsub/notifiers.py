@@ -129,10 +129,7 @@ class NotiferBase(webapp2.RequestHandler):
 #
 class DigestNotifer(NotiferBase):
 
-    link_geom = """http://www.globalforestwatch.org/map/3/{lat}/{lon}/ALL/grayscale/forma?geojson={geom}&begin={begin}&end={end}"""
-    link_iso = """http://www.globalforestwatch.org/map/4/0/0/{iso}/grayscale/forma?begin={begin}&end={end}"""
-    
-    mailer = gfw_notify_mailer
+    mailer = digest_mailer
 
     subject = 'New Alerts from Global Forest Watch'
 
@@ -160,11 +157,11 @@ class DigestNotifer(NotiferBase):
                 result['lat'] = lat
                 result['lon'] = lon
                 result['geom'] = s['geom']
-                result['link'] = self.link_geom.format(**result)
+                result['link'] = mailer.link_geom.format(**result)
             else:
                 result['aoi'] = 'a country (%s)' % s['iso']
                 result['iso'] = s['iso'].upper()
-                result['link'] = self.link_iso.format(**result)
+                result['link'] = mailer.link_iso.format(**result)
             result['link'] = re.sub('\s+', '', result['link']).strip()
             self.body += self.mailer.summary.format(**result)
 
