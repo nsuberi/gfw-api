@@ -20,11 +20,7 @@
 import json
 import webapp2
 import monitor
-import datetime
-
-from gfw import polyline
-from gfw import forma
-from gfw import cdb
+import re
 
 from gfw.mailers import gfw_subscribe
 from gfw.notifiers.gfw_notify import GFWNotify
@@ -34,9 +30,6 @@ from google.appengine.ext import ndb
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
-import logging
-import re
-from google.appengine.api import users
 
 #
 # Handlers
@@ -44,35 +37,23 @@ from google.appengine.api import users
 class Subscriber(InboundMailHandler):
     def receive(self, message):
         if message.to.find('<') > -1:
-            urlsafe = message.to.split('<')[1].split('+')[1].split('@')[0]
+            token = message.to.split('<')[1].split('+')[1].split('@')[0]
         else:
-            urlsafe = message.to.split('+')[1].split('@')[0]
-        s = ndb.Key(urlsafe=urlsafe).get()
-        s.confirmed = True
-        s.put()
+            token = message.to.split('+')[1].split('@')[0]
+        token = self.request.get('token')
+        if Subscription.confirm(token):
+          self.response.write('Subscription confirmed!')
+        else:
+          self.error(404)  
 
 
 class Confirmer(webapp2.RequestHandler):
     def get(self):
-        urlsafe = self.request.get('token')
-        if not urlsafe:
-            self.error(404)
-            return
-        try:
-            s = ndb.Key(urlsafe=urlsafe).get()
-        except:
-            self.error(404)
-            return
-        if not s:
-            self.error(404)
-            return
-        if s.confirmed:
-            self.error(404)
-            return
+        token = self.request.get('token')
+        if Subscription.confirm(token):
+          self.response.write('Subscription confirmed!')
         else:
-            s.confirmed = True
-            s.put()
-        self.response.write('Subscription confirmed!')
+          self.error(404)        
 
 
 class Publisher(webapp2.RequestHandler):
@@ -103,6 +84,113 @@ class SubscriptionDump(webapp2.RequestHandler):
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(json.dumps(subs, sort_keys=True))
 
+
+#
+# Pubsub API: TODO needs refactoring
+#
+""" BaseApi """
+class BaseApi(webapp2.RequestHandler):
+    """Base request handler for API."""
+
+    def _send_response(self, data, error=None):
+        """Sends supplied result dictionnary as JSON response."""
+        self._prep_headers()
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        if error:
+            self.response.set_status(400)
+        if not data:
+            self.response.out.write('')
+        else:
+            self.response.out.write(data)
+        if error:
+            taskqueue.add(url='/log/error', params=error, queue_name="log")
+
+    def _get_id(self, params):
+        whitespace = re.compile(r'\s+')
+        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+
+    def _get_params(self, body=False):
+        if body:
+            params = json.loads(self.request.body)
+        else:
+            args = self.request.arguments()
+            vals = map(self.request.get, args)
+            params = dict(zip(args, vals))
+        return params
+
+    def _prep_headers(self):
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept'
+        )
+
+    def options(self):
+        """Options to support CORS requests."""
+        self._prep_headers()
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+
+
+""" PubSubApi """
+class PubSubApi(BaseApi):
+    
+    def subscribe(self):
+        try:
+            params = self._get_params(body=True)
+            topic, email = map(params.get, ['topic', 'email'])
+            Subscription.subscribe(topic, email)
+            self.response.set_status(201)
+            self._send_response(json.dumps(dict(subscribe=True)))
+
+        except Exception, e:
+            name = e.__class__.__name__
+            msg = 'Error: PubSub API (%s)' % name
+            monitor.log(
+                self.request.url, 
+                msg, 
+                error=e,
+                headers=self.request.headers
+            )
+
+
+    def unsubscribe(self):
+        try:
+            params = self._get_params(body=True)
+            topic, email = map(params.get, ['topic', 'email'])
+            Subscription.unsubscribe(topic, email)
+            self._send_response(json.dumps(dict(unsubscribe=True)))
+
+        except Exception, e:
+            name = e.__class__.__name__
+            msg = 'Error: PubSub API (%s)' % name
+            monitor.log(
+                self.request.url, 
+                msg, 
+                error=e,        
+                headers=self.request.headers
+            )
+
+
+    def publish(self):
+        try:
+            params = self._get_params(body=True)
+            topic = params['topic']
+            Event.publish(topic,params)
+            self._send_response(json.dumps(dict(publish=True)))
+
+        except Exception, error:
+            name = error.__class__.__name__
+            trace = traceback.format_exc()
+            msg = 'Publish failure: %s: %s' % (name, error)
+            monitor.log(
+                self.request.url, 
+                msg, 
+                error=trace,
+                headers=self.request.headers
+            )
+            self._send_error()
 
 
 
