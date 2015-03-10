@@ -55,6 +55,10 @@ class Subscription(ndb.Model):
         return cls.query(cls.email == email).iter()
 
     @classmethod
+    def get_by_token(cls, token):
+        return ndb.Key(urlsafe=token).get()
+
+    @classmethod
     def unsubscribe(cls, topic, email):
         x = cls.query(cls.topic == topic, cls.email == email).get()
         if x:
@@ -66,7 +70,20 @@ class Subscription(ndb.Model):
         token = subscription.put()
         if token:
             subscription.send_mail(token)
-         
+
+    @classmethod
+    def confirm(cls,token):
+        try:
+            subscription = cls.get_by_token(token)
+            if not subscription or subscription.confirmed:
+                return False
+            else:
+                s.confirmed = True
+                return s.put()
+        except:
+            return False
+
+
     #
     #   Instance Methods
     #            
@@ -82,14 +99,7 @@ class Subscription(ndb.Model):
         )
 
 
-#
-#  Module Helpers
-#
-def subscribe(params):
-    topic, email = map(params.get, ['topic', 'email'])
-    Subscription.subscribe(topic, email)
 
-def unsubscribe(params):
-    topic, email = map(params.get, ['topic', 'email'])
-    Subscription.unsubscribe(topic, email)
+
+
 

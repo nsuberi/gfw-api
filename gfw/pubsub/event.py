@@ -62,12 +62,7 @@ class Event(ndb.Model):
           params=dict(event=event_key.urlsafe(), dry_run=dry_run))
 
 
-#
-#  Module Helpers
-#
-def publish(params, dry_run=True):
-    topic = params['topic']
-    Event.publish(topic,params)
+
 
 
 
