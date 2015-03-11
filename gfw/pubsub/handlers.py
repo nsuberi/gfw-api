@@ -141,7 +141,7 @@ class PubSubApi(BaseApi):
         try:
             params = self._get_params(body=True)
             topic, email = map(params.get, ['topic', 'email'])
-            if Subscription.subscribe(topic, email):
+            if Subscription.subscribe(topic, email, params):
                 self.response.set_status(201)
                 self._send_response(json.dumps(dict(subscribe=True)))
             else:

@@ -67,11 +67,14 @@ class Subscription(ndb.Model):
             x.key.delete()
     
     @classmethod
-    def subscribe(cls, topic, email):        
-        subscription = Subscription(topic=topic, email=email)
+    def subscribe(cls, topic, email, params):        
+        subscription = Subscription(topic=topic, email=email, params=params)
         token = subscription.put()
         if token:           
             subscription.send_mail(token,email)
+            return True
+        else:
+            return False
 
     @classmethod
     def confirm(cls,token):

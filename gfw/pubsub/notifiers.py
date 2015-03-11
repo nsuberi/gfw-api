@@ -1,11 +1,9 @@
-import logging
-import re
-import json
-
 import webapp2
 import logging
 import json
 import re
+
+import arrow
 
 from google.appengine.api import mail
 from google.appengine.ext import ndb
@@ -49,16 +47,7 @@ class NotiferBase(webapp2.RequestHandler):
         response = cdb.execute(sql)
         if response.status_code == 200:
             max_date = json.loads(response.content)['rows'][0]['max']
-            print "================="
-            print "Notifer _get_max_forma_date"
-            print ""
-            print ""
-            print max_date
-            print ""
-            print ""
-            print ""
-            print "================="
-            return None #arrow.get(max_date)
+            return arrow.get(max_date)
 
     def _period(self):
         max_forma_date = self._get_max_forma_date()
@@ -73,6 +62,7 @@ class NotiferBase(webapp2.RequestHandler):
             if n.sent:
                 logging.info("skipping notification, already sent...")
                 return
+
             e = n.params['event']
             s = n.params['subscription']
             s['forma_date'] = self._get_max_forma_date().format('YYYY-MM-DD')
