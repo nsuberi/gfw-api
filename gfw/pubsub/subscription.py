@@ -17,19 +17,11 @@
 
 """This module supports pubsub."""
 
-import json
-import webapp2
-import monitor
-import datetime
-import re
-import logging
-
 from gfw.mailers import subscribe_mailer
 
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import mail
-from google.appengine.api import taskqueue
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 from google.appengine.api import users
 
