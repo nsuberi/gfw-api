@@ -108,15 +108,20 @@ class MapInit():
               # landsat (L7) composites
               # accepts a year, side effect map display of annual L7 cloud free composite
               landSat = ee.Image("L7_TOA_1YEAR/" + year).select("30","20","10")
-              self.mapid = landSat.getMapId({'min':1, 'max':100})
+              self.mapid = landSat.getMapId({
+                'min':1, 
+                'max':100, 
+                'gamma':2.0
+              })
 
             if reqid == 'l7_toa_1year_2012':
-              self.mapid = ee.Image("L7_TOA_1YEAR_2012").getMapId(
-                {'opacity': 1, 
-                 'bands':'30,20,10', 
-                 'min':10, 
-                 'max':120, 
-                 'gamma':2.0})
+              self.mapid = ee.Image("L7_TOA_1YEAR_2012").getMapId({
+                'opacity': 1, 
+                'bands':'30,20,10', 
+                'min':10, 
+                'max':120, 
+                'gamma':2.0
+              })
 
             if reqid == 'simple_green_coverage':
               # The Green Forest Coverage background created by Andrew Hill
