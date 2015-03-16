@@ -7,18 +7,19 @@ h4 Digest:
 """
 
 summary = """
-<br><br>
-<b>{name}:<b><br>
-
-A total of {value} {name} were detected within your area of interest in
-the past {interval}. Explore the details of this dataset on Global Forest
-Watch by <a href='{link}'>clicking here</a>.
+<b>{name} (<a href='{link}'>details</a>):</b> {value} alerts <br>
 """
 
+list_summary_lead = """
+<b>{name} (<a href='{link}'>details</a>):</b><br>
+"""
+
+list_summary_row = """
+  -- {value} {data_type} alerts  <br>
+"""
+
+
 dump_summary = """
-<br><br>
-<b>{name}: does not have value<b><br>
-{params}
 """
 
 

@@ -146,9 +146,9 @@ class DigestNotifer(NotiferBase):
         logging.info(s)
 
         if result.get('value'): 
-
             if not result['value']:
                 result['value'] = 0
+
             if 'geom' in s:
                 result['aoi'] = 'a user drawn polygon'
                 lat, lon = self._center(s['geom'])
@@ -161,7 +161,14 @@ class DigestNotifer(NotiferBase):
                 result['iso'] = s['iso'].upper()
                 result['link'] = self.mailer.link_iso.format(**result)
             result['link'] = re.sub('\s+', '', result['link']).strip()
-            self.body += self.mailer.summary.format(**result)
+
+            if type(result['value']) is list:
+                self.body += self.mailer.list_summary_lead.format(**result)
+                for result_row in result['value']:
+                    self.body += self.mailer.list_summary_row.format(**result_row)
+
+            else:
+                self.body += self.mailer.summary.format(**result)
 
         else:
             result['params'] = json.dumps(result['params'])
