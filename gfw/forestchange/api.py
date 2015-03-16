@@ -153,6 +153,10 @@ META = {
             "id": "umd-loss-gain"
         },
         'apis': {
+            'ifl_national': '%s/admin/ifl/{/iso}{?bust,dev,thresh}' %
+            UMD_API,
+            'ifl_subnational': '%s/admin/ifl/{/iso}{/id1}{?bust,dev,thresh}' %
+            UMD_API,
             'national': '%s/admin{/iso}{?bust,dev,thresh}' %
             UMD_API,
             'subnational': '%s/admin{/iso}{/id1}{?bust,dev,thresh}' %
@@ -218,6 +222,8 @@ PARAMS = {
     'umd-loss-gain': {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
         'iso': ['download', 'dev', 'bust', 'thresh'],
+        'ifl': ['download', 'dev', 'bust', 'thresh'],
+        'ifl_id1': ['download', 'dev', 'bust', 'thresh'],
         'id1': ['download', 'dev', 'bust', 'thresh'],
         'wdpa': ['download', 'dev', 'bust', 'thresh'],
         'use': ['download', 'dev', 'bust', 'thresh']
@@ -256,29 +262,25 @@ def _classify_request(path):
     Returns 2-tuple (dataset,request_type)
 
     Example: /forest-change/forma-alerts/admin/iso => (forma-alerts, iso)"""
+
     dataset = _dataset_from_path(path)
+    path = path.strip("/")
     rtype = None
-    hit = None
 
-    hit = re.match(r'/forest-change/%s$' % dataset, path)
-    if hit:
-        return dataset, 'all'
-
-    hit = re.match(r'/forest-change/%s/admin/[A-z]{3,3}$' % dataset, path)
-    if hit:
-        return dataset, 'iso'
-
-    hit = re.match(r'/forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path)
-    if hit:
-        return dataset, 'id1'
-
-    hit = re.match(r'/forest-change/%s/wdpa/\d+$' % dataset, path)
-    if hit:
-        return dataset, 'wdpa'
-
-    hit = re.match(r'/forest-change/%s/use/[A-z]+/\d+$' % dataset, path)
-    if hit:
-        rtype = 'use'
+    if re.match(r'forest-change/%s$' % dataset, path):
+        rtype = 'all'
+    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
+        rtype = 'ifl'
+    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset, path):
+        rtype = 'ifl_id1'        
+    elif re.match(r'forest-change/%s/admin/[A-z]{3,3}$' % dataset, path):
+        rtype = 'iso'
+    elif re.match(r'forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path):
+        rtype = 'id1'
+    elif re.match(r'forest-change/%s/wdpa/\d+$' % dataset, path):
+        rtype = 'wdpa'
+    elif re.match(r'forest-change/%s/use/[A-z]+/\d+$' % dataset, path):
+        rtype = 'use' 
 
     return dataset, rtype
 

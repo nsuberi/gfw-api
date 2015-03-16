@@ -124,6 +124,22 @@ class UmdSql(Sql):
               AND id1 = {id1}
         ORDER BY year"""
 
+    IFL = """
+        SELECT ST_AsGeoJson(the_geom) AS geojson, type
+        FROM gadm_countries_ifl
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+        AND type='intact'"""
+
+
+    IFL_ID1 = """
+        SELECT ST_AsGeoJson(the_geom) AS geojson, type
+        FROM gadm_countries_ifl
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+              AND id1 = {id1}
+        AND type='intact'"""
+
     USE = """
         SELECT ST_AsGeoJson(the_geom) AS geojson
         FROM {use_table}
@@ -180,6 +196,39 @@ def _executeId1(args):
     data.pop('rows')
     data.pop('download_urls')
     data['years'] = rows
+    return action, data
+
+def _executeIfl(args):
+    """Query GEE using supplied WDPA id."""
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
+    rows = data['rows']
+    data.pop('rows')
+    data.pop('download_urls')
+    if rows:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        action, data = _execute_geojson(args)
+        data['params'].pop('geojson')
+    return action, data
+
+
+def _executeIflId1(args):
+    """Query subnational by iso code and GADM id."""
+    action, data = CartoDbExecutor.execute(args, UmdSql)
+    if action == 'error':
+        return action, data
+    rows = data['rows']
+    data.pop('rows')
+    data.pop('download_urls')
+    if rows:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        action, data = _execute_geojson(args)
+        data['params'].pop('geojson')
     return action, data
 
 
@@ -273,6 +322,10 @@ def execute(args):
         return _executeIso(args)
     elif query_type == 'id1':
         return _executeId1(args)
+    elif query_type == 'ifl':
+        return _executeIfl(args)
+    elif query_type == 'ifl_id1':
+        return _executeIflId1(args)    
     elif query_type == 'use':
         return _executeUse(args)
     elif query_type == 'wdpa':
