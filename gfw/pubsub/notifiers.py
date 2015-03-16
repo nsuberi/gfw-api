@@ -66,7 +66,6 @@ class NotiferBase(webapp2.RequestHandler):
             e = n.params['event']
             s = n.params['subscription']
             s['forma_date'] = self._get_max_forma_date().format('YYYY-MM-DD')
-            s['begin'], s['end'] = ('2006-01-01','2015-01-01')
 
             digest_response = self._execute('forma',s)
             digest_response = self._execute('quicc',s,digest_response)
