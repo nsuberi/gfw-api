@@ -107,7 +107,7 @@ class MapInit():
             if reqid == 'landsat_composites':
               # landsat (L7) composites
               # accepts a year, side effect map display of annual L7 cloud free composite
-              landSat = ee.Image("L7_TOA_1YEAR/" + year).select("30","20","10")
+              landSat = ee.Image("L7_TOA_1YEAR/" + year).select("B3","B2","B1")
               self.mapid = landSat.getMapId({
                 'min':1, 
                 'max':100, 
@@ -115,7 +115,7 @@ class MapInit():
               })
 
             if reqid == 'l7_toa_1year_2012':
-              self.mapid = ee.Image("L7_TOA_1YEAR_2012").getMapId({
+              self.mapid = ee.Image("L7_TOA_1YEAR_2012").select("30","20","10").getMapId({
                 'opacity': 1, 
                 'bands':'30,20,10', 
                 'min':10, 
