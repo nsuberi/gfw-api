@@ -41,6 +41,12 @@ def _load_config(name):
 #
 #  ENV Setup: 
 #
+def test_config():
+    config = _load_config('dev.json')
+    config['IS_DEV'] = True
+    config['APP_BASE_URL'] = 'http://localhost:8080'
+    return config
+
 def dev_config():
     config = _load_config('dev.json')
     config['IS_DEV'] = True
@@ -53,9 +59,11 @@ def prod_config():
     config['APP_BASE_URL'] = 'http://gfw-apis.appspot.com'
     return config
 
+http_host = os.environ.get('HTTP_HOST')
 
-http_host = os.environ['HTTP_HOST']
-if 'localhost' in http_host:
+if not http_host:
+    runtime_config = test_config()
+elif 'localhost' in http_host:
     runtime_config = dev_config()
 elif 'dev' in http_host:
     runtime_config = dev_config()
@@ -63,5 +71,3 @@ elif 'stage' in http_host:
     runtime_config = dev_config()
 else:
     runtime_config = prod_config()
-
-print(runtime_config)
