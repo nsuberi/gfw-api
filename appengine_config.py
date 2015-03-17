@@ -26,7 +26,6 @@ def fix_path():
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
-
 fix_path()
 
 
@@ -38,15 +37,37 @@ def _load_config(name):
     except:
         return {}
 
-IS_DEV = 'Development' in os.environ.get('SERVER_SOFTWARE', 'Development')
 
-if IS_DEV:
-    APP_BASE_URL = 'http://localhost:8080'
-    runtime_config = _load_config('dev.json')
+#
+#  ENV Setup: 
+#
+def test_config():
+    config = _load_config('dev.json')
+    config['IS_DEV'] = True
+    config['APP_BASE_URL'] = 'http://localhost:8080'
+    return config
+
+def dev_config():
+    config = _load_config('dev.json')
+    config['IS_DEV'] = True
+    config['APP_BASE_URL'] = 'http://%s' % http_host
+    return config
+
+def prod_config():
+    config = _load_config('prod.json')
+    config['IS_DEV'] = False
+    config['APP_BASE_URL'] = 'http://gfw-apis.appspot.com'
+    return config
+
+http_host = os.environ.get('HTTP_HOST')
+
+if not http_host:
+    runtime_config = test_config()
+elif 'localhost' in http_host:
+    runtime_config = dev_config()
+elif 'dev' in http_host:
+    runtime_config = dev_config()
+elif 'stage' in http_host:
+    runtime_config = dev_config()
 else:
-    APP_BASE_URL = 'http://gfw-apis.appspot.com'
-    runtime_config = _load_config('prod.json')
-
-
-runtime_config['APP_BASE_URL'] = APP_BASE_URL
-runtime_config['IS_DEV'] = IS_DEV
+    runtime_config = prod_config()
