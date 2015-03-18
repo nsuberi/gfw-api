@@ -109,6 +109,101 @@ def get(params):
 
 """ StoriesApi """
 
+class StoriesApi(BaseApi):
+
+    def _send_new_story_emails(self):
+        story = self._get_params()
+
+        # Email WRI:
+        subject = 'A new story has been registered with Global Forest Watch'
+        sender = \
+            'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
+        to = runtime_config.get('wri_emails_stories')
+        story_url = 'http://globalforestwatch.org/stories/%s' % story['id']
+        api_url = '%s/stories/%s' % (common.APP_BASE_URL, story['id'])
+        token = story['token']
+        body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \
+            (story_url, api_url, token)
+        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+
+        # Email user:
+        subject = 'Your story has been registered with Global Forest Watch!'
+        to = '%s <%s>' % (story['name'], story['email'])
+        body = 'Here is your story: %s' % story_url
+        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+
+    def _gen_token(self):
+        return base64.b64encode(
+            hashlib.sha256(str(random.getrandbits(256))).digest(),
+            random.choice(
+                ['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+    def list(self):
+        try:
+            params = self._get_params()
+            result = stories.list(params)
+            if not result:
+                result = []
+            self._send_response(json.dumps(result))
+        except Exception, e:
+            name = e.__class__.__name__
+            msg = 'Error: Story API (%s)' % name
+            monitor.log(self.request.url, msg, error=e,
+                        headers=self.request.headers)
+
+    def create(self):
+        # host = os.environ['HTTP_HOST']
+        # logging.info(os.environ)
+        # if 'globalforestwatch' not in host and 'localhost' not in host:
+        #     self.error(404)
+        #     return
+        params = self._get_params(body=True)
+        required = ['title', 'email', 'geom']
+        if not all(x in params and params.get(x) for x in required):
+            self.response.set_status(400)
+            self._send_response(json.dumps(dict(required=required)))
+            return
+        token = self._gen_token()
+        try:
+            params['token'] = token
+            result = stories.create(params)
+            if result:
+                story = json.loads(result.content)['rows'][0]
+                story['media'] = json.loads(story['media'])
+                data = copy.copy(story)
+                data['token'] = token
+                self.response.set_status(201)
+                taskqueue.add(url='/stories/email', params=data,
+                              queue_name="story-new-emails")
+                self._send_response(json.dumps(story))
+            else:
+                story = None
+                self.response.set_status(400)
+                return
+        except Exception, e:
+                error = e
+                name = error.__class__.__name__
+                trace = traceback.format_exc()
+                payload = self.request.headers
+                payload.update(params)
+                msg = 'Story submit failure: %s: %s' % (name, error)
+                monitor.log(self.request.url, msg, error=trace,
+                            headers=payload)
+                self.error(400)
+
+    def get(self, id):
+        try:
+            params = dict(id=id)
+            result = stories.get(params)
+            if not result:
+                self.response.set_status(404)
+            self._send_response(json.dumps(result))
+        except Exception, e:
+            name = e.__class__.__name__
+            msg = 'Error: Story API (%s)' % name
+            monitor.log(self.request.url, msg, error=e,
+                        headers=self.request.headers)
+
 # Stories API routes
 CREATE_STORY = r'/stories/new'
 LIST_STORIES = r'/stories'
