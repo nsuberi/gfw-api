@@ -17,6 +17,7 @@
 
 """This module supports stories."""
 
+import webapp2
 import json
 from appengine_config import runtime_config
 from gfw import cdb
@@ -103,3 +104,31 @@ def get(params):
         if 'total_rows' in data and data['total_rows'] == 1:
             story = data['rows'][0]
             return _prep_story(story)
+
+
+
+""" StoriesApi """
+
+# Stories API routes
+CREATE_STORY = r'/stories/new'
+LIST_STORIES = r'/stories'
+GET_STORY = r'/stories/<id:\d+>'
+CREATE_STORY_EMAILS = r'/stories/email'
+
+# Routes
+routes = [
+
+    webapp2.Route(CREATE_STORY, handler=StoriesApi,
+                  handler_method='create', methods=['POST']),
+    webapp2.Route(LIST_STORIES, handler=StoriesApi,
+                  handler_method='list'),
+    webapp2.Route(GET_STORY, handler=StoriesApi,
+                  handler_method='get'),
+    webapp2.Route(CREATE_STORY_EMAILS, handler=StoriesApi,
+                  handler_method='_send_new_story_emails',
+                  methods=['POST'])
+
+]
+
+handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
+
