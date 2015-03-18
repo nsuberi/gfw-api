@@ -30,6 +30,7 @@ import base64
 import monitor
 import random
 import traceback
+import copy
 
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
