@@ -68,7 +68,7 @@ def _prep_story(story):
     return story
 
 
-def create(params):
+def create_story(params):
     """Create new story with params."""
     props = dict(details='', email='', name='',
                  title='', token='', visible='True', date='',
@@ -85,7 +85,7 @@ def create(params):
     return cdb.execute(sql, auth=True)
 
 
-def list(params):
+def list_stories(params):
     and_where = ''
     if 'geom' in params:
         and_where = """AND ST_Intersects(the_geom::geography,
@@ -102,7 +102,7 @@ def list(params):
             return map(_prep_story, data['rows'])
 
 
-def get(params):
+def get_story(params):
     params['table'] = TABLE
     result = cdb.execute(GET.format(**params), auth=True)
     if result.status_code != 200:
@@ -191,7 +191,7 @@ class StoriesApi(BaseApi):
     def list(self):
         try:
             params = self._get_params()
-            result = stories.list(params)
+            result = list_stories(params)
             if not result:
                 result = []
             self._send_response(json.dumps(result))
@@ -216,7 +216,7 @@ class StoriesApi(BaseApi):
         token = self._gen_token()
         try:
             params['token'] = token
-            result = stories.create(params)
+            result = create_story(params)
             if result:
                 story = json.loads(result.content)['rows'][0]
                 story['media'] = json.loads(story['media'])
@@ -244,7 +244,7 @@ class StoriesApi(BaseApi):
     def get(self, id):
         try:
             params = dict(id=id)
-            result = stories.get(params)
+            result = get_story(params)
             if not result:
                 self.response.set_status(404)
             self._send_response(json.dumps(result))
