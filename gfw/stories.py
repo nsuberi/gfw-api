@@ -275,5 +275,5 @@ routes = [
 
 ]
 
-handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
+handlers = webapp2.WSGIApplication(routes, debug=runtime_config.get('IS_DEV'))
 
