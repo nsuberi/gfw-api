@@ -17,12 +17,20 @@
 
 """This module supports stories."""
 
-import webapp2
 import json
 from appengine_config import runtime_config
 from gfw import cdb
 import datetime
 
+# API
+import webapp2
+import re
+import hashlib
+import base64
+import monitor
+
+from google.appengine.api import mail
+from google.appengine.api import taskqueue
 
 TABLE = 'stories_dev_copy' if runtime_config.get('IS_DEV') else 'community_stories'
 
@@ -132,7 +140,7 @@ class BaseApi(webapp2.RequestHandler):
     def _get_id(self, params):
         whitespace = re.compile(r'\s+')
         params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
-        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+        return '/'.join([self.request.path.lower(), hashlib.md5(params).hexdigest()])
 
     def _get_params(self, body=False):
         if body:
@@ -162,7 +170,7 @@ class StoriesApi(BaseApi):
             'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
         to = runtime_config.get('wri_emails_stories')
         story_url = 'http://globalforestwatch.org/stories/%s' % story['id']
-        api_url = '%s/stories/%s' % (common.APP_BASE_URL, story['id'])
+        api_url = '%s/stories/%s' % (runtime_config.get('APP_BASE_URL'), story['id'])
         token = story['token']
         body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \
             (story_url, api_url, token)
