@@ -109,6 +109,48 @@ def get(params):
 
 """ StoriesApi """
 
+class BaseApi(webapp2.RequestHandler):
+    """Base request handler for API."""
+
+    def _send_response(self, data, error=None):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        if error:
+            self.response.set_status(400)
+        if not data:
+            self.response.out.write('')
+        else:
+            self.response.out.write(data)
+        if error:
+            taskqueue.add(url='/log/error', params=error, queue_name="log")
+
+    def _get_id(self, params):
+        whitespace = re.compile(r'\s+')
+        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+
+    def _get_params(self, body=False):
+        if body:
+            params = json.loads(self.request.body)
+        else:
+            args = self.request.arguments()
+            vals = map(self.request.get, args)
+            params = dict(zip(args, vals))
+        return params
+
+    def options(self):
+        """Options to support CORS requests."""
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Access-Control-Allow-Headers'] = \
+            'Origin, X-Requested-With, Content-Type, Accept'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+
+
 class StoriesApi(BaseApi):
 
     def _send_new_story_emails(self):
