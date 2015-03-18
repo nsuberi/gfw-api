@@ -79,4 +79,6 @@ handlers:
 - url: /stories.*
   script: gfw.stories.handlers
 
+- url: /.*
+  script: gfw.pubsub.api.handlers
 
