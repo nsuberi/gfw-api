@@ -172,7 +172,7 @@ class StoriesApi(BaseApi):
         sender = \
             'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
         to = runtime_config.get('wri_emails_stories')
-        story_url = 'http://globalforestwatch.org/stories/%s' % story['id']
+        story_url = '%s/stories/%s' % (runtime_config.get('GFW_BASE_URL'), story['id'])
         api_url = '%s/stories/%s' % (runtime_config.get('APP_BASE_URL'), story['id'])
         token = story['token']
         body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \

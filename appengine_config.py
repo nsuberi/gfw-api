@@ -45,18 +45,35 @@ def test_config():
     config = _load_config('dev.json')
     config['IS_DEV'] = True
     config['APP_BASE_URL'] = 'http://localhost:8080'
+    config['GFW_BASE_URL'] = 'http://localhost:5000'
+    return config
+
+def local_config():
+    config = _load_config('dev.json')
+    config['IS_DEV'] = True
+    config['APP_BASE_URL'] = 'http://%s' % http_host
+    config['GFW_BASE_URL'] = 'http://localhost:5000'
     return config
 
 def dev_config():
     config = _load_config('dev.json')
     config['IS_DEV'] = True
     config['APP_BASE_URL'] = 'http://%s' % http_host
+    config['GFW_BASE_URL'] = 'http://api-gfw-dev.herokuapp.com'
+    return config
+
+def stage_config():
+    config = _load_config('dev.json')
+    config['IS_DEV'] = True
+    config['APP_BASE_URL'] = 'http://%s' % http_host
+    config['GFW_BASE_URL'] = 'http://api-gfw-stage.herokuapp.com'
     return config
 
 def prod_config():
     config = _load_config('prod.json')
     config['IS_DEV'] = False
     config['APP_BASE_URL'] = 'http://gfw-apis.appspot.com'
+    config['GFW_BASE_URL'] = 'http://www.globalforestwatch.org'
     return config
 
 http_host = os.environ.get('HTTP_HOST')
@@ -64,10 +81,10 @@ http_host = os.environ.get('HTTP_HOST')
 if not http_host:
     runtime_config = test_config()
 elif 'localhost' in http_host:
-    runtime_config = dev_config()
+    runtime_config = local_config()
 elif 'dev' in http_host:
     runtime_config = dev_config()
 elif 'stage' in http_host:
-    runtime_config = dev_config()
+    runtime_config = stage_config()
 else:
     runtime_config = prod_config()
