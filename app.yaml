@@ -75,7 +75,10 @@ handlers:
 - url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts).*
   script: gfw.forestchange.api.handlers
 
+# Stories
+- url: /stories.*
+  script: gfw.stories.handlers
+
 - url: /.*
   script: gfw.pubsub.api.handlers
-
 
