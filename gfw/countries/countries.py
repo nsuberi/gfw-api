@@ -25,6 +25,28 @@ from gfw.forestchange import umd
 
 class CountrySql(object):
 
+    INDEX = """
+        SELECT countries.iso, countries.name, countries.enabled, countries.lat,
+        countries.lng, countries.extent, countries.gva, countries.gva_percent,
+        countries.employment, countries.indepth, countries.national_policy_link,
+        countries.national_policy_title, countries.convention_cbd,
+        countries.convention_unfccc, countries.convention_kyoto,
+        countries.convention_unccd, countries.convention_itta,
+        countries.convention_cites, countries.convention_ramsar,
+        countries.convention_world_heritage, countries.convention_nlbi,
+        countries.convention_ilo, countries.ministry_link, countries.external_links,
+        countries.dataset_link, countries.emissions, countries.carbon_stocks,
+        countries.country_alt, alerts.count AS alerts_count
+        FROM gfw2_countries AS countries
+        LEFT OUTER JOIN (
+          SELECT COUNT(*) AS count, iso
+          FROM forma_api
+          WHERE date >= now() - INTERVAL '{interval}'
+          GROUP BY iso)
+        AS alerts ON alerts.iso = countries.iso
+        ORDER BY countries.name {order}
+    """
+
     TOPO_JSON = """
         SELECT the_geom
         FROM forest_cov_glob_v3
@@ -80,13 +102,21 @@ def _handler(response):
         raise Exception(response.content)
 
 
+def _index(args):
+    if not 'order' in args:
+        args['order'] = ''
+    if not 'interval' in args:
+        args['interval'] = '12 Months'
+    query = CountrySql.INDEX.format(**args)
+    rows = _handler(cdb.execute(query))
+    return dict(countries=rows)
+
 def _getTopoJson(args):
     query = CountrySql.TOPO_JSON.format(**args)
 
     rows = _handler(
         cdb.execute(query, params=dict(format='topojson')))
     return dict(topojson=rows)
-
 
 def _processSubnatRow(x):
     x['bounds'] = json.loads(x['bounds'])
@@ -134,12 +164,17 @@ def _getUmd(args):
 def execute(args):
     result = dict(params=args)
 
-    result.update(_getTopoJson(args))
-    result.update(_getSubnatBounds(args))
-    result.update(_getForma(args))
-    result.update(_getForests(args))
-    result.update(_getTenure(args))
-    result.update(_getBounds(args))
-    result.update(_getUmd(args))
+    if args.get('index'):
+        result.update(_index(args))
+
+    else:
+
+        result.update(_getTopoJson(args))
+        result.update(_getSubnatBounds(args))
+        result.update(_getForma(args))
+        result.update(_getForests(args))
+        result.update(_getTenure(args))
+        result.update(_getBounds(args))
+        result.update(_getUmd(args))
 
     return 'respond', result

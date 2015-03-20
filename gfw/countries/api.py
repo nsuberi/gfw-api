@@ -30,21 +30,17 @@ from gfw.common import APP_BASE_URL
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL
 
 META = {
-    'countries': {
-    }
+
 }
 
 
 def _classify_request(path):
     """Classify request based on supplied path."""
-    hit = None
-
-    hit = re.match(r'/countries/[A-z]{3,3}$', path)
-    if hit:
+    if re.match(r'^countries$', path):
+        return 'index'
+    elif re.match(r'^countries/[A-z]{3,3}$', path):
         return 'iso'
-
-    hit = re.match(r'/countries/[A-z]{3,3}/\d+$', path)
-    if hit:
+    elif re.match(r'^countries/[A-z]{3,3}/\d+$', path):
         return 'id1'
 
 
@@ -56,35 +52,34 @@ class Handler(CORSRequestHandler):
 
     def get(self):
         try:
-            path = self.request.path
-
-            # Return API meta
-            if path == '/countries':
-                self.complete('respond', META)
-                return
+            path = self.request.path.strip("/")
 
             rtype = _classify_request(path)
-
             # Unsupported dataset or reqest type
             if not rtype:
                 self.error(404)
                 return
 
-            # Handle request
-            query_args = args.process(
-                self.args(only=['dev', 'bust', 'thresh']))
-            path_args = args.process_path(path, rtype)
-            params = dict(query_args, **path_args)
+            # Return API meta
+            if path == 'countries':
+                action, data = self._action_data()
+            else:   
+                path_args = args.process_path(path, rtype)
+                action, data = self._action_data(path_args)
 
-            rid = self.get_id(params)
-            action, data = self.get_or_execute(params, countries, rid)
             self.complete(action, data)
+
         except Exception, e:
             logging.exception(e)
             self.write_error(400, e.message)
             self.write(json.dumps(META, sort_keys=True))
 
 
-handlers = webapp2.WSGIApplication([
-    (r'/countries.*', Handler)],
-    debug=True)
+    def _action_data(self,path_args={'index': True}):
+        query_args = args.process(self.args(only=['dev', 'bust', 'thresh']))
+        params = dict(query_args, **path_args)
+        rid = self.get_id(params)
+        return self.get_or_execute(params, countries, rid)
+
+
+handlers = webapp2.WSGIApplication([(r'/countries.*', Handler)], debug=True)
