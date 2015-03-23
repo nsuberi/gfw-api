@@ -59,14 +59,14 @@ class PathProcessor():
     @classmethod
     def iso(cls, path):
         try:
-            return dict(iso=path.split('/')[2])
+            return dict(iso=path.split('/')[1])
         except:
             raise Exception('Unable to process iso from request path')
 
     @classmethod
     def id1(cls, path):
         try:
-            arg = dict(id1=path.split('/')[3])
+            arg = dict(id1=path.split('/')[2])
             arg.update(cls.iso(path))
             return arg
         except:
