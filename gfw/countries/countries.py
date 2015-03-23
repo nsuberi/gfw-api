@@ -47,6 +47,23 @@ class CountrySql(object):
         ORDER BY countries.name {order}
     """
 
+    SHOW = """
+        SELECT countries.iso, countries.name, countries.enabled, countries.lat,
+        countries.lng, countries.extent, countries.gva, countries.gva_percent,
+        countries.employment, countries.indepth, countries.national_policy_link,
+        countries.national_policy_title, countries.convention_cbd,
+        countries.convention_unfccc, countries.convention_kyoto,
+        countries.convention_unccd, countries.convention_itta,
+        countries.convention_cites, countries.convention_ramsar,
+        countries.convention_world_heritage, countries.convention_nlbi,
+        countries.convention_ilo, countries.ministry_link, countries.external_links,
+        countries.dataset_link, countries.emissions, countries.carbon_stocks,
+        countries.country_alt
+        FROM gfw2_countries AS countries
+        WHERE countries.iso = UPPER('{iso}')
+        LIMIT 1
+    """
+
     TOPO_JSON = """
         SELECT the_geom
         FROM forest_cov_glob_v3
@@ -111,6 +128,11 @@ def _index(args):
     rows = _handler(cdb.execute(query))
     return dict(countries=rows)
 
+def _show(args):
+    query = CountrySql.SHOW.format(**args)
+    rows = _handler(cdb.execute(query))
+    return rows[0]
+
 def _getTopoJson(args):
     query = CountrySql.TOPO_JSON.format(**args)
 
@@ -168,7 +190,7 @@ def execute(args):
         result.update(_index(args))
 
     else:
-
+        result.update(_show(args))
         result.update(_getTopoJson(args))
         result.update(_getSubnatBounds(args))
         result.update(_getForma(args))
