@@ -20,6 +20,7 @@
 import json
 import os
 import sys
+import yaml
 
 
 def fix_path():
@@ -28,6 +29,9 @@ def fix_path():
 
 fix_path()
 
+#
+#  LOADERS: 
+#
 
 def _load_config(name):
     """Return dev config environment as dictionary."""
@@ -37,54 +41,48 @@ def _load_config(name):
     except:
         return {}
 
+def _load_env_config(name):
+    """Return dev config environment as dictionary."""
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), name)
+    try:
+        cfig = yaml.load(open(path, "r").read())
+        return cfig
+    except:
+        return {"error": ("Missing Config File[%s]" % name) }
 
 #
-#  ENV Setup: 
+#  CONFIG HELPERS: 
 #
-def test_config():
-    config = _load_config('dev.json')
-    config['IS_DEV'] = True
-    config['APP_BASE_URL'] = 'http://localhost:8080'
-    config['GFW_BASE_URL'] = 'http://localhost:5000'
-    return config
 
-def local_config():
-    config = _load_config('dev.json')
-    config['IS_DEV'] = True
-    config['APP_BASE_URL'] = 'http://%s' % http_host
-    config['GFW_BASE_URL'] = 'http://localhost:5000'
-    return config
-
-def dev_config():
-    config = _load_config('dev.json')
-    config['IS_DEV'] = True
-    config['APP_BASE_URL'] = 'http://%s' % http_host
-    config['GFW_BASE_URL'] = 'http://api-gfw-dev.herokuapp.com'
-    return config
-
-def stage_config():
-    config = _load_config('dev.json')
-    config['IS_DEV'] = True
-    config['APP_BASE_URL'] = 'http://%s' % http_host
-    config['GFW_BASE_URL'] = 'http://api-gfw-stage.herokuapp.com'
-    return config
-
-def prod_config():
-    config = _load_config('prod.json')
-    config['IS_DEV'] = False
-    config['APP_BASE_URL'] = 'http://gfw-apis.appspot.com'
-    config['GFW_BASE_URL'] = 'http://www.globalforestwatch.org'
-    return config
+def _update_config(config, env_path):
+    env_config = _load_env_config(env_path)
+    if not env_config.get('error'):
+        config.update(env_config)
 
 http_host = os.environ.get('HTTP_HOST')
 
+def _get_runtime_config(env_type, env_json, env_yml):
+    config = _load_config(env_json)
+    _update_config(config,env_yml)
+    config['ENV_TYPE'] = env_type
+    config['APP_BASE_URL'] = 'http://%s' % http_host
+    return config
+
+#
+# SET ENV
+#
 if not http_host:
-    runtime_config = test_config()
+    etype, secret, public = ('unit-test', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
-    runtime_config = local_config()
+    etype, secret, public = ('local', 'dev.json', 'local.yml')
 elif 'dev' in http_host:
-    runtime_config = dev_config()
+    etype, secret, public = ('dev', 'dev.json', 'dev.yml')
 elif 'stage' in http_host:
-    runtime_config = stage_config()
+    etype, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
-    runtime_config = prod_config()
+    etype, secret, public = ('prod', 'prod.json', 'prod.yml')
+
+#
+# RUNTIME CONFIG
+#
+runtime_config = _get_runtime_config(etype, secret, public)
