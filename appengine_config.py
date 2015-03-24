@@ -56,7 +56,7 @@ def _load_env_config(name):
 
 def _update_config(config,env_path):
     env_config = _load_env_config(env_path)
-    if not env_config.get('error'): 
+    if not env_config.get('error'):
         config.update(env_config)
 
 http_host = os.environ.get('HTTP_HOST')
@@ -72,17 +72,17 @@ def _get_runtime_config(env_type,env_json,env_yml):
 # SET ENV
 #
 if not http_host:
-    env_type, env_secret, env_public = ('unit-test','dev.json','local.yml')
+    envtype, secret, public = ('unit-test', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
-    env_type, env_secret, env_public = ('local','dev.json','local.yml')
+    envtype, secret, public = ('local', 'dev.json', 'local.yml')
 elif 'dev' in http_host:
-    env_type, env_secret, env_public = ('dev','dev.json','dev.yml')
+    envtype, secret, public = ('dev', 'dev.json', 'dev.yml')
 elif 'stage' in http_host:
-    env_type, env_secret, env_public = ('stage','dev.json','stage.yml')
+    envtype, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
-    env_type, env_secret, env_public = ('prod','prod.json','prod.yml')
+    envtype, secret, public = ('prod', 'prod.json', 'prod.yml')
 
 #
 # RUNTIME CONFIG
 #
-runtime_config = _get_runtime_config(env_type, env_secret, env_public)
+runtime_config = _get_runtime_config(envtype, secret, public)
