@@ -108,17 +108,17 @@ def _gain_area(row):
 class UmdSql(Sql):
 
     ISO = """
-        SELECT iso, country, year, thresh, extent, extent_perc, loss,
+        SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc, loss,
                loss_perc, gain, gain_perc
-        FROM umd_nat
+        FROM umd_nat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
         ORDER BY year"""
 
     ID1 = """
-        SELECT iso, country, region, year, thresh, extent, extent_perc, loss,
+        SELECT iso, country, region, year, thresh, extent_2000 as extent, extent_perc, loss,
                loss_perc, gain, gain_perc, id1
-        FROM umd_subnat
+        FROM umd_subnat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND id1 = {id1}
