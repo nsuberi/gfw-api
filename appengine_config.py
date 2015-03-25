@@ -61,10 +61,10 @@ def _update_config(config, env_path):
 
 http_host = os.environ.get('HTTP_HOST')
 
-def _get_runtime_config(env_type, env_json, env_yml):
+def _get_runtime_config(app_version, env_json, env_yml):
     config = _load_config(env_json)
     _update_config(config,env_yml)
-    config['ENV_TYPE'] = env_type
+    config['APP_VERSION'] = app_version
     config['APP_BASE_URL'] = 'http://%s' % http_host
     return config
 
@@ -72,17 +72,17 @@ def _get_runtime_config(env_type, env_json, env_yml):
 # SET ENV
 #
 if not http_host:
-    etype, secret, public = ('unit-test', 'dev.json', 'local.yml')
+    appversion, secret, public = ('unittest', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
-    etype, secret, public = ('local', 'dev.json', 'local.yml')
+    appversion, secret, public = ('local', 'dev.json', 'local.yml')
 elif 'dev' in http_host:
-    etype, secret, public = ('dev', 'dev.json', 'dev.yml')
+    appversion, secret, public = ('dev', 'dev.json', 'dev.yml')
 elif 'stage' in http_host:
-    etype, secret, public = ('stage', 'dev.json', 'stage.yml')
+    appversion, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
-    etype, secret, public = ('prod', 'prod.json', 'prod.yml')
+    appversion, secret, public = ('production', 'prod.json', 'prod.yml')
 
 #
 # RUNTIME CONFIG
 #
-runtime_config = _get_runtime_config(etype, secret, public)
+runtime_config = _get_runtime_config(appversion, secret, public)
