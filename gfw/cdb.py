@@ -61,7 +61,7 @@ def get_url(query, params, auth=False):
     if 'version' in clean_params:
         url = url.replace('v2', clean_params['version'])
 
-    if runtime_config['IS_DEV']:
+    if runtime_config.get('IS_DEV'):
         logging.info(url)
     return str(url)
 
@@ -81,7 +81,7 @@ def execute(query, params={}, auth=False):
     #logging.info(query)
     rpc = urlfetch.create_rpc(deadline=50)
     payload = get_body(query, params, auth=auth)
-    if runtime_config['IS_DEV']:
+    if runtime_config.get('IS_DEV'):
         logging.info(query)
         logging.info(payload)
     urlfetch.make_fetch_call(rpc, ENDPOINT, method='POST', payload=payload)
