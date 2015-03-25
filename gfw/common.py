@@ -18,7 +18,6 @@
 """This module supports common functions."""
 
 import json
-import os
 import re
 import logging
 import webapp2
