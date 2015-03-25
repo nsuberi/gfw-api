@@ -26,6 +26,7 @@ import webapp2
 from google.appengine.api import memcache
 
 from hashlib import md5
+from appengine_config import runtime_config
 
 
 class CORSRequestHandler(webapp2.RequestHandler):
@@ -108,7 +109,12 @@ class CORSRequestHandler(webapp2.RequestHandler):
         params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
-
+#
+# SHARED CONSTANTS/TEMPLATES
+#
+APP_VERSION = runtime_config.get('APP_VERSION')
+APP_BASE_URL = runtime_config.get('APP_BASE_URL')
+IS_DEV = runtime_config.get('IS_DEV')
 CONTENT_TYPES = {
     'shp': 'application/octet-stream',
     'kml': 'application/vnd.google-earth.kmz',
@@ -117,22 +123,12 @@ CONTENT_TYPES = {
     'geojson': 'application/json',
     'json': 'application/json'
 }
-
-
 GCS_URL_TMPL = 'http://storage.googleapis.com/gfw-apis-analysis%s.%s'
 
-IS_DEV = 'Development' in os.environ.get('SERVER_SOFTWARE', 'Development')
-APP_VERSION = os.environ.get('CURRENT_VERSION_ID', 'dev')
-if '.' in APP_VERSION:
-    APP_VERSION = APP_VERSION.split('.')[0]
 
-
-if IS_DEV:
-    APP_BASE_URL = 'http://%s.localhost:8080' % APP_VERSION
-else:
-    APP_BASE_URL = 'http://%s.gfw-apis.appspot.com' % APP_VERSION
-
-
+#
+# Helper Methods
+#
 def get_params_hash(params):
     return md5(json.dumps(params, sort_keys=True)).hexdigest()
 
