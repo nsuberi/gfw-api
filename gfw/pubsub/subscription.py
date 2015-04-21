@@ -16,6 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports pubsub."""
+import logging
 
 from gfw.mailers import subscribe_mailer
 
