@@ -175,7 +175,7 @@ class DigestNotifer(webapp2.RequestHandler):
                     v = int(v_dict.get('value'))
                     if v and (v > 0):
                         if value > 0:
-                            alert += ', '
+                            alerts += ', '
                         alert_name = value_names.get(v_dict.get('data_type')) or v_dict.get('data_type')
                         value += v
                         alerts += '%s %s' % (v, alert_name)
@@ -207,8 +207,7 @@ class DigestNotifer(webapp2.RequestHandler):
             interval = 'month'
 
         max_forma_date = self._get_max_forma_date()
-        # TODO print FIX ME --- 24 > 1
-        past_month = max_forma_date.replace(months=-24*mnths)
+        past_month = max_forma_date.replace(months=-1*mnths)
         end = '%s-01' % max_forma_date.format('YYYY-MM')
         begin = '%s-01' % past_month.format('YYYY-MM')
         return begin, end, interval
