@@ -36,6 +36,9 @@ class DigestNotifer(webapp2.RequestHandler):
             #
             e = n.params['event']
             s = self._prepSubscription(n.params['subscription'])
+            if not s:
+                raise Exception('Invalid Subscription (data=%s)' %
+                           (sub)) 
 
             formaData = self._moduleData(s,{
                     'name': 'forma',
@@ -117,7 +120,12 @@ class DigestNotifer(webapp2.RequestHandler):
             sub['geojson'] = json.dumps(sub['geom'])
             sub['aoi'] = 'a user drawn polygon'
         else:
-            sub['aoi'] = 'a country (%s)' % sub['iso']
+            if sub.get('iso'):
+                sub['iso'] = sub['iso'].upper()
+                sub['aoi'] = 'a country (%s)' % sub['iso']
+            else:
+                return None
+
         logging.info(sub)
         return sub
 
@@ -130,11 +138,7 @@ class DigestNotifer(webapp2.RequestHandler):
         data['url_id'] = module_info['url_id']
         try:
             action, response = eval(module_info.get('name')).execute(data)
-            aoi, url = self._aoiAndUrl(response,data)
-            if (aoi == None) and (url == None):
-                raise Exception('Invalid Subscription (module_info=%s,subscription=%s)' %
-                           (module_info,sub)) 
-
+            url = self._linkUrl(data)
             total_value, alerts = self._valueAndAlerts(response,module_info.get('value_names'))
             module_info['url'] = url
             module_info['alerts'] = alerts
@@ -147,24 +151,18 @@ class DigestNotifer(webapp2.RequestHandler):
             raise Exception('CartoDB Failed (error=%s, module_info=%s)' %
                            (e,module_info))  
 
-    def _aoiAndUrl(self,response,data):
+    def _linkUrl(self,data):
             if 'geom' in data:
                 lat, lon = self._center(data['geom'])
                 data['lat'] = lat
                 data['lon'] = lon
                 data['geom'] = data['geom']
                 link = self.mailer.link_geom.format(**data)
-                aoi = 'a user drawn polygon'
             else:
-                if data.get('iso'):
-                    data['iso'] = data['iso'].upper()
-                    link = self.mailer.link_iso.format(**data)
-                    aoi = 'a country (%s)' % data['iso']
-                else:
-                    return None, None
+                link = self.mailer.link_iso.format(**data)
 
             safe_link = re.sub('\s+', '', link).strip()
-            return aoi, safe_link
+            return safe_link
 
     def _valueAndAlerts(self,response,value_names={}):
         value = 0
