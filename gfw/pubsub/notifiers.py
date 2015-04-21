@@ -36,9 +36,6 @@ class DigestNotifer(webapp2.RequestHandler):
             #
             e = n.params['event']
             s = self._prepSubscription(n.params['subscription'])
-            if not s:
-                raise Exception('Invalid Subscription (data=%s)' %
-                           (sub)) 
 
             formaData = self._moduleData(s,{
                     'name': 'forma',
@@ -124,7 +121,8 @@ class DigestNotifer(webapp2.RequestHandler):
                 sub['iso'] = sub['iso'].upper()
                 sub['aoi'] = 'a country (%s)' % sub['iso']
             else:
-                return None
+                raise Exception('Invalid Subscription (data=%s)' %
+                           (sub)) 
 
         logging.info(sub)
         return sub
