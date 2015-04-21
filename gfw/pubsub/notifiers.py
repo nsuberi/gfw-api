@@ -130,7 +130,11 @@ class DigestNotifer(webapp2.RequestHandler):
         data['url_id'] = module_info['url_id']
         try:
             action, response = eval(module_info.get('name')).execute(data)
-            aoi, url = self._aoiAndUrl(data)
+            aoi, url = self._aoiAndUrl(response,data)
+            if (aoi == None) and (url == None):
+                raise Exception('Invalid Subscription (module_info=%s,subscription=%s)' %
+                           (module_info,sub)) 
+
             total_value, alerts = self._valueAndAlerts(response,module_info.get('value_names'))
             module_info['url'] = url
             module_info['alerts'] = alerts
@@ -143,7 +147,7 @@ class DigestNotifer(webapp2.RequestHandler):
             raise Exception('CartoDB Failed (error=%s, module_info=%s)' %
                            (e,module_info))  
 
-    def _aoiAndUrl(self,data):
+    def _aoiAndUrl(self,response,data):
             if 'geom' in data:
                 lat, lon = self._center(data['geom'])
                 data['lat'] = lat
@@ -152,16 +156,20 @@ class DigestNotifer(webapp2.RequestHandler):
                 link = self.mailer.link_geom.format(**data)
                 aoi = 'a user drawn polygon'
             else:
-                data['iso'] = data['iso'].upper()
-                link = self.mailer.link_iso.format(**data)
-                aoi = 'a country (%s)' % data['iso']
+                if data.get('iso'):
+                    data['iso'] = data['iso'].upper()
+                    link = self.mailer.link_iso.format(**data)
+                    aoi = 'a country (%s)' % data['iso']
+                else:
+                    return None, None
+
             safe_link = re.sub('\s+', '', link).strip()
             return aoi, safe_link
 
-    def _valueAndAlerts(self,data,value_names={}):
+    def _valueAndAlerts(self,response,value_names={}):
         value = 0
         alerts = ''
-        response_val = data.get('value')
+        response_val = response.get('value')
 
         if response_val:
             if type(response_val) is list:
