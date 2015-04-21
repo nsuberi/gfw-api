@@ -90,8 +90,10 @@ class Subscription(ndb.Model):
     #   Instance Methods
     #            
     def send_mail(self,token,email):  
-        reply_to = 'sub+%s@gfw-apis.appspotmail.com' % token.urlsafe()
-        conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], token.urlsafe())
+        safe_token = token.urlsafe()
+        reply_to = 'sub+%s@gfw-apis.appspotmail.com' % safe_token
+        conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], safe_token)
+        logging.info("sending confirmation email: %s" % safe_token)
         mail.send_mail(
             sender=reply_to,
             to=email,
