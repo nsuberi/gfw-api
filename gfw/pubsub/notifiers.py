@@ -36,6 +36,7 @@ class DigestNotifer(webapp2.RequestHandler):
             #
             e = n.params['event']
             s = self._prepSubscription(n.params['subscription'])
+            self.defaut_max_date = self._get_max_date('forma')
 
             formaData = self._moduleData(s,{
                     'name': 'forma',
@@ -64,7 +65,8 @@ class DigestNotifer(webapp2.RequestHandler):
                     'url_id': 'modis',
                     'link_text': 'QUICC',
                     'description':'quarterly, 5km, <37 degrees north, NASA',
-                    'months': 3
+                    'months': 3,
+                    'force_last_day':True
                 })
 
             if self.total_alerts > 0:
@@ -128,12 +130,18 @@ class DigestNotifer(webapp2.RequestHandler):
         return sub
 
     def _moduleData(self,sub,module_info):
-        (begin, end, interval) = self._period(module_info.get('months'))
+        (begin, end, interval) = self._period(
+            module_info.get('name'),
+            module_info.get('months'),
+            module_info.get('table_name'),
+            module_info.get('force_last_day')
+        )
         data = sub.copy()
         data['end'] = end
         data['begin'] = begin
         data['interval'] = interval
         data['url_id'] = module_info['url_id']
+
         try:
             action, response = eval(module_info.get('name')).execute(data)
             url = self._linkUrl(data)
@@ -190,24 +198,45 @@ class DigestNotifer(webapp2.RequestHandler):
     def _center(self, geom):
         return geom['coordinates'][0][0]
 
-    def _get_max_forma_date(self):
-        sql = 'SELECT MAX(date) FROM forma_api;'
+    def _get_max_date(self,name):
+        alert_tables = {
+            'forma':'forma_api',
+            'terrai':'terra_i_decrease',
+            'imazon':'imazon_clean',
+            'quicc':'modis_forest_change_copy'
+        }
+        table_name = alert_tables.get(name) or name
+        sql = 'SELECT MAX(date) FROM %s;' % table_name
         response = cdb.execute(sql)
         if response.status_code == 200:
             max_date = json.loads(response.content)['rows'][0]['max']
-            return arrow.get(max_date)
-
-    def _period(self,mnths):
-        if mnths==3:
-            interval = 'quarterly'
+            date = arrow.get(max_date or self.defaut_max_date)            
+            return date
         else:
-            mnths = 1
-            interval = 'month'
+            return self.defaut_max_date
 
-        max_forma_date = self._get_max_forma_date()
-        past_month = max_forma_date.replace(months=-1*mnths)
-        end = '%s-01' % max_forma_date.format('YYYY-MM')
-        begin = '%s-01' % past_month.format('YYYY-MM')
+    def _interval(self,months):
+        if months == 1:
+            return 'month'
+        elif months == 3:
+            return 'quarterly'
+        else:
+            return '%s months' % months
+
+    def _period(self,name,months,table_name=None,force_last_day=False):
+        if not months:
+            months = 1
+        interval = self._interval(months)
+        if force_last_day:
+            months = months - 1
+        max_date = self._get_max_date(table_name or name)
+        past_month = max_date.replace(months=-1*months)
+        if force_last_day:
+            max_date = max_date.replace(months=+1).replace(day=1).replace(days=-1)
+            end = max_date.format('YYYY-MM-DD')
+        else:
+            end = '%s-01' % max_date.format('YYYY-MM')
+        begin = '%s-01' % past_month.format('YYYY-MM')       
         return begin, end, interval
 
     def _alert(self,data):
