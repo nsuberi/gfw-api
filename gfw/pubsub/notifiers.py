@@ -67,8 +67,6 @@ class DigestNotifer(webapp2.RequestHandler):
                     'months': 3
                 })
 
-            print("FOUND Alerts: %s " % self.total_alerts)
-
             if self.total_alerts > 0:
                 #
                 # create email
@@ -79,34 +77,30 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(imazonData)
                 self.body += self._alert(quiccData)                
                 self.body += self.mailer.outro
-
-                print("YOUR EMAIL:  ")
-                print(self.body)
-
                 #
                 # send email
                 #
-                # to = s['email']
-                # if 'dry_run' in e:
-                #     # eightysteele@gmail.com,asteele.wri.org
-                #     tester, subscriber = e['dry_run'].split(',')
-                #     logging.info('PUB DRYRUN tester=%s subscriber=%s to=%s' %
-                #                 (tester, subscriber, to))
-                #     if subscriber == to:
-                #         to = tester
-                #         logging.info('PUB DRYRUN sending email to %s' % to)
-                #     else:
-                #         return
+                to = s['email']
+                if 'dry_run' in e:
+                    # eightysteele@gmail.com,asteele.wri.org
+                    tester, subscriber = e['dry_run'].split(',')
+                    print "%s  %s" % (tester, subscriber)
+                    logging.info('PUB DRYRUN tester=%s subscriber=%s to=%s' %
+                                (tester, subscriber, to))
+                    if subscriber == to:
+                        to = tester
+                        logging.info('PUB DRYRUN sending email to %s' % to)
+                    else:
+                        return
 
-                # mail.send_mail(
-                #     sender='noreply@gfw-apis.appspotmail.com',
-                #     to=to,
-                #     subject=self.subject,
-                #     body=self.body,
-                #     html=self.body)
-                # n.sent = True
-                # n.put()
-
+                mail.send_mail(
+                    sender='noreply@gfw-apis.appspotmail.com',
+                    to=to,
+                    subject=self.subject,
+                    body=self.body,
+                    html=self.body)
+                n.sent = True
+                n.put()
 
         except Exception, e:
             logging.exception(e)
@@ -172,8 +166,8 @@ class DigestNotifer(webapp2.RequestHandler):
         if response_val:
             if type(response_val) is list:
                 for v_dict in response_val:
-                    v = int(v_dict.get('value'))
-                    if v and (v > 0):
+                    v = int(v_dict.get('value') or 0)
+                    if (v > 0):
                         if value > 0:
                             alerts += ', '
                         alert_name = value_names.get(v_dict.get('data_type')) or v_dict.get('data_type')

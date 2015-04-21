@@ -182,8 +182,9 @@ class PubSubApi(BaseApi):
     def publish(self):
         try:
             params = self._get_params(body=True)
-            topic = params['topic']
-            Event.publish(topic,params)
+            topic = params.get('topic')
+            dry_run = params.get('dry_run')
+            Event.publish(topic,params,dry_run)
             self._send_response(json.dumps(dict(publish=True)))
 
         except Exception, error:
@@ -196,8 +197,6 @@ class PubSubApi(BaseApi):
                 error=trace,
                 headers=self.request.headers
             )
-            self._send_error()
-
 
 
 
