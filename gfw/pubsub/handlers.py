@@ -66,7 +66,7 @@ class Publisher(webapp2.RequestHandler):
         e = ndb.Key(urlsafe=self.request.get('event')).get()
 
         if not e.multicasted:
-            for s in Subscription.get_by_topic(e.topic):
+            for s in Subscription.get_confirmed():
                 n = Notification.get(e, s)
                 if not n:
                     n = Notification.create(e, s)

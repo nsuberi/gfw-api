@@ -40,6 +40,11 @@ class Subscription(ndb.Model):
     #   Class Methods
     #
     @classmethod
+    def get_confirmed(cls):
+        """Return all confirmed Subscription entities"""
+        return cls.query(cls.confirmed == True).iter()
+
+    @classmethod
     def get_by_topic(cls, topic):
         """Return all confirmed Subscription entities for supplied topic."""
         return cls.query(cls.topic == topic, cls.confirmed == True).iter()
