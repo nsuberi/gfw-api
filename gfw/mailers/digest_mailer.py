@@ -4,7 +4,9 @@ You have subscribed to receive forest change alerts through <a href='http://www.
 """
 
 header="""
-Alerts added to the GFW system between {begin} and {end} (note the actual alert date may lie outside this date range):
+<br><br>
+<b>Alerts added to the GFW system between {begin} and {end} (note the actual alert date may lie outside this date range):</b>
+<br><br>
 """
 
 alert = """
@@ -12,7 +14,9 @@ alert = """
 """
 
 quicc_leader = """
-The QUICC data set is updated quarterly. The data from the most recent quarter (from {begin} to {end}) is given below:<br>
+<br><br>
+<b>The QUICC data set is updated quarterly. The data from the most recent quarter (from {begin} to {end}) is given below:</b><br>
+<br><br>
 """
 
 simple_alert = """
