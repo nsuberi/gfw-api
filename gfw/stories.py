@@ -62,6 +62,28 @@ GET = """SELECT details, email, name, title, visible, date,
 FROM {table}
 WHERE cartodb_id = {id}"""
 
+COUNT_ISO = """
+SELECT COUNT(t.*) AS value
+FROM {table} t, 
+    (SELECT * FROM gadm2_countries_simple
+             WHERE iso = UPPER('bra')) as iso
+WHERE visible = True 
+AND t.created_at >= '{begin}'::date
+AND t.created_at <= '{end}'::date 
+AND ST_Intersects(t.the_geom, iso.the_geom)
+"""
+
+COUNT_GEOM = """
+SELECT COUNT(t.*) AS value
+FROM {table} t
+WHERE visible = True 
+AND t.created_at >= '{begin}'::date
+AND t.created_at <= '{end}'::date 
+AND ST_INTERSECTS(
+    ST_SetSRID(
+        ST_GeomFromGeoJSON('{geojson}'), 
+    4326), 
+t.the_geom)"""
 
 def _prep_story(story):
     if 'geom' in story:
@@ -87,6 +109,20 @@ def create_story(params):
     sql = INSERT.format(**props)
     return cdb.execute(sql, auth=True)
 
+def count_stories(params):
+    if params.get('iso'):
+        sql = COUNT_ISO
+    else:
+        sql = COUNT_GEOM
+
+    params['table'] = TABLE
+    result = cdb.execute(sql.format(**params), auth=True)
+    data = json.loads(result.content)
+    rows = data.get('rows')
+    if rows:
+        return rows[0].get('value') or 0
+    else:
+        return 0
 
 def list_stories(params):
     and_where = ''

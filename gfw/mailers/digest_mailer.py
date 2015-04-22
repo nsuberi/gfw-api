@@ -4,7 +4,11 @@ You have subscribed to receive forest change alerts through <a href='http://www.
 """
 
 alert = """
-<b><a href='{url}'>{link_text}</a></b> ({description}): {alerts}<br><br>
+<b><a href='{url}'>{link_text}</a></b> (<i>{description}</i>): {alerts}<br><br>
+"""
+
+simple_alert = """
+<b><a href='{url}'>{link_text}</a></b>: {alerts}<br><br>
 """
 
 outro = """

@@ -15,6 +15,7 @@ from gfw.forestchange import forma
 from gfw.forestchange import terrai
 from gfw.forestchange import quicc
 from gfw.forestchange import imazon
+from gfw import stories
 
 #
 # Base Notifer - Extend to send out different notifications
@@ -68,6 +69,11 @@ class DigestNotifer(webapp2.RequestHandler):
                     'months': 3,
                     'force_last_day':True
                 })
+            storiesData = self._storiesData(s,{
+                    'name': 'stories',
+                    'url_id': 'none/580',
+                    'link_text': 'User stories'
+                })
 
             if self.total_alerts > 0:
                 #
@@ -78,7 +84,10 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(terraiData)
                 self.body += self._alert(imazonData)
                 self.body += self._alert(quiccData)                
+                self.body += self._alert(storiesData)                
                 self.body += self.mailer.outro
+
+                print(self.body)
                 #
                 # send email
                 #
@@ -130,10 +139,10 @@ class DigestNotifer(webapp2.RequestHandler):
         return sub
 
     def _moduleData(self,sub,module_info):
+        max_date = self._get_max_date(module_info.get('table_name') or module_info.get('name'))
         (begin, end, interval) = self._period(
-            module_info.get('name'),
+            max_date,
             module_info.get('months'),
-            module_info.get('table_name'),
             module_info.get('force_last_day')
         )
         data = sub.copy()
@@ -193,6 +202,29 @@ class DigestNotifer(webapp2.RequestHandler):
         return value, alerts
 
     #
+    # Stories
+    #
+    def _storiesData(self,sub,module_info):
+        (begin, end, interval) = self._period(self.defaut_max_date)
+        data = sub.copy()
+        data['end'] = end
+        data['begin'] = begin
+        data['interval'] = interval
+        data['url_id'] = module_info['url_id']
+
+        try:
+            stories_count = stories.count_stories(data)
+            if stories_count > 0:
+                self.total_alerts += stories_count
+                module_info['url'] = self._linkUrl(data)
+                module_info['alerts'] = '%s stories' % (stories_count)   
+                return module_info         
+            else:
+                return None
+        except Exception, e:
+            raise Exception('CartoDB Failed (error=%s, module_info=%s)' %
+                           (e,module_info))
+    #
     # Helpers
     #                 
     def _center(self, geom):
@@ -223,13 +255,12 @@ class DigestNotifer(webapp2.RequestHandler):
         else:
             return '%s months' % months
 
-    def _period(self,name,months,table_name=None,force_last_day=False):
+    def _period(self,max_date,months=1,force_last_day=False):
         if not months:
             months = 1
         interval = self._interval(months)
         if force_last_day:
             months = months - 1
-        max_date = self._get_max_date(table_name or name)
         past_month = max_date.replace(months=-1*months)
         if force_last_day:
             max_date = max_date.replace(months=+1).replace(day=1).replace(days=-1)
@@ -242,6 +273,8 @@ class DigestNotifer(webapp2.RequestHandler):
     def _alert(self,data):
         if not data:
             return ""
+        if data.get('description'):
+            return self.mailer.alert.format(**data)            
         else:
-            return self.mailer.alert.format(**data)
+            return self.mailer.simple_alert.format(**data)
 
