@@ -28,8 +28,8 @@ class ImazonSql(Sql):
         SELECT data_type,
         SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
         FROM imazon_clean i, poly
-            WHERE i.date >= '{begin}'::date
-        AND i.date <= '{end}'::date
+            WHERE i.{date_column} >= '{begin}'::date
+        AND i.{date_column} <= '{end}'::date
         GROUP BY data_type"""
         
     # ISO same as WORLD since imazon only in Brazil
@@ -38,8 +38,8 @@ class ImazonSql(Sql):
         SELECT data_type,
             sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
         FROM imazon_clean i
-        WHERE i.date >= '{begin}'::date
-            AND i.date <= '{end}'::date
+        WHERE i.{date_column} >= '{begin}'::date
+            AND i.{date_column} <= '{end}'::date
         GROUP BY data_type"""
 
     ID1 = """
@@ -51,8 +51,8 @@ class ImazonSql(Sql):
             (SELECT *
                 FROM gadm2_provinces_simple
                 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
-        WHERE i.date >= '{begin}'::date
-            AND i.date <= '{end}'::date
+        WHERE i.{date_column} >= '{begin}'::date
+            AND i.{date_column} <= '{end}'::date
         GROUP BY data_type"""
 
     WDPA = """

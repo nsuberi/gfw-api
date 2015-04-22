@@ -15,7 +15,7 @@ alert = """
 """
 
 quicc_leader = """
-<br><br>
+<br>
 <b>The QUICC data set is updated quarterly. The data from the most recent quarter (from {begin} to {end}) is given below:</b><br>
 <br><br>
 """
@@ -25,7 +25,7 @@ simple_alert = """
 """
 
 outro = """
-<br><br>
+<br>
 Please note that this information is subject to the Global Forest Watch <a href='http://globalforestwatch.com/terms'>Terms of Service</a>. You can unsubscribe or manage your subscriptions by emailing gfw@wri.org. Please visit <a href='http://fires.globalforestwatch.org/#v=home&x=115&y=0&l=5&lyrs=Active_Fires'>GFW Fires</a> to subscribe to receive fire alerts. 
 """
 

@@ -26,8 +26,8 @@ class QuiccSql(Sql):
     WORLD = """
         SELECT COUNT(pt.*) AS value
         FROM modis_forest_change_copy pt
-        WHERE pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
+        WHERE pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
@@ -37,8 +37,8 @@ class QuiccSql(Sql):
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date"""
+            AND pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date"""
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
@@ -46,8 +46,8 @@ class QuiccSql(Sql):
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date"""
+            AND pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date"""
 
     WDPA = """
         SELECT COUNT(pt.*) AS value
