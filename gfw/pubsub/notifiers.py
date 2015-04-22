@@ -61,14 +61,18 @@ class DigestNotifer(webapp2.RequestHandler):
                         'defor': 'hectares deforestation'
                     }
                 })            
+
+            max_quicc_date = self._get_max_date('quicc')
+            quicc_begin, quicc_end, quicc_interval = self._period(max_quicc_date,3,True)
             quiccData = self._moduleData(s,{
                     'name': 'quicc',
                     'url_id': 'modis',
                     'link_text': 'QUICC',
                     'description':'quarterly, 5km, <37 degrees north, NASA',
-                    'months': 3,
-                    'force_last_day':True
-                })
+                    'begin': quicc_begin,
+                    'end': quicc_end
+                },False)
+            
             storiesData = self._storiesData(s,{
                     'name': 'stories',
                     'url_id': 'none/580',
@@ -87,10 +91,11 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(storiesData)                
 
                 if quiccData:
-                    self.body += self.mailer.quicc_leader                
+                    self.body += self.mailer.quicc_leader.format(**quiccData)               
                     self.body += self._alert(quiccData)                
                 self.body += self.mailer.outro
 
+                print(self.body)
                 #
                 # send email
                 #
@@ -151,7 +156,7 @@ class DigestNotifer(webapp2.RequestHandler):
         data['url_id'] = module_info.get('url_id')
         return data
 
-    def _moduleData(self,sub,module_info):
+    def _moduleData(self,sub,module_info,increment_value=True):
         data = self._prepData(sub,module_info)
         try:
             action, response = eval(module_info.get('name')).execute(data)
@@ -160,7 +165,8 @@ class DigestNotifer(webapp2.RequestHandler):
             module_info['url'] = url
             module_info['alerts'] = alerts
             if total_value > 0:
-                self.total_alerts += total_value
+                if increment_value:
+                    self.total_alerts += total_value
                 return module_info
             else:
                 return None
@@ -238,10 +244,10 @@ class DigestNotifer(webapp2.RequestHandler):
         response = cdb.execute(sql)
         if response.status_code == 200:
             max_date = json.loads(response.content)['rows'][0]['max']
-            date = arrow.get(max_date or self.defaut_max_date)            
+            date = arrow.get(max_date)            
             return date
         else:
-            return self.defaut_max_date
+            return arrow.now()
 
     def _interval(self,months):
         if months == 1:

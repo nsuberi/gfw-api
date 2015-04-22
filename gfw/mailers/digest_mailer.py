@@ -12,7 +12,7 @@ alert = """
 """
 
 quicc_leader = """
-The QUICC data set is updated quarterly. The data from the most recent quarter is given below:<br>
+The QUICC data set is updated quarterly. The data from the most recent quarter (from {begin} to {end}) is given below:<br>
 """
 
 simple_alert = """
