@@ -36,8 +36,8 @@ class DigestNotifer(webapp2.RequestHandler):
             # set up data
             #
             e = n.params['event']
-            s = self._prepSubscription(n.params['subscription'])
-            self.defaut_max_date = self._get_max_date('forma')
+            begin, end = self._digestDates(e)
+            s = self._prepSubscription(n.params['subscription'],begin,end)
 
             formaData = self._moduleData(s,{
                     'name': 'forma',
@@ -80,14 +80,17 @@ class DigestNotifer(webapp2.RequestHandler):
                 # create email
                 #
                 self.body = self.mailer.intro
+                self.body += self.mailer.header.format(**s)
                 self.body += self._alert(formaData)
                 self.body += self._alert(terraiData)
                 self.body += self._alert(imazonData)
-                self.body += self._alert(quiccData)                
                 self.body += self._alert(storiesData)                
+
+                if quiccData:
+                    self.body += self.mailer.quicc_leader                
+                    self.body += self._alert(quiccData)                
                 self.body += self.mailer.outro
 
-                print(self.body)
                 #
                 # send email
                 #
@@ -123,7 +126,7 @@ class DigestNotifer(webapp2.RequestHandler):
     # Module Data
     #  
 
-    def _prepSubscription(self,sub):
+    def _prepSubscription(self,sub,begin,end):
         if 'geom' in sub:
             sub['geojson'] = json.dumps(sub['geom'])
             sub['aoi'] = 'a user drawn polygon'
@@ -135,22 +138,21 @@ class DigestNotifer(webapp2.RequestHandler):
                 raise Exception('Invalid Subscription (data=%s)' %
                            (sub)) 
 
+        sub['alert_query'] = True
+        sub['begin'] = begin.format('YYYY-MM-DD')
+        sub['end'] = end.format('YYYY-MM-DD')
         logging.info(sub)
         return sub
 
-    def _moduleData(self,sub,module_info):
-        max_date = self._get_max_date(module_info.get('table_name') or module_info.get('name'))
-        (begin, end, interval) = self._period(
-            max_date,
-            module_info.get('months'),
-            module_info.get('force_last_day')
-        )
-        data = sub.copy()
-        data['end'] = end
-        data['begin'] = begin
-        data['interval'] = interval
-        data['url_id'] = module_info['url_id']
+    def _prepData(self,data,module_info):
+        data = data.copy()
+        data['end'] = module_info.get('end') or data['end']
+        data['begin'] = module_info.get('begin') or data['begin']
+        data['url_id'] = module_info.get('url_id')
+        return data
 
+    def _moduleData(self,sub,module_info):
+        data = self._prepData(sub,module_info)
         try:
             action, response = eval(module_info.get('name')).execute(data)
             url = self._linkUrl(data)
@@ -205,13 +207,7 @@ class DigestNotifer(webapp2.RequestHandler):
     # Stories
     #
     def _storiesData(self,sub,module_info):
-        (begin, end, interval) = self._period(self.defaut_max_date)
-        data = sub.copy()
-        data['end'] = end
-        data['begin'] = begin
-        data['interval'] = interval
-        data['url_id'] = module_info['url_id']
-
+        data = self._prepData(sub,module_info)
         try:
             stories_count = stories.count_stories(data)
             if stories_count > 0:
@@ -254,6 +250,31 @@ class DigestNotifer(webapp2.RequestHandler):
             return 'quarterly'
         else:
             return '%s months' % months
+
+
+    def _digestDates(self,event):
+        event_end = event.get('end')
+        event_begin = event.get('begin')
+        if event_end:
+            end = arrow.get(event_end)
+        else:
+            end = arrow.now()
+
+        if event_begin:
+            begin = arrow.get(event_begin)
+        else:
+            last_sent_date = self._lastSentDate()
+            if last_sent_date:
+                begin = arrow.get(last_sent_date)            
+            else:
+                begin = end.replace(months=-1)
+        return begin, end
+
+    def _lastSentDate(self):
+        #
+        # TODO: fetch the last day we sent out alerts
+        #
+        return None
 
     def _period(self,max_date,months=1,force_last_day=False):
         if not months:

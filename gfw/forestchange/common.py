@@ -4,6 +4,11 @@ import json
 
 from gfw import cdb
 
+def date_column(args):
+    if args.get('alert_query'):
+        return 'created_at'
+    else:
+        return 'date'
 
 def classify_query(args):
     if 'iso' in args and not 'id1' in args:
@@ -60,14 +65,16 @@ class Sql(object):
 
     @classmethod
     def world(cls, params, args):
+        params['date_column'] = date_column(args)
         params['geojson'] = args['geojson']
         query_type, params = cls.get_query_type(params, args)
-        query = cls.WORLD.format(**params)
+        query = cls.WORLD.format(**params)        
         download_query = cls.download(cls.WORLD.format(**params))
         return query, download_query
 
     @classmethod
     def iso(cls, params, args):
+        params['date_column'] = date_column(args)        
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)
@@ -75,7 +82,7 @@ class Sql(object):
         return query, download_query
 
     @classmethod
-    def id1(cls, params, args):
+    def id1(cls, params, args):        
         params['iso'] = args['iso']
         params['id1'] = args['id1']
         query_type, params = cls.get_query_type(params, args)
