@@ -25,7 +25,7 @@ class QuiccSql(Sql):
 
     WORLD = """
         SELECT COUNT(pt.*) AS value
-        FROM modis_forest_change_copy pt
+        FROM quicc_alerts pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
             AND ST_INTERSECTS(
@@ -33,7 +33,7 @@ class QuiccSql(Sql):
 
     ISO = """
         SELECT COUNT(pt.*) AS value
-        FROM modis_forest_change_copy pt,
+        FROM quicc_alerts pt,
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -42,7 +42,7 @@ class QuiccSql(Sql):
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
-        FROM modis_forest_change_copy pt,
+        FROM quicc_alerts pt,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -51,7 +51,7 @@ class QuiccSql(Sql):
 
     WDPA = """
         SELECT COUNT(pt.*) AS value
-        FROM modis_forest_change_copy pt,
+        FROM quicc_alerts pt,
             (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
@@ -59,7 +59,7 @@ class QuiccSql(Sql):
 
     USE = """
         SELECT COUNT(pt.*) AS value
-        FROM modis_forest_change_copy pt,
+        FROM quicc_alerts pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
