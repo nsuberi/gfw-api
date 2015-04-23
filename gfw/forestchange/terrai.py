@@ -77,7 +77,6 @@ def _processResults(action, data):
         data.pop('rows')
     else:
         result = dict(value=None)
-
     data['value'] = result.get('value')
     data['min_date'] = result.get('min_date')
     data['max_date'] = result.get('max_date')

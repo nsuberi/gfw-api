@@ -160,13 +160,13 @@ class DigestNotifer(webapp2.RequestHandler):
         data = self._prepData(sub,module_info)
         try:
             action, response = eval(module_info.get('name')).execute(data)
-            min_date, max_date = self._minMaxDates(response)
+            total_value, alerts, mindate, maxdate = self._valueAndAlerts(response,module_info.get('value_names'))
+            min_date, max_date = self._minMaxDates(response,mindate,maxdate)
             data['min_date'] = min_date or data['begin'] 
             data['max_date'] = max_date or data['end'] 
             module_info['min_date'] = data['min_date']
             module_info['max_date'] = data['max_date']
             url = self._linkUrl(data)
-            total_value, alerts = self._valueAndAlerts(response,module_info.get('value_names'))
             module_info['url'] = url
             module_info['alerts'] = alerts
             if total_value > 0:
@@ -179,9 +179,9 @@ class DigestNotifer(webapp2.RequestHandler):
             raise Exception('ERROR[_moduleData] (error=%s, module_info=%s, data=%s)' %
                            (e,module_info,data))  
 
-    def _minMaxDates(self,response):
-        min_date = response.get('min_date')
-        max_date = response.get('max_date')
+    def _minMaxDates(self,response,mindate,maxdate):
+        min_date = mindate or response.get('min_date')
+        max_date = maxdate or response.get('max_date')
         if min_date:
             min_date = arrow.get(min_date).format('YYYY-MM-DD')
         if max_date:
@@ -206,12 +206,18 @@ class DigestNotifer(webapp2.RequestHandler):
         value = 0
         alerts = ''
         response_val = response.get('value')
-
+        min_date = None
+        max_date = None
         if response_val:
             if type(response_val) is list:
                 for v_dict in response_val:
+                    if not max_date:
+                        min_date = v_dict.get('min_date')
+                        max_date = v_dict.get('max_date')
                     v = int(v_dict.get('value') or 0)
                     if (v > 0):
+
+
                         if value > 0:
                             alerts += ', '
                         alert_name = value_names.get(v_dict.get('data_type')) or v_dict.get('data_type')
@@ -222,7 +228,8 @@ class DigestNotifer(webapp2.RequestHandler):
                 value = int(response_val)
                 alerts = '%s %s' % (value, alert_name)
 
-        return value, alerts
+
+        return value, alerts, min_date, max_date
 
     #
     # Stories
