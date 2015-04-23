@@ -80,9 +80,11 @@ def _processResults(action, data):
         result = data['rows'][0]
         data.pop('rows')
     else:
-        result = dict(value=None)
+        result = dict(value=None,min_date=None,max_date=None)
 
     data['value'] = result['value']
+    data['min_date'] = result['min_date']
+    data['max_date'] = result['max_date']
 
     return action, data
 

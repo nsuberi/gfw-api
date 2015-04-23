@@ -180,7 +180,13 @@ class DigestNotifer(webapp2.RequestHandler):
                            (e,module_info,data))  
 
     def _minMaxDates(self,response):
-        return (response.get('min_date'), response.get('max_date'))
+        min_date = response.get('min_date')
+        max_date = response.get('max_date')
+        if min_date:
+            min_date = arrow.get(min_date).format('YYYY-MM-DD')
+        if max_date:
+            max_date = arrow.get(max_date).format('YYYY-MM-DD')        
+        return min_date, max_date
 
 
     def _linkUrl(self,data):
