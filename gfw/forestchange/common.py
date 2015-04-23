@@ -15,6 +15,7 @@ def params_with_vars(params,args):
     date_column, additional_select = query_vars(args)
     params['date_column'] = date_column
     params['additional_select'] = additional_select
+    params['max_min_selector'] = args.get('max_min_selector')
     return params
 
 def classify_query(args):
