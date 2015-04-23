@@ -161,8 +161,10 @@ class DigestNotifer(webapp2.RequestHandler):
         try:
             action, response = eval(module_info.get('name')).execute(data)
             min_date, max_date = self._minMaxDates(response)
-            module_info['min_date'] = min_date or data['begin'] 
-            module_info['max_date'] = max_date or data['end'] 
+            data['min_date'] = min_date or data['begin'] 
+            data['max_date'] = max_date or data['end'] 
+            module_info['min_date'] = data['min_date']
+            module_info['max_date'] = data['max_date']
             url = self._linkUrl(data)
             total_value, alerts = self._valueAndAlerts(response,module_info.get('value_names'))
             module_info['url'] = url
@@ -225,8 +227,12 @@ class DigestNotifer(webapp2.RequestHandler):
             stories_count = stories.count_stories(data)
             if stories_count > 0:
                 self.total_alerts += stories_count
+                data['min_date'] = data['begin'] 
+                data['max_date'] = data['end']                 
+                module_info['min_date'] = data['min_date']
+                module_info['max_date'] = data['max_date']            
                 module_info['url'] = self._linkUrl(data)
-                module_info['alerts'] = '%s stories' % (stories_count)   
+                module_info['alerts'] = '%s stories' % (stories_count)                
                 return module_info         
             else:
                 return None

@@ -11,7 +11,7 @@ header="""
 """
 
 alert = """
-<b><a href='{url}'>{link_text}</a></b>[{min_date} - {max_date}] (<i>{description}</i>): {alerts}<br><br>
+<b><a href='{url}'>{link_text} [{min_date} - {max_date}]</a></b> (<i>{description}</i>): {alerts}<br><br>
 """
 
 quicc_leader = """
