@@ -49,7 +49,8 @@ class DigestNotifer(webapp2.RequestHandler):
                     'name': 'terrai',
                     'url_id': 'terrailoss',
                     'link_text': 'Terra-i',
-                    'description':'monthly, 250m, Latin America, CIAT'
+                    'description':'monthly, 250m, Latin America, CIAT',
+                    'additional_select':', MIN(grid_code) as min_grid_code, MAX(grid_code) as max_grid_code'
                 })
             imazonData = self._moduleData(s,{
                     'name': 'imazon',

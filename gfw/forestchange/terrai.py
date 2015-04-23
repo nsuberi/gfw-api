@@ -16,6 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports acessing TERRAI data."""
+import math
+import arrow
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
@@ -78,10 +80,19 @@ def _processResults(action, data):
     else:
         result = dict(value=None)
     data['value'] = result.get('value')
-    data['min_date'] = result.get('min_date')
-    data['max_date'] = result.get('max_date')
-
+    data['min_date'] = _gridCodeToDate(result.get('min_grid_code'))
+    data['max_date'] = _gridCodeToDate(result.get('max_grid_code'))
     return action, data
+
+def _gridCodeToDate(grid_code):
+    if grid_code:
+        year = 2004 + math.floor((grid_code-1)/23)
+        first_of_year = arrow.get(('%s-01-01' % year))
+        periods = math.fmod(grid_code,23) * 16
+        date = first_of_year.replace(days=+periods)
+        return date.format('YYYY-MM-DD')
+    else:
+        return None
 
 def _maxMinSelector(args):
     if args.get('alert_query'):
