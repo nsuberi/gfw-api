@@ -88,7 +88,6 @@ def _maxMinSelector(args):
     else: 
         return "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
 
-
 def execute(args):
     args['version'] = 'v2'
     args['max_min_selector'] = _maxMinSelector(args)
