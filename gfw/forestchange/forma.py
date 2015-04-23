@@ -82,9 +82,9 @@ def _processResults(action, data):
     else:
         result = dict(value=None,min_date=None,max_date=None)
 
-    data['value'] = result['value']
-    data['min_date'] = result['min_date']
-    data['max_date'] = result['max_date']
+    data['value'] = result.get('value')
+    data['min_date'] = result.get('min_date')
+    data['max_date'] = result.get('max_date')
 
     return action, data
 
