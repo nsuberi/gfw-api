@@ -4,11 +4,18 @@ import json
 
 from gfw import cdb
 
-def date_column(args):
+def query_vars(args):
     if args.get('alert_query'):
-        return 'created_at'
+        additional_select = args.get('additional_select') or ', MIN(date) as min_date, MAX(date) as max_date'
+        return 'created_at', additional_select
     else:
-        return 'date'
+        return 'date', ''
+
+def params_with_vars(params,args):
+    date_column, additional_select = query_vars(args)
+    params['date_column'] = date_column
+    params['additional_select'] = additional_select
+    return params
 
 def classify_query(args):
     if 'iso' in args and not 'id1' in args:
@@ -59,14 +66,14 @@ class Sql(object):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')
-        params['date_column'] = date_column(args)
+        params = params_with_vars(params,args)
         classification = classify_query(args)
         if hasattr(cls, classification):
             return map(cls.clean, getattr(cls, classification)(params, args))
 
     @classmethod
     def world(cls, params, args):
-        params['date_column'] = date_column(args)
+        params = params_with_vars(params,args)
         params['geojson'] = args['geojson']
         query_type, params = cls.get_query_type(params, args)
         query = cls.WORLD.format(**params)        
@@ -75,7 +82,7 @@ class Sql(object):
 
     @classmethod
     def iso(cls, params, args):
-        params['date_column'] = date_column(args)        
+        params = params_with_vars(params,args)
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)

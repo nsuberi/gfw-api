@@ -95,7 +95,6 @@ class DigestNotifer(webapp2.RequestHandler):
                     self.body += self._alert(quiccData)                
                 self.body += self.mailer.outro
 
-                print(self.body)
                 #
                 # send email
                 #
@@ -153,6 +152,7 @@ class DigestNotifer(webapp2.RequestHandler):
         data = data.copy()
         data['end'] = module_info.get('end') or data['end']
         data['begin'] = module_info.get('begin') or data['begin']
+        data['additional_select'] = module_info.get('additional_select')
         data['url_id'] = module_info.get('url_id')
         return data
 
@@ -160,6 +160,9 @@ class DigestNotifer(webapp2.RequestHandler):
         data = self._prepData(sub,module_info)
         try:
             action, response = eval(module_info.get('name')).execute(data)
+            min_date, max_date = self._minMaxDates(response)
+            module_info['min_date'] = min_date or data['begin'] 
+            module_info['max_date'] = max_date or data['end'] 
             url = self._linkUrl(data)
             total_value, alerts = self._valueAndAlerts(response,module_info.get('value_names'))
             module_info['url'] = url
@@ -171,8 +174,12 @@ class DigestNotifer(webapp2.RequestHandler):
             else:
                 return None
         except Exception, e:
-            raise Exception('CartoDB Failed (error=%s, module_info=%s)' %
-                           (e,module_info))  
+            raise Exception('ERROR[_moduleData] (error=%s, module_info=%s, data=%s)' %
+                           (e,module_info,data))  
+
+    def _minMaxDates(self,response):
+        return (response.get('min_date'), response.get('max_date'))
+
 
     def _linkUrl(self,data):
             if 'geom' in data:
@@ -224,8 +231,8 @@ class DigestNotifer(webapp2.RequestHandler):
             else:
                 return None
         except Exception, e:
-            raise Exception('CartoDB Failed (error=%s, module_info=%s)' %
-                           (e,module_info))
+            raise Exception('ERROR[_storiesData] (error=%s, module_info=%s, data=%s)' %
+                           (e,module_info,data))
     #
     # Helpers
     #                 

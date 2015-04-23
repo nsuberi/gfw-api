@@ -24,7 +24,8 @@ from gfw.forestchange.common import Sql
 class FormaSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value 
+        {additional_select}
         FROM forma_api f
         WHERE f.{date_column} >= '{begin}'::date
               AND f.{date_column} <= '{end}'::date
@@ -34,6 +35,7 @@ class FormaSql(Sql):
 
     ISO = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM forma_api f
         WHERE f.{date_column} >= '{begin}'::date
               AND f.{date_column} <= '{end}'::date
@@ -41,6 +43,7 @@ class FormaSql(Sql):
 
     ID1 = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM forma_api f
         INNER JOIN (
             SELECT *
