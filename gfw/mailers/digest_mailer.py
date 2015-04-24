@@ -1,12 +1,12 @@
 intro = """
 <br><br>
-You have subscribed to receive forest change alerts through <a href='http://www.globalforestwatch.org/'>Global Forest Watch</a>. This message reports new forest change alerts and user stories for the area of interest you selected (a country, subnational jurisdiction, or user-drawn shape). You will receive a separate email for each distinct area of interest you subscribe to.
+You have subscribed to receive alerts through <a href='http://www.globalforestwatch.org/'>Global Forest Watch</a>. This message reports new forest change alerts and user stories for the area of interest you selected (a country, subnational jurisdiction, or user-drawn shape). You will receive a separate email for each distinct area of interest you subscribe to.
 <br>
 """
 
 header="""
 <br><br>
-<b>Alerts added to the GFW system between {begin} and {end} (note the actual alert date may lie outside this date range):</b>
+<b>Alerts added to the GFW system between {begin} and {end} (<i>note: the date ranges for the actual alerts are given in square brackets in each link below</i>):</b>
 <br><br>
 """
 
