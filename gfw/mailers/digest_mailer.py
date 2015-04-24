@@ -6,7 +6,7 @@ You have subscribed to receive alerts through <a href='http://www.globalforestwa
 
 header="""
 <br><br>
-<b>Alerts added to the GFW system between {begin} and {end} (<i>note: the date ranges for the actual alerts are given in square brackets in each link below</i>):</b>
+<b>New alerts added to the GFW platform:</b>
 <br><br>
 """
 
@@ -16,7 +16,7 @@ alert = """
 
 quicc_leader = """
 <br>
-<b>The QUICC data set is updated quarterly. The data from the most recent quarter (from {begin} to {end}) is given below:</b><br>
+<b>The QUICC data set is updated quarterly. The data from the most recent quarter are given below:</b>
 <br><br>
 """
 
@@ -25,6 +25,8 @@ simple_alert = """
 """
 
 outro = """
+There may be lag time between when forest change is detected and when alerts are added to the platform. New alerts were added to the platform between {begin} and {end}. Refer to the dates listed in brackets for when change was actually detected.
+<br>
 <br>
 Please note that this information is subject to the Global Forest Watch <a href='http://globalforestwatch.com/terms'>Terms of Service</a>. You can unsubscribe or manage your subscriptions by emailing gfw@wri.org. Please visit <a href='http://fires.globalforestwatch.org/#v=home&x=115&y=0&l=5&lyrs=Active_Fires'>GFW Fires</a> to subscribe to receive fire alerts. 
 """

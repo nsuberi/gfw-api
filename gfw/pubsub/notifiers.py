@@ -314,14 +314,11 @@ class DigestNotifer(webapp2.RequestHandler):
             months = 1
         interval = self._interval(months)
         if force_last_day:
-            months = months - 1
-        past_month = max_date.replace(months=-1*months)
-        if force_last_day:
             max_date = max_date.replace(months=+1).replace(day=1).replace(days=-1)
             end = max_date.format('YYYY-MM-DD')
         else:
             end = '%s-01' % max_date.format('YYYY-MM')
-        begin = '%s-01' % past_month.format('YYYY-MM')       
+        begin = '%s-01' % max_date.replace(months=-1*months).format('YYYY-MM')       
         return begin, end, interval
 
     def _alert(self,data):
