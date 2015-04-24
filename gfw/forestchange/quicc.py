@@ -29,6 +29,7 @@ class QuiccSql(Sql):
         FROM modis_forest_change_copy pt
         WHERE pt.{date_column} >= '{begin}'::date
             AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
@@ -40,7 +41,9 @@ class QuiccSql(Sql):
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.{date_column} >= '{begin}'::date
-            AND pt.{date_column} <= '{end}'::date"""
+            AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
+        """
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
@@ -50,7 +53,9 @@ class QuiccSql(Sql):
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.{date_column} >= '{begin}'::date
-            AND pt.{date_column} <= '{end}'::date"""
+            AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
+        """
 
     WDPA = """
         SELECT COUNT(pt.*) AS value

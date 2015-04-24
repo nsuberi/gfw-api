@@ -36,6 +36,7 @@ class DigestNotifer(webapp2.RequestHandler):
             # set up data
             #
             e = n.params['event']
+            min_alert_dates = e.get('min_alert_dates')                
             begin, end = self._digestDates(e)
             s = self._prepSubscription(n.params['subscription'],begin,end)
 
@@ -44,7 +45,7 @@ class DigestNotifer(webapp2.RequestHandler):
                     'url_id': 'forma',
                     'link_text': 'FORMA',
                     'description':'monthly, 500m, humid tropics, WRI/CGD'
-                })
+                },min_alert_dates)
             terraiData = self._moduleData(s,{
                     'name': 'terrai',
                     'url_id': 'terrailoss',
@@ -61,7 +62,7 @@ class DigestNotifer(webapp2.RequestHandler):
                         'degrad': 'hectares degradation',
                         'defor': 'hectares deforestation'
                     }
-                })            
+                },min_alert_dates)            
 
             max_quicc_date = self._get_max_date('quicc')
             quicc_begin, quicc_end, quicc_interval = self._period(max_quicc_date,3,True)
@@ -72,7 +73,7 @@ class DigestNotifer(webapp2.RequestHandler):
                     'description':'quarterly, 5km, <37 degrees north, NASA',
                     'begin': quicc_begin,
                     'end': quicc_end
-                },False)
+                },min_alert_dates,False)
             
             storiesData = self._storiesData(s,{
                     'name': 'stories',
@@ -155,10 +156,16 @@ class DigestNotifer(webapp2.RequestHandler):
         data['begin'] = module_info.get('begin') or data['begin']
         data['additional_select'] = module_info.get('additional_select')
         data['url_id'] = module_info.get('url_id')
+
         return data
 
-    def _moduleData(self,sub,module_info,increment_value=True):
+    def _moduleData(self,sub,module_info,min_alert_dates=None,increment_value=True):
         data = self._prepData(sub,module_info)
+        if min_alert_dates:
+            min_alert_date = min_alert_dates.get(module_info['name'])
+            if min_alert_date:
+                data['min_alert_date'] = min_alert_date
+
         try:
             action, response = eval(module_info.get('name')).execute(data)
             total_value, alerts, mindate, maxdate = self._valueAndAlerts(response,module_info.get('value_names'))
@@ -283,7 +290,6 @@ class DigestNotifer(webapp2.RequestHandler):
             return 'quarterly'
         else:
             return '%s months' % months
-
 
     def _digestDates(self,event):
         event_end = event.get('end')

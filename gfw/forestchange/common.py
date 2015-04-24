@@ -6,15 +6,25 @@ from gfw import cdb
 
 def query_vars(args):
     if args.get('alert_query'):
+        min_alert_date = args.get('min_alert_date')
+        if min_alert_date:
+            if (min_alert_date[0:3] == 'AND'):
+                min_alert_date_sql = min_alert_date
+            else:
+                min_alert_date_sql = ("AND date >= '%s'::date" % min_alert_date)
+        else:
+            min_alert_date_sql = ''
         additional_select = args.get('additional_select') or ', MIN(date) as min_date, MAX(date) as max_date'
-        return 'created_at', additional_select
+        return 'created_at', additional_select, min_alert_date_sql
+        
     else:
-        return 'date', ''
+        return 'date', '', ''
 
 def params_with_vars(params,args):
-    date_column, additional_select = query_vars(args)
+    date_column, additional_select, min_alert_date = query_vars(args)
     params['date_column'] = date_column
     params['additional_select'] = additional_select
+    params['min_alert_date'] = min_alert_date
     params['max_min_selector'] = args.get('max_min_selector')
     return params
 

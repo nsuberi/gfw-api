@@ -29,9 +29,11 @@ class FormaSql(Sql):
         FROM forma_api f
         WHERE f.{date_column} >= '{begin}'::date
               AND f.{date_column} <= '{end}'::date
+              {min_alert_date}
               AND ST_INTERSECTS(
                 ST_SetSRID(
-                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
+        """
 
     ISO = """
         SELECT COUNT(f.*) AS value
@@ -39,7 +41,9 @@ class FormaSql(Sql):
         FROM forma_api f
         WHERE f.{date_column} >= '{begin}'::date
               AND f.{date_column} <= '{end}'::date
-              AND f.iso = UPPER('{iso}')"""
+              AND f.iso = UPPER('{iso}')
+              {min_alert_date}
+        """
 
     ID1 = """
         SELECT COUNT(f.*) AS value
@@ -52,7 +56,9 @@ class FormaSql(Sql):
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
         WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date"""
+              AND f.{date_column} <= '{end}'::date
+              {min_alert_date}
+        """
 
     WDPA = """
         SELECT COUNT(f.*) AS value
