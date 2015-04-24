@@ -66,7 +66,7 @@ COUNT_ISO = """
 SELECT COUNT(t.*) AS value
 FROM {table} t, 
     (SELECT * FROM gadm2_countries_simple
-             WHERE iso = UPPER('bra')) as iso
+             WHERE iso = UPPER('{iso}')) as iso
 WHERE visible = True 
 AND t.created_at >= '{begin}'::date
 AND t.created_at <= '{end}'::date 
