@@ -16,6 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports acessing TERRAI data."""
+import math
+import arrow
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
@@ -24,28 +26,31 @@ class TerraiSql(Sql):
 
     WORLD = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM terra_i_decrease f
-        WHERE DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        WHERE {max_min_selector} >= '{begin}'::date
+              AND {max_min_selector} <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
 
     ISO = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM terra_i_decrease f
         WHERE iso = UPPER('{iso}')
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+            AND {max_min_selector} >= '{begin}'::date
+            AND {max_min_selector} <= '{end}'::date"""
 
     ID1 = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM terra_i_decrease f,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+            AND {max_min_selector} >= '{begin}'::date
+            AND {max_min_selector} <= '{end}'::date"""
 
     WDPA = """
         SELECT COUNT(f.*) AS value
@@ -74,14 +79,30 @@ def _processResults(action, data):
         data.pop('rows')
     else:
         result = dict(value=None)
-
-    data['value'] = result['value']
-
+    data['value'] = result.get('value')
+    data['min_date'] = _gridCodeToDate(result.get('min_grid_code'))
+    data['max_date'] = _gridCodeToDate(result.get('max_grid_code'))
     return action, data
 
+def _gridCodeToDate(grid_code):
+    if grid_code:
+        year = 2004 + math.floor((grid_code-1)/23)
+        first_of_year = arrow.get(('%s-01-01' % year))
+        periods = math.fmod(grid_code,23) * 16
+        date = first_of_year.replace(days=+periods)
+        return date.format('YYYY-MM-DD')
+    else:
+        return None
+
+def _maxMinSelector(args):
+    if args.get('alert_query'):
+        return 'f.created_at'
+    else: 
+        return "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
 
 def execute(args):
     args['version'] = 'v2'
+    args['max_min_selector'] = _maxMinSelector(args)
     action, data = CartoDbExecutor.execute(args, TerraiSql)
     if action == 'redirect' or action == 'error':
         return action, data

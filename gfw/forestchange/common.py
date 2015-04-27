@@ -4,6 +4,29 @@ import json
 
 from gfw import cdb
 
+def query_vars(args):
+    if args.get('alert_query'):
+        min_alert_date = args.get('min_alert_date')
+        if min_alert_date:
+            if (min_alert_date[0:3] == 'AND'):
+                min_alert_date_sql = min_alert_date
+            else:
+                min_alert_date_sql = ("AND date >= '%s'::date" % min_alert_date)
+        else:
+            min_alert_date_sql = ''
+        additional_select = args.get('additional_select') or ', MIN(date) as min_date, MAX(date) as max_date'
+        return 'created_at', additional_select, min_alert_date_sql
+        
+    else:
+        return 'date', '', ''
+
+def params_with_vars(params,args):
+    date_column, additional_select, min_alert_date = query_vars(args)
+    params['date_column'] = date_column
+    params['additional_select'] = additional_select
+    params['min_alert_date'] = min_alert_date
+    params['max_min_selector'] = args.get('max_min_selector')
+    return params
 
 def classify_query(args):
     if 'iso' in args and not 'id1' in args:
@@ -54,20 +77,23 @@ class Sql(object):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')
+        params = params_with_vars(params,args)
         classification = classify_query(args)
         if hasattr(cls, classification):
             return map(cls.clean, getattr(cls, classification)(params, args))
 
     @classmethod
     def world(cls, params, args):
+        params = params_with_vars(params,args)
         params['geojson'] = args['geojson']
         query_type, params = cls.get_query_type(params, args)
-        query = cls.WORLD.format(**params)
+        query = cls.WORLD.format(**params)        
         download_query = cls.download(cls.WORLD.format(**params))
         return query, download_query
 
     @classmethod
     def iso(cls, params, args):
+        params = params_with_vars(params,args)
         params['iso'] = args['iso']
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)
@@ -75,7 +101,7 @@ class Sql(object):
         return query, download_query
 
     @classmethod
-    def id1(cls, params, args):
+    def id1(cls, params, args):        
         params['iso'] = args['iso']
         params['id1'] = args['id1']
         query_type, params = cls.get_query_type(params, args)

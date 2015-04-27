@@ -27,9 +27,11 @@ class ImazonSql(Sql):
         WITH poly AS (SELECT * FROM ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326) geojson)
         SELECT data_type,
         SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
+        {additional_select}
         FROM imazon_clean i, poly
-            WHERE i.date >= '{begin}'::date
-        AND i.date <= '{end}'::date
+        WHERE i.{date_column} >= '{begin}'::date
+            AND i.{date_column} <= '{end}'::date
+            {min_alert_date}
         GROUP BY data_type"""
         
     # ISO same as WORLD since imazon only in Brazil
@@ -37,9 +39,11 @@ class ImazonSql(Sql):
     ISO = """
         SELECT data_type,
             sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
+        {additional_select}
         FROM imazon_clean i
-        WHERE i.date >= '{begin}'::date
-            AND i.date <= '{end}'::date
+        WHERE i.{date_column} >= '{begin}'::date
+            AND i.{date_column} <= '{end}'::date
+            {min_alert_date}
         GROUP BY data_type"""
 
     ID1 = """
@@ -47,12 +51,14 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
+        {additional_select}
         FROM imazon_clean i,
             (SELECT *
                 FROM gadm2_provinces_simple
                 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
-        WHERE i.date >= '{begin}'::date
-            AND i.date <= '{end}'::date
+        WHERE i.{date_column} >= '{begin}'::date
+            AND i.{date_column} <= '{end}'::date
+            {min_alert_date}
         GROUP BY data_type"""
 
     WDPA = """

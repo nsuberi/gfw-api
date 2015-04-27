@@ -16,6 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports pubsub."""
+import logging
 
 from gfw.mailers import subscribe_mailer
 
@@ -39,6 +40,11 @@ class Subscription(ndb.Model):
     #
     #   Class Methods
     #
+    @classmethod
+    def get_confirmed(cls):
+        """Return all confirmed Subscription entities"""
+        return cls.query(cls.confirmed == True).iter()
+
     @classmethod
     def get_by_topic(cls, topic):
         """Return all confirmed Subscription entities for supplied topic."""
@@ -85,8 +91,10 @@ class Subscription(ndb.Model):
     #   Instance Methods
     #            
     def send_mail(self,token,email):  
-        reply_to = 'sub+%s@gfw-apis.appspotmail.com' % token.urlsafe()
-        conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], token.urlsafe())
+        safe_token = token.urlsafe()
+        reply_to = 'sub+%s@gfw-apis.appspotmail.com' % safe_token
+        conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], safe_token)
+        logging.info("sending confirmation email: %s" % safe_token)
         mail.send_mail(
             sender=reply_to,
             to=email,

@@ -25,29 +25,37 @@ class QuiccSql(Sql):
 
     WORLD = """
         SELECT COUNT(pt.*) AS value
+        {additional_select}
         FROM quicc_alerts pt
-        WHERE pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date
+        WHERE pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
     ISO = """
         SELECT COUNT(pt.*) AS value
+        {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date"""
+            AND pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
+        """
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
+        {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.date >= '{begin}'::date
-            AND pt.date <= '{end}'::date"""
+            AND pt.{date_column} >= '{begin}'::date
+            AND pt.{date_column} <= '{end}'::date
+            {min_alert_date}
+        """
 
     WDPA = """
         SELECT COUNT(pt.*) AS value
@@ -78,7 +86,10 @@ def _processResults(action, data):
     else:
         result = dict(value=None)
 
-    data['value'] = result['value']
+    data['value'] = result.get('value')
+    data['min_date'] = result.get('min_date')
+    data['max_date'] = result.get('max_date')
+
 
     return action, data
 

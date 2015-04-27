@@ -24,23 +24,30 @@ from gfw.forestchange.common import Sql
 class FormaSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value 
+        {additional_select}
         FROM forma_api f
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
+        WHERE f.{date_column} >= '{begin}'::date
+              AND f.{date_column} <= '{end}'::date
+              {min_alert_date}
               AND ST_INTERSECTS(
                 ST_SetSRID(
-                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
+        """
 
     ISO = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM forma_api f
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-              AND f.iso = UPPER('{iso}')"""
+        WHERE f.{date_column} >= '{begin}'::date
+              AND f.{date_column} <= '{end}'::date
+              AND f.iso = UPPER('{iso}')
+              {min_alert_date}
+        """
 
     ID1 = """
         SELECT COUNT(f.*) AS value
+        {additional_select}
         FROM forma_api f
         INNER JOIN (
             SELECT *
@@ -48,8 +55,10 @@ class FormaSql(Sql):
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date"""
+        WHERE f.{date_column} >= '{begin}'::date
+              AND f.{date_column} <= '{end}'::date
+              {min_alert_date}
+        """
 
     WDPA = """
         SELECT COUNT(f.*) AS value
@@ -77,9 +86,11 @@ def _processResults(action, data):
         result = data['rows'][0]
         data.pop('rows')
     else:
-        result = dict(value=None)
+        result = dict(value=None,min_date=None,max_date=None)
 
-    data['value'] = result['value']
+    data['value'] = result.get('value')
+    data['min_date'] = result.get('min_date')
+    data['max_date'] = result.get('max_date')
 
     return action, data
 

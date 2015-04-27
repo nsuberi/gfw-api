@@ -66,7 +66,7 @@ class Publisher(webapp2.RequestHandler):
         e = ndb.Key(urlsafe=self.request.get('event')).get()
 
         if not e.multicasted:
-            for s in Subscription.get_by_topic(e.topic):
+            for s in Subscription.get_confirmed():
                 n = Notification.get(e, s)
                 if not n:
                     n = Notification.create(e, s)
@@ -182,8 +182,9 @@ class PubSubApi(BaseApi):
     def publish(self):
         try:
             params = self._get_params(body=True)
-            topic = params['topic']
-            Event.publish(topic,params)
+            topic = params.get('topic')
+            dry_run = params.get('dry_run')
+            Event.publish(topic,params,dry_run)
             self._send_response(json.dumps(dict(publish=True)))
 
         except Exception, error:
@@ -196,8 +197,6 @@ class PubSubApi(BaseApi):
                 error=trace,
                 headers=self.request.headers
             )
-            self._send_error()
-
 
 
 
