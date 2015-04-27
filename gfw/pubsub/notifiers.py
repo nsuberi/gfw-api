@@ -94,8 +94,10 @@ class DigestNotifer(webapp2.RequestHandler):
 
                 if quiccData:
                     self.body += self.mailer.quicc_leader.format(**quiccData)               
-                    self.body += self._alert(quiccData)                
-                self.body += self.mailer.outro
+                    self.body += self._alert(quiccData)
+
+                self.body += self.mailer.outro.format(**s)
+
 
                 #
                 # send email
@@ -169,9 +171,14 @@ class DigestNotifer(webapp2.RequestHandler):
         try:
             action, response = eval(module_info.get('name')).execute(data)
             total_value, alerts, mindate, maxdate = self._valueAndAlerts(response,module_info.get('value_names'))
-            min_date, max_date = self._minMaxDates(response,mindate,maxdate)
-            data['min_date'] = min_date or data['begin'] 
-            data['max_date'] = max_date or data['end'] 
+            if module_info.get('begin') and module_info.get('end'):
+                data['min_date'] = data['begin'] 
+                data['max_date'] = data['end'] 
+            else:
+                min_date, max_date = self._minMaxDates(response,mindate,maxdate)
+                data['min_date'] = min_date or data['begin'] 
+                data['max_date'] = max_date or data['end'] 
+
             module_info['min_date'] = data['min_date']
             module_info['max_date'] = data['max_date']
             url = self._linkUrl(data)
