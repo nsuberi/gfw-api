@@ -24,7 +24,7 @@ simple_alert = """
 """
 
 outro = """
-There may be lag time between when forest change is detected and when alerts are added to the platform. New alerts were added to the platform between {begin} and {end}. Refer to the dates listed in brackets for when change was actually detected.
+There may be lag time between when forest change is detected and when alerts are added to the platform. The new alerts above were added to the platform between {begin} and {end}. Refer to the dates listed in brackets for when change was actually detected.
 <br>
 <br>
 Please note that this information is subject to the Global Forest Watch <a href='http://globalforestwatch.com/terms'>Terms of Service</a>. You can unsubscribe or manage your subscriptions by emailing gfw@wri.org. Please visit <a href='http://fires.globalforestwatch.org/#v=home&x=115&y=0&l=5&lyrs=Active_Fires'>GFW Fires</a> to subscribe to receive fire alerts. 
