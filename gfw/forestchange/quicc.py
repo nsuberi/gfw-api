@@ -27,8 +27,8 @@ class QuiccSql(Sql):
         SELECT COUNT(pt.*) AS value
         {additional_select}
         FROM quicc_alerts pt
-        WHERE pt.{date_column} >= '{begin}'::date
-            AND pt.{date_column} <= '{end}'::date
+        WHERE pt.date >= '{begin}'::date
+            AND pt.date <= '{end}'::date
             {min_alert_date}
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
@@ -40,8 +40,8 @@ class QuiccSql(Sql):
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.{date_column} >= '{begin}'::date
-            AND pt.{date_column} <= '{end}'::date
+            AND pt.date >= '{begin}'::date
+            AND pt.date <= '{end}'::date
             {min_alert_date}
         """
 
@@ -52,8 +52,8 @@ class QuiccSql(Sql):
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
-            AND pt.{date_column} >= '{begin}'::date
-            AND pt.{date_column} <= '{end}'::date
+            AND pt.date >= '{begin}'::date
+            AND pt.date <= '{end}'::date
             {min_alert_date}
         """
 
