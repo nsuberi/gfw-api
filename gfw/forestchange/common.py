@@ -29,14 +29,14 @@ def params_with_vars(params,args):
     return params
 
 def classify_query(args):
-    if 'iso' in args and not 'id1' in args:
-        return 'iso'
-    elif 'iso' in args and 'id1' in args:
-        return 'id1'
-    elif 'ifl' in args:
+    if 'ifl' in args:
         return 'ifl'
     elif 'ifl_id1' in args:
         return 'ifl_id1'
+    elif 'iso' in args and not 'id1' in args:
+        return 'iso'
+    elif 'iso' in args and 'id1' in args:
+        return 'id1'
     elif 'use' in args:
         return 'use'
     elif 'pa' in args:
@@ -69,15 +69,15 @@ class Sql(object):
 
     @classmethod
     def clean(cls, sql):
-        """Return sql with extra whitespace removed."""
+        """Return sql clean  with extra whitespace removed."""
         return ' '.join(sql.split())
 
     @classmethod
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
-        params = dict(begin=begin, end=end, geojson='', the_geom='')
-        params = params_with_vars(params,args)
+        params = dict(begin=begin, end=end, geojson='', the_geom='')    
+        params = params_with_vars(params,args)              
         classification = classify_query(args)
         if hasattr(cls, classification):
             return map(cls.clean, getattr(cls, classification)(params, args))
@@ -89,6 +89,24 @@ class Sql(object):
         query_type, params = cls.get_query_type(params, args)
         query = cls.WORLD.format(**params)        
         download_query = cls.download(cls.WORLD.format(**params))
+        return query, download_query
+
+    @classmethod
+    def ifl(cls, params, args):        
+        params = params_with_vars(params,args)
+        params['iso'] = args['iso']
+        query_type, params = cls.get_query_type(params, args) 
+        query = cls.IFL.format(**params)
+        download_query = cls.download(cls.IFL.format(**params))
+        return query, download_query
+
+    @classmethod
+    def ifl_id1(cls, params, args):        
+        params['iso'] = args['iso']
+        params['id1'] = args['id1']
+        query_type, params = cls.get_query_type(params, args)
+        query = cls.IFL_ID1.format(**params)
+        download_query = cls.download(cls.IFL_ID1.format(**params))
         return query, download_query
 
     @classmethod

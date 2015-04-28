@@ -155,6 +155,16 @@ class UmdSql(Sql):
         return 'TODO'
 
     @classmethod
+    def ifl(cls, params, args):
+        params['thresh'] = args['thresh']
+        return super(UmdSql, cls).iso(params, args)
+
+    @classmethod
+    def ifl_id1(cls, params, args):
+        params['thresh'] = args['thresh']
+        return super(UmdSql, cls).id1(params, args)
+
+    @classmethod
     def iso(cls, params, args):
         params['thresh'] = args['thresh']
         return super(UmdSql, cls).iso(params, args)
@@ -199,19 +209,14 @@ def _executeId1(args):
     return action, data
 
 def _executeIfl(args):
-    """Query GEE using supplied WDPA id."""
+    """Query national by iso code."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
     if action == 'error':
         return action, data
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    if rows:
-        args['geojson'] = rows[0]['geojson']
-        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
-        args['end'] = args['end'] if 'end' in args else '2013-01-01'
-        action, data = _execute_geojson(args)
-        data['params'].pop('geojson')
+    data['years'] = rows
     return action, data
 
 
@@ -223,12 +228,7 @@ def _executeIflId1(args):
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    if rows:
-        args['geojson'] = rows[0]['geojson']
-        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
-        args['end'] = args['end'] if 'end' in args else '2013-01-01'
-        action, data = _execute_geojson(args)
-        data['params'].pop('geojson')
+    data['years'] = rows
     return action, data
 
 
