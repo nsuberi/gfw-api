@@ -99,7 +99,7 @@ class CORSRequestHandler(webapp2.RequestHandler):
         elif action == 'redirect':
             self.redirect(data)
         elif action == 'error':
-            self.write_error(400, data.message)
+            self.write_error(400, data.get('message') or data )
         else:
             self.write_error(400, 'Unknown action %s' % action)
 

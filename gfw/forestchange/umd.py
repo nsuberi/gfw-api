@@ -128,7 +128,6 @@ class UmdSql(Sql):
         SELECT ST_AsGeoJson(the_geom) AS geojson, type
         FROM gadm_countries_ifl
         WHERE iso = UPPER('{iso}')
-              AND thresh = {thresh}
         AND type='intact'"""
 
 
@@ -136,7 +135,6 @@ class UmdSql(Sql):
         SELECT ST_AsGeoJson(the_geom) AS geojson, type
         FROM gadm_countries_ifl
         WHERE iso = UPPER('{iso}')
-              AND thresh = {thresh}
               AND id1 = {id1}
         AND type='intact'"""
 
@@ -152,7 +150,8 @@ class UmdSql(Sql):
 
     @classmethod
     def download(cls, sql):
-        return 'TODO'
+        """ TODO """
+        return ""
 
     @classmethod
     def ifl(cls, params, args):
