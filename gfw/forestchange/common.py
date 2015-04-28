@@ -95,7 +95,7 @@ class Sql(object):
     def ifl(cls, params, args):        
         params = params_with_vars(params,args)
         params['iso'] = args['iso']
-        query_type, params = cls.get_query_type(params, args) 
+        query_type, params = cls.get_query_type(params, args)
         query = cls.IFL.format(**params)
         download_query = cls.download(cls.IFL.format(**params))
         return query, download_query

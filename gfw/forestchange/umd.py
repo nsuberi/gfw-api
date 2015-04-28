@@ -157,12 +157,12 @@ class UmdSql(Sql):
     @classmethod
     def ifl(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).iso(params, args)
+        return super(UmdSql, cls).ifl(params, args)
 
     @classmethod
     def ifl_id1(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).id1(params, args)
+        return super(UmdSql, cls).ifl_id1(params, args)
 
     @classmethod
     def iso(cls, params, args):
