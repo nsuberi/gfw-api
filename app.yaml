@@ -35,6 +35,10 @@ libraries:
 - name: pycrypto
   version: "latest"  
 
+## GAE python console:
+builtins:
+- remote_api: on
+
 handlers:
 
 ## Earth Engine dep:
