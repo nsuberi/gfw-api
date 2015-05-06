@@ -60,7 +60,7 @@ class QuiccSql(Sql):
     WDPA = """
         SELECT COUNT(pt.*) AS value
         FROM quicc_alerts pt,
-            (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) as p
+            (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date"""

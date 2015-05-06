@@ -61,7 +61,7 @@ class FiresSql(Sql):
     WDPA = """
         SELECT COUNT(pt.*) AS value
         FROM global_7d pt,
-            (SELECT * FROM protected_areas WHERE wdpaid = {wdpaid}) as p
+            (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
             AND acq_date::date <= '{end}'::date

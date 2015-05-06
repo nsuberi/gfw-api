@@ -62,7 +62,7 @@ class FormaSql(Sql):
 
     WDPA = """
         SELECT COUNT(f.*) AS value
-        FROM forma_api f, (SELECT * FROM protected_areas WHERE wdpaid={wdpaid}) AS p
+        FROM forma_api f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.date >= '{begin}'::date
               AND f.date <= '{end}'::date"""
