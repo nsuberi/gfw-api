@@ -145,7 +145,7 @@ class UmdSql(Sql):
 
     WDPA = """
         SELECT ST_AsGeoJson(the_geom) AS geojson
-        FROM protected_areas
+        FROM wdpa_protected_areas
         WHERE wdpaid={wdpaid}"""
 
     @classmethod
