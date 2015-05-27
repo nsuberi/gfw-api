@@ -76,6 +76,7 @@ class QuiccSql(Sql):
     LATEST = """
         SELECT DISTINCT date 
         FROM quicc_alerts
+        WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
         

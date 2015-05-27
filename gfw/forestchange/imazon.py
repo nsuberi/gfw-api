@@ -87,6 +87,7 @@ class ImazonSql(Sql):
     LATEST = """
         SELECT DISTINCT date 
         FROM imazon_clean
+        WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
         

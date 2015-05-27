@@ -79,6 +79,7 @@ class FiresSql(Sql):
     LATEST = """
         SELECT DISTINCT acq_date as date
         FROM global_7d
+        WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
 

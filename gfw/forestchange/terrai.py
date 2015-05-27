@@ -72,6 +72,7 @@ class TerraiSql(Sql):
             grid_code,
             (DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 )) as date
         FROM terra_i_decrease 
+        WHERE grid_code IS NOT NULL
         ORDER BY grid_code DESC
         LIMIT {limit}"""
 

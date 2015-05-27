@@ -78,6 +78,7 @@ class FormaSql(Sql):
     LATEST = """
         SELECT DISTINCT date 
         FROM forma_api
+        WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
 

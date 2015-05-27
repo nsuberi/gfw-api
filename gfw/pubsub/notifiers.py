@@ -11,6 +11,7 @@ from google.appengine.ext import ndb
 from gfw.mailers import digest_mailer
 
 from gfw import cdb
+from gfw.pubsub.subscription import Subscription
 from gfw.forestchange import forma
 from gfw.forestchange import terrai
 from gfw.forestchange import quicc
@@ -24,6 +25,12 @@ class DigestNotifer(webapp2.RequestHandler):
     mailer = digest_mailer
     subject = 'New Alerts from Global Forest Watch'
     total_alerts = 0
+    sqls = {
+        'forma': forma.FormaSql,
+        'terrai': terrai.TerraiSql,
+        'imazon': imazon.ImazonSql,
+        'quicc': quicc.QuiccSql
+    }
 
     def post(self):
         try:
@@ -38,7 +45,7 @@ class DigestNotifer(webapp2.RequestHandler):
             e = n.params['event']
             min_alert_dates = e.get('min_alert_dates')                
             begin, end = self._digestDates(e)
-            s = self._prepSubscription(n.params['subscription'],begin,end)
+            s = self._prepSubscription(n.params['subscription'],n.params['updates'],begin,end)
 
             formaData = self._moduleData(s,{
                     'name': 'forma',
@@ -123,6 +130,7 @@ class DigestNotifer(webapp2.RequestHandler):
                     html=self.body)
                 n.sent = True
                 n.put()
+                self._updateSubscriptionDates(n.params['subscription_id'])
 
         except Exception, e:
             logging.exception(e)
@@ -133,27 +141,36 @@ class DigestNotifer(webapp2.RequestHandler):
     # Dates
     #
 
-    def _latestSQL(self,name):
-        sqls = {
-            'forma': forma.FormaSql,
-            'terrai': terrai.TerraiSql,
-            'imazon': imazon.ImazonSql,
-            'quicc': quicc.QuiccSql
-        }
-        return sqls.get(name).LATEST.format(limit=2)
+    def _updateSubscriptionDates(self,subscription_id):
+        subscription = Subscription.get_by_id(subscription_id)
+        updated = None
+        for key in self.sqls:
+            date = self._recentDate(key,0)
+            if date:
+                updated = True
+                subscription.updates[key] = date
+        if updated:
+            subscription.put()
+
+    def _latestSQL(self,name,limit):
+        sql_model = self.sqls.get(name)
+        if sql_model:
+            return sql_model.LATEST.format(limit=limit)
 
 
-    def _recentDate(self,name):
-        sql = self._latestSQL(name)
-        response = cdb.execute(sql)
-        if response.status_code == 200:
-            last_date = json.loads(response.content)['rows'][1]['date']
-            if not last_date:
-                return None
-            else:
-                return arrow.get(last_date).replace(days=+1)
-        else:
-            return None
+    def _recentDate(self,name,nth=1):
+        date = None
+        sql = self._latestSQL(name,nth+1)
+        if sql:
+            response = cdb.execute(sql)
+            if response.status_code == 200:
+                last_date = json.loads(response.content)['rows'][nth]['date']
+                if last_date:
+                    date = arrow.get(last_date).replace(days=+1)
+        if not date:
+            date = arrow.now().replace(months=-2)
+
+        return date.format("YYYY-MM-DD")
 
     def _beginDate(self,data,module_info):
         date = None
@@ -162,16 +179,16 @@ class DigestNotifer(webapp2.RequestHandler):
         if updates:
             last_update = updates.get(name)
             if last_update:
-                date = arrow.get(last_update).replace(days=+1)
+                date = arrow.get(last_update).replace(days=+1).format("YYYY-MM-DD")
         if not date:
             date = self._recentDate(name)
-        return date.format("YYYY-MM-DD")
+        return date
 
     #
     # Module Data
     #  
 
-    def _prepSubscription(self,sub,begin,end):
+    def _prepSubscription(self,sub,updates,begin,end):
         if 'geom' in sub:
             sub['geojson'] = json.dumps(sub['geom'])
             sub['aoi'] = 'a user drawn polygon'
@@ -186,6 +203,7 @@ class DigestNotifer(webapp2.RequestHandler):
         sub['alert_query'] = True
         sub['begin'] = begin.format('YYYY-MM-DD')
         sub['end'] = end.format('YYYY-MM-DD')
+        sub['updates'] = updates
         logging.info(sub)
         return sub
 
@@ -276,7 +294,10 @@ class DigestNotifer(webapp2.RequestHandler):
                         alerts += '%s %s' % (v, alert_name)
             else:
                 alert_name = value_names or 'alerts'
-                value = int(response_val)
+                if type(response_val) is dict: 
+                    value = response_val.get('value')
+                else:
+                    value = int(response_val)
                 alerts = '%s %s' % (value, alert_name)
 
 
