@@ -80,7 +80,7 @@ class FiresSql(Sql):
         SELECT DISTINCT acq_date 
         FROM global_7d
         ORDER BY acq_date DESC
-        LIMIT 31"""
+        LIMIT {limit}"""
 
     @classmethod
     def download(cls, sql):

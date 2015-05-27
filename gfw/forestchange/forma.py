@@ -79,7 +79,7 @@ class FormaSql(Sql):
         SELECT DISTINCT date 
         FROM forma_api
         ORDER BY date DESC
-        LIMIT 3"""
+        LIMIT {limit}"""
 
     @classmethod
     def download(cls, sql):

@@ -88,7 +88,7 @@ class ImazonSql(Sql):
         SELECT DISTINCT date 
         FROM imazon_clean
         ORDER BY date DESC
-        LIMIT 3"""
+        LIMIT {limit}"""
         
     @classmethod
     def download(cls, sql):

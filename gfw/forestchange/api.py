@@ -197,7 +197,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust'],
+        'latest': ['bust','limit'],
     },
     'nasa-active-fires': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],

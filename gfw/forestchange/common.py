@@ -155,7 +155,8 @@ class Sql(object):
 
     @classmethod
     def latest(cls, params, args):
-        query = cls.LATEST
+        params['limit'] = args.get('limit') or 3
+        query = cls.LATEST.format(**params)
         return query, None
 
 def get_download_urls(query, params):

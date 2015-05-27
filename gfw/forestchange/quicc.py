@@ -77,7 +77,7 @@ class QuiccSql(Sql):
         SELECT DISTINCT date 
         FROM quicc_alerts
         ORDER BY date DESC
-        LIMIT 3"""
+        LIMIT {limit}"""
         
     @classmethod
     def download(cls, sql):

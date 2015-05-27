@@ -273,6 +273,10 @@ class ArgProcessor():
         return dict(bust=True)
 
     @classmethod
+    def limit(cls, value):
+        return dict(limit=value)
+
+    @classmethod
     def dev(cls, value):
         return dict(dev=True)
 

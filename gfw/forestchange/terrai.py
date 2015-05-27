@@ -73,7 +73,7 @@ class TerraiSql(Sql):
             (DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 )) as date
         FROM terra_i_decrease 
         ORDER BY grid_code DESC
-        LIMIT 3"""
+        LIMIT {limit}"""
 
     @classmethod
     def download(cls, sql):
