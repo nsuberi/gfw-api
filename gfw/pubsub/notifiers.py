@@ -133,11 +133,30 @@ class DigestNotifer(webapp2.RequestHandler):
     # Dates
     #
 
-    def _recentDate(self,data,module_info):  
-        date = arrow.now(last_update).replace(months=-3)
+    def _latestSQL(self,name):
+        sqls = {
+            'forma': forma.FormaSql,
+            'terrai': terrai.TerraiSql,
+            'imazon': imazon.ImazonSql,
+            'quicc': quicc.QuiccSql
+        }
+        return sqls.get(name).LATEST.format(limit=2)
+
+
+    def _recentDate(self,name):
+        sql = self._latestSQL(name)
+        response = cdb.execute(sql)
+        if response.status_code == 200:
+            last_date = json.loads(response.content)['rows'][1]['date']
+            if not last_date:
+                return None
+            else:
+                return arrow.get(last_date).replace(days=+1)
+        else:
+            return None
 
     def _beginDate(self,data,module_info):
-        begin_date = None
+        date = None
         updates = data.get("updates")
         name = module_info["name"]
         if updates:
@@ -145,7 +164,7 @@ class DigestNotifer(webapp2.RequestHandler):
             if last_update:
                 date = arrow.get(last_update).replace(days=+1)
         if not date:
-            date = self._recentDate(data,module_info)
+            date = self._recentDate(name)
         return date.format("YYYY-MM-DD")
 
     #
