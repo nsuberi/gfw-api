@@ -83,8 +83,10 @@ class TerraiSql(Sql):
 
 def _processResults(action, data):
     if 'rows' in data:
-        result = data['rows'][0]
-        data.pop('rows')
+        results = data.pop('rows')
+        result = results[0]
+        if not result.get('value'):
+            data['results'] = results
     else:
         result = dict(value=None)
     data['value'] = result.get('value')

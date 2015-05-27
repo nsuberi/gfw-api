@@ -89,10 +89,10 @@ class FormaSql(Sql):
 
 def _processResults(action, data):
     if 'rows' in data:
-        result = data['rows'][0]
+        results = data.pop('rows')
+        result = results[0]
         if not result.get('value'):
-            data['results'] = data['rows']
-        data.pop('rows')
+            data['results'] = results
     else:
         result = dict(value=None,min_date=None,max_date=None)
 

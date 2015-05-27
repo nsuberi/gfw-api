@@ -77,9 +77,9 @@ class FiresSql(Sql):
             AND CAST(confidence AS INT)> 30"""
 
     LATEST = """
-        SELECT DISTINCT acq_date 
+        SELECT DISTINCT acq_date as date
         FROM global_7d
-        ORDER BY acq_date DESC
+        ORDER BY date DESC
         LIMIT {limit}"""
 
     @classmethod
@@ -112,12 +112,14 @@ def _get_meta_timecale(params):
 
 def _processResults(action, data):
     if 'rows' in data:
-        result = data['rows'][0]
-        data.pop('rows')
+        results = data.pop('rows')
+        result = results[0]
+        if not result.get('value'):
+            data['results'] = results
     else:
         result = dict(value=None)
 
-    data['value'] = result['value']
+    data['value'] = result.get('value')
     data['period'] = _get_meta_timecale(data['params'])
 
     return action, data
