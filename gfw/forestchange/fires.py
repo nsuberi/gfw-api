@@ -76,6 +76,12 @@ class FiresSql(Sql):
             AND acq_date::date <= '{end}'::date
             AND CAST(confidence AS INT)> 30"""
 
+    LATEST = """
+        SELECT DISTINCT acq_date 
+        FROM global_7d
+        ORDER BY acq_date DESC
+        LIMIT 31"""
+
     @classmethod
     def download(cls, sql):
         return ' '.join(

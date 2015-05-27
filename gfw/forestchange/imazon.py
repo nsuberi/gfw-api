@@ -83,6 +83,13 @@ class ImazonSql(Sql):
             AND i.date <= '{end}'::date
         GROUP BY data_type"""
 
+
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM imazon_clean
+        ORDER BY date DESC
+        LIMIT 3"""
+        
     @classmethod
     def download(cls, sql):
         x = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')

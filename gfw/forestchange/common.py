@@ -43,6 +43,8 @@ def classify_query(args):
         return 'pa'
     elif 'wdpaid' in args:
         return 'wdpa'
+    elif 'latest' in args:
+        return 'latest'
     else:
         return 'world'
 
@@ -70,7 +72,8 @@ class Sql(object):
     @classmethod
     def clean(cls, sql):
         """Return sql clean  with extra whitespace removed."""
-        return ' '.join(sql.split())
+        if sql:
+            return ' '.join(sql.split())
 
     @classmethod
     def process(cls, args):
@@ -150,6 +153,10 @@ class Sql(object):
         download_query = cls.download(cls.USE.format(**params))
         return query, download_query
 
+    @classmethod
+    def latest(cls, params, args):
+        query = cls.LATEST
+        return query, None
 
 def get_download_urls(query, params):
     urls = {}

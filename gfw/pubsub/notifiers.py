@@ -129,7 +129,25 @@ class DigestNotifer(webapp2.RequestHandler):
 
 
 
-  
+    #
+    # Dates
+    #
+
+    def _recentDate(self,data,module_info):  
+        date = arrow.now(last_update).replace(months=-3)
+
+    def _beginDate(self,data,module_info):
+        begin_date = None
+        updates = data.get("updates")
+        name = module_info["name"]
+        if updates:
+            last_update = updates.get(name)
+            if last_update:
+                date = arrow.get(last_update).replace(days=+1)
+        if not date:
+            date = self._recentDate(data,module_info)
+        return date.format("YYYY-MM-DD")
+
     #
     # Module Data
     #  
@@ -154,11 +172,10 @@ class DigestNotifer(webapp2.RequestHandler):
 
     def _prepData(self,data,module_info):
         data = data.copy()
-        data['end'] = module_info.get('end') or data['end']
-        data['begin'] = module_info.get('begin') or data['begin']
+        data['end'] = arrow.now().format("YYYY-MM-DD")
+        data['begin'] = self._beginDate(data,module_info)
         data['additional_select'] = module_info.get('additional_select')
         data['url_id'] = module_info.get('url_id')
-
         return data
 
     def _moduleData(self,sub,module_info,min_alert_dates=None,increment_value=True):

@@ -73,6 +73,12 @@ class QuiccSql(Sql):
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date"""
 
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM quicc_alerts
+        ORDER BY date DESC
+        LIMIT 3"""
+        
     @classmethod
     def download(cls, sql):
         return ' '.join(

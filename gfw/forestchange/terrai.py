@@ -67,6 +67,14 @@ class TerraiSql(Sql):
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
 
+    LATEST = """
+        SELECT DISTINCT
+            grid_code,
+            (DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 )) as date
+        FROM terra_i_decrease 
+        ORDER BY grid_code DESC
+        LIMIT 3"""
+
     @classmethod
     def download(cls, sql):
         return ' '.join(

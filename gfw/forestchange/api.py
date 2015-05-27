@@ -197,6 +197,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust'],
     },
     'nasa-active-fires': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -269,6 +270,8 @@ def _classify_request(path):
 
     if re.match(r'forest-change/%s$' % dataset, path):
         rtype = 'all'
+    elif re.match(r'forest-change/%s/latest$' % dataset, path):
+        rtype = 'latest'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset, path):

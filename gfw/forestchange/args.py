@@ -166,6 +166,13 @@ class PathProcessor():
             raise Exception('Unable to process nameid from request path')
 
     @classmethod
+    def latest(cls, path):
+        try:
+            return dict(latest=True)
+        except:
+            raise Exception('Unable to process latest from request path')
+
+    @classmethod
     def process(cls, path, params):
         """Process parameter from supplied request path"""
         result = {}

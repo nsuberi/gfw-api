@@ -75,6 +75,12 @@ class FormaSql(Sql):
               AND f.date >= '{begin}'::date
               AND f.date <= '{end}'::date"""
 
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM forma_api
+        ORDER BY date DESC
+        LIMIT 3"""
+
     @classmethod
     def download(cls, sql):
         return ' '.join(
@@ -84,6 +90,8 @@ class FormaSql(Sql):
 def _processResults(action, data):
     if 'rows' in data:
         result = data['rows'][0]
+        if not result.get('value'):
+            data['results'] = data['rows']
         data.pop('rows')
     else:
         result = dict(value=None,min_date=None,max_date=None)
