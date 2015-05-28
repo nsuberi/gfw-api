@@ -24,12 +24,11 @@ def classify_query(args):
     else:
         return 'world'
 
-def args_params(params,ars):
+def args_params(params,args):
     if args.get('alert_query'):
         params['additional_select'] = ', MIN(date) as min_date, MAX(date) as max_date'
     else:
         params['additional_select'] = ""
-        
     if args.get('iso'):
         params['iso'] = args['iso']
     if args.get('id1'):
@@ -178,15 +177,7 @@ class CartoDbExecutor():
     @classmethod
     def execute(cls, args, sql):
         try:
-
-            print "CartoDbExecutor"
-            print "CartoDbExecutor"
-
-
             query, download_query = sql.process(args)
-
-            print "CartoDbExecutor"
-            print "CartoDbExecutor"
             download_url = cdb.get_url(download_query, args)
             if 'format' in args:
                 return 'redirect', download_url

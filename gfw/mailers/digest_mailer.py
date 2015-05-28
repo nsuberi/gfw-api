@@ -23,11 +23,11 @@ table_header = """
 
 table_row = """
 <tr>
-  #<td>{alerts}</td>
+  <td>{alerts}</td>
   <td>{email_name}</td>
-  #<td>{min_date} to {max_date}</td>
+  <td>{date_range}</td>
   <td>{summary}</td>
-  <td>{specs}</td>
+  <td>{alert_types}{specs}</td>
   <td><a href='{url}'>Link</a></td>
 </tr>
 """
@@ -46,5 +46,5 @@ Please note that this information is subject to the Global Forest Watch <a href=
 <br>
 """
 
-link_geom = """http://www.globalforestwatch.org/map/3/{lat}/{lon}/ALL/grayscale/{url_id}?geojson={geom}&begin={min_date}&end={max_date}"""
-link_iso = """http://www.globalforestwatch.org/map/4/0/0/{iso}/grayscale/{url_id}?begin={min_date}&end={max_date}"""
+link_geom = """http://www.globalforestwatch.org/map/3/{lat}/{lon}/ALL/grayscale/{url_id}?geojson={geom}&begin={begin}&end={end}"""
+link_iso = """http://www.globalforestwatch.org/map/4/0/0/{iso}/grayscale/{url_id}?begin={begin}&end={end}"""
