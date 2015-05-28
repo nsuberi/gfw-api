@@ -106,7 +106,6 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self.mailer.table_footer
                 self.body += self.mailer.outro.format(**s)
 
-
                 #
                 # send email
                 #
