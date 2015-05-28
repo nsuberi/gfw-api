@@ -1,30 +1,43 @@
 intro = """
 <br>
-You have subscribed to receive alerts through <a href='http://www.globalforestwatch.org/'>Global Forest Watch</a>. This message reports new forest change alerts and user stories for the area of interest you selected (a country, subnational jurisdiction, or user-drawn shape). You will receive a separate email for each distinct area of interest you subscribe to.
+You have subscribed to receive alerts from <a href='http://www.globalforestwatch.org/'>Global Forest Watch</a>. This message reports new forest change alerts and user stories for the area of interest you selected. You will receive a separate email for each distinct area of interest you subscribe to. 
 <br><br>
 """
 
 header="""
-<b>New alerts added to the GFW platform:</b>
+<b><u>Selected area</u>: {selected_area_name}</b>
 <br><br>
 """
 
-alert = """
-<b><a href='{url}'>{link_text} [{min_date} to {max_date}]</a></b> (<i>{description}</i>): {alerts}<br><br>
+table_header = """
+<table>
+  <tr>
+    <th><b>New alerts</b></th>
+    <th><b>Type of Alert</b></th>
+    <th><b>Date of Alerts*</b></th>
+    <th><b>Summary</b></th>
+    <th><b>Specs</b></th>
+    <th><b>View & Download</b></th>
+  </tr>
 """
 
-quicc_leader = """
-<br>
-<b>The QUICC data set is updated quarterly. The data from the most recent quarter are given below:</b>
-<br><br>
+table_row = """
+<tr>
+  #<td>{alerts}</td>
+  <td>{email_name}</td>
+  #<td>{min_date} to {max_date}</td>
+  <td>{summary}</td>
+  <td>{specs}</td>
+  <td><a href='{url}'>Link</a></td>
+</tr>
 """
 
-simple_alert = """
-<b><a href='{url}'>{link_text}</a></b>: {alerts}<br><br>
+table_footer = """
+</table>
 """
 
 outro = """
-There may be lag time between when forest change is detected and when alerts are added to the platform. The new alerts above were added to the platform between {begin} and {end}. Refer to the dates listed in brackets for when change was actually detected.
+<em>*"Date of Alerts" refers to the date range within which change was actually detected. There may be lag time between detection and when you receive this email.</em>
 <br>
 <br>
 Please note that this information is subject to the Global Forest Watch <a href='http://globalforestwatch.com/terms'>Terms of Service</a>. You can unsubscribe or manage your subscriptions by emailing gfw@wri.org. Please visit <a href='http://fires.globalforestwatch.org/#v=home&x=115&y=0&l=5&lyrs=Active_Fires'>GFW Fires</a> to subscribe to receive fire alerts. 
