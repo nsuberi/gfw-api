@@ -24,12 +24,11 @@ from gfw.forestchange.common import Sql
 class FormaSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value 
+        SELECT COUNT(f.*) AS value
         {additional_select}
         FROM forma_api f
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
-              {min_alert_date}
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
@@ -39,10 +38,9 @@ class FormaSql(Sql):
         SELECT COUNT(f.*) AS value
         {additional_select}
         FROM forma_api f
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
               AND f.iso = UPPER('{iso}')
-              {min_alert_date}
         """
 
     ID1 = """
@@ -55,9 +53,8 @@ class FormaSql(Sql):
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
-              {min_alert_date}
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
         """
 
     WDPA = """

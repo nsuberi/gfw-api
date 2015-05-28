@@ -50,42 +50,45 @@ class DigestNotifer(webapp2.RequestHandler):
             formaData = self._moduleData(s,{
                     'name': 'forma',
                     'url_id': 'forma',
-                    'link_text': 'FORMA',
-                    'description':'monthly, 500m, humid tropics, WRI/CGD'
-                },min_alert_dates)
+                    'email_name': 'FORMA',
+                    'summary':'Detects areas where tree cover loss is likely to have recently occurred',
+                    'specs':'monthly, 500m, humid tropics, WRI/CGD'
+                })
             terraiData = self._moduleData(s,{
                     'name': 'terrai',
                     'url_id': 'terrailoss',
-                    'link_text': 'Terra-i',
-                    'description':'monthly, 250m, Latin America, CIAT',
-                    'additional_select':', MIN(grid_code) as min_grid_code, MAX(grid_code) as max_grid_code'
+                    'email_name': 'Terra-i',
+                    'summary':'...',
+                    'specs':'monthly, 250m, Latin America, CIAT',
                 })
             imazonData = self._moduleData(s,{
                     'name': 'imazon',
                     'url_id': 'imazon',
-                    'link_text': 'SAD',
-                    'description':'monthly, 250m, Brazilian Amazon, Imazon',
+                    'email_name': 'SAD',
+                    'summary':'...',
+                    'specs':'monthly, 250m, Brazilian Amazon, Imazon',
                     'value_names': {
                         'degrad': 'hectares degradation',
                         'defor': 'hectares deforestation'
                     }
-                },min_alert_dates)            
+                })            
 
             max_quicc_date = self._get_max_date('quicc')
             quicc_begin, quicc_end, quicc_interval = self._period(max_quicc_date,3,True)
             quiccData = self._moduleData(s,{
                     'name': 'quicc',
                     'url_id': 'modis',
-                    'link_text': 'QUICC',
-                    'description':'quarterly, 5km, <37 degrees north, NASA',
-                    'begin': quicc_begin,
-                    'end': quicc_end
-                },min_alert_dates,False)
+                    'email_name': 'QUICC',
+                    'summary':'Identifies areas of land that have lost at least 40% of their green vegetation cover from the previous quarterly product',
+                    'specs':'quarterly, 5km, <37 degrees north, NASA'
+                })
             
             storiesData = self._storiesData(s,{
                     'name': 'stories',
                     'url_id': 'none/580',
-                    'link_text': 'User stories'
+                    'summary':'Forest-related stories reported by GFW users',
+                    'specs':'...',
+                    'email_name': 'Stories'
                 })
 
             if self.total_alerts > 0:
@@ -93,16 +96,14 @@ class DigestNotifer(webapp2.RequestHandler):
                 # create email
                 #
                 self.body = self.mailer.intro
-                self.body += self.mailer.header.format(**s)
+                self.body += self.mailer.header.format(selected_area_name=selected_area_name)
+                self.body += self.mailer.table_header
                 self.body += self._alert(formaData)
                 self.body += self._alert(terraiData)
                 self.body += self._alert(imazonData)
                 self.body += self._alert(storiesData)                
-
-                if quiccData:
-                    self.body += self.mailer.quicc_leader.format(**quiccData)               
-                    self.body += self._alert(quiccData)
-
+                self.body += self._alert(quiccData)
+                self.body += self.mailer.table_footer
                 self.body += self.mailer.outro.format(**s)
 
 
@@ -215,29 +216,23 @@ class DigestNotifer(webapp2.RequestHandler):
         data['url_id'] = module_info.get('url_id')
         return data
 
-    def _moduleData(self,sub,module_info,min_alert_dates=None,increment_value=True):
+    def _moduleData(self,sub,module_info,increment_value=True):
         data = self._prepData(sub,module_info)
-        if min_alert_dates:
-            min_alert_date = min_alert_dates.get(module_info['name'])
-            if min_alert_date:
-                data['min_alert_date'] = min_alert_date
-
         try:
             action, response = eval(module_info.get('name')).execute(data)
-            total_value, alerts, mindate, maxdate = self._valueAndAlerts(response,module_info.get('value_names'))
-            if module_info.get('begin') and module_info.get('end'):
-                data['min_date'] = data['begin'] 
-                data['max_date'] = data['end'] 
+            total_value, alerts, min_date, max_date = self._valueAndAlerts(response,module_info.get('value_names'))
+            if max_date:
+                module_info['max_date'] = max_date.split('T')[0]
             else:
-                min_date, max_date = self._minMaxDates(response,mindate,maxdate)
-                data['min_date'] = min_date or data['begin'] 
-                data['max_date'] = max_date or data['end'] 
+                module_info['max_date'] = data.get('end')
+            if min_date:
+                module_info['min_date'] = min_date.split('T')[0]
+            else:
+                module_info['min_date'] =  data.get('begin')
 
-            module_info['min_date'] = data['min_date']
-            module_info['max_date'] = data['max_date']
-            url = self._linkUrl(data)
-            module_info['url'] = url
             module_info['alerts'] = alerts
+            module_info['url'] = self._linkUrl(data)
+
             if total_value > 0:
                 if increment_value:
                     self.total_alerts += total_value
@@ -275,8 +270,8 @@ class DigestNotifer(webapp2.RequestHandler):
         value = 0
         alerts = ''
         response_val = response.get('value')
-        min_date = None
-        max_date = None
+        min_date = response.get('min_date')
+        max_date = response.get('max_date')
         if response_val:
             if type(response_val) is list:
                 for v_dict in response_val:
@@ -395,8 +390,6 @@ class DigestNotifer(webapp2.RequestHandler):
     def _alert(self,data):
         if not data:
             return ""
-        if data.get('description'):
-            return self.mailer.alert.format(**data)            
-        else:
-            return self.mailer.simple_alert.format(**data)
+        return self.mailer.table_row.format(**data)            
+
 

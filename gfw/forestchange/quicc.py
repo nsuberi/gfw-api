@@ -29,7 +29,6 @@ class QuiccSql(Sql):
         FROM quicc_alerts pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
@@ -42,7 +41,6 @@ class QuiccSql(Sql):
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
         """
 
     ID1 = """
@@ -54,7 +52,6 @@ class QuiccSql(Sql):
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
         """
 
     WDPA = """
