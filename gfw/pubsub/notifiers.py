@@ -58,14 +58,14 @@ class DigestNotifer(webapp2.RequestHandler):
                     'name': 'terrai',
                     'url_id': 'terrailoss',
                     'email_name': 'Terra-i',
-                    'summary':'...',
+                    'summary':'Detects areas in Latin American where tree cover loss is likely to have recently occurred',
                     'specs':'monthly, 250m, Latin America, CIAT',
                 })
             imazonData = self._moduleData(s,{
                     'name': 'imazon',
                     'url_id': 'imazon',
                     'email_name': 'SAD',
-                    'summary':'...',
+                    'summary':'Detects forest cover loss and forest degradation in the Brazilian Amazon',
                     'specs':'monthly, 250m, Brazilian Amazon, Imazon',
                     'value_names': {
                         'degrad': 'hectares degradation',
@@ -83,7 +83,7 @@ class DigestNotifer(webapp2.RequestHandler):
                     'name': 'stories',
                     'url_id': 'none/580',
                     'summary':'Forest-related stories reported by GFW users',
-                    'specs':'...',
+                    'specs':'',
                     'email_name': 'Stories'
                 })
 
@@ -216,9 +216,16 @@ class DigestNotifer(webapp2.RequestHandler):
             if sub.get('iso'):
                 sub['iso'] = sub['iso'].upper()
                 if sub.get('id1'):
-                    sub['aoi'] = 'a subnational-region (%s-%s)' % (sub['iso'],sub['id1'])
+                    href = self.mailer.link_country_id1.format(iso=sub['iso'],id1=sub['id1'])
+                    link_text = '%s/%s' % (sub['iso'],sub['id1'])
+                    template = 'a subnational-region (%s)'
                 else:
-                    sub['aoi'] = 'a country (%s)' % sub['iso']
+                    href = self.mailer.link_country_iso.format(iso=sub['iso'])
+                    link_text = '%s' % (sub['iso'])
+                    template = 'a country (%s)'
+                link = "<a href='%s'>%s</a>" % (href,link_text)
+                sub['aoi'] = template % link
+
             else:
                 raise Exception('Invalid Subscription (data=%s)' %
                            (sub)) 
