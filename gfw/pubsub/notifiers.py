@@ -180,6 +180,10 @@ class DigestNotifer(webapp2.RequestHandler):
     def _recentDate(self,name,nth=1):
         date = None
         sql = self._latestSQL(name,nth+1)
+        
+        if name == "stories":
+            name = "forma"
+
         if sql:
             response = cdb.execute(sql)
             if response.status_code == 200:
@@ -200,8 +204,6 @@ class DigestNotifer(webapp2.RequestHandler):
             if last_update:
                 date = arrow.get(last_update).replace(days=+1).format("YYYY-MM-DD")
         if not date:
-            if name == "stories":
-                name = "forma"
             date = self._recentDate(name)
         return date
 
