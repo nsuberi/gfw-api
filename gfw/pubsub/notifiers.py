@@ -200,7 +200,7 @@ class DigestNotifer(webapp2.RequestHandler):
             if last_update:
                 date = arrow.get(last_update).replace(days=+1).format("YYYY-MM-DD")
         if not date:
-            if name == "stories"
+            if name == "stories":
                 name = "forma"
             date = self._recentDate(name)
         return date
