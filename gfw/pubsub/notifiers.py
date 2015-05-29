@@ -202,7 +202,7 @@ class DigestNotifer(webapp2.RequestHandler):
         if not date:
             date = self._recentDate(name)
         # return date
-        return arrow.now().replace(years=-2).format("YYYY-MM-DD")
+        return arrow.now().replace(months=-3).format("YYYY-MM-DD")
 
     #
     # Module Data
