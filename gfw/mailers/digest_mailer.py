@@ -12,23 +12,23 @@ header="""
 table_header = """
 <table style="border-collapse: collapse;">
   <tr>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>New alerts</b></th>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>Type of Alert</b></th>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>Date of Alerts*</b></th>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>Summary</b></th>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>Specs</b></th>
-    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" ><b>View & Download</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>New Alerts</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>Type of Alert</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>Date of Alerts*</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>Summary</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>Specs</b></th>
+    <th style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" ><b>View & Download</b></th>
   </tr>
 """
 
 table_row = """
 <tr>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;text-align:center;" >{alerts}</td>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;text-align:center;" >{email_name}</td>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;text-align:center;" >{date_range}</td>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" >{summary}</td>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;" >{alert_types}{specs}</td>
-  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:75%;text-align:center;" ><a href='{url}'>Link</a></td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;text-align:center;" >{alerts}</td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;text-align:center;" >{email_name}</td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;text-align:center;" >{date_range}</td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" >{summary}</td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;" >{alert_types}{specs}</td>
+  <td style="border: solid 1px #bbbbbb;padding:2px;font-size:82%;text-align:center;" ><a href='{url}'>Link</a></td>
 </tr>
 """
 
