@@ -34,7 +34,8 @@ class TerraiSql(Sql):
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
-                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)"""
+                  ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
+        GROUP BY f.grid_code"""
 
     ISO = """
         SELECT 
@@ -44,7 +45,8 @@ class TerraiSql(Sql):
         FROM terra_i_decrease f
         WHERE iso = UPPER('{iso}')
             AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        GROUP BY f.grid_code"""
 
     ID1 = """
         SELECT 
@@ -56,7 +58,8 @@ class TerraiSql(Sql):
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
             AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        GROUP BY f.grid_code"""
 
     WDPA = """
         SELECT 
@@ -65,7 +68,8 @@ class TerraiSql(Sql):
         FROM terra_i_decrease f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        GROUP BY f.grid_code"""
 
     USE = """
         SELECT 
@@ -75,7 +79,8 @@ class TerraiSql(Sql):
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date"""
+              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        GROUP BY f.grid_code"""
 
     LATEST = """
         SELECT DISTINCT
@@ -83,6 +88,7 @@ class TerraiSql(Sql):
             (DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 )) as date
         FROM terra_i_decrease 
         WHERE grid_code IS NOT NULL
+        GROUP BY grid_code
         ORDER BY grid_code DESC
         LIMIT {limit}"""
 
