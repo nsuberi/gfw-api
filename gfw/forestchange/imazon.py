@@ -26,7 +26,8 @@ class ImazonSql(Sql):
     WORLD = """
         WITH poly AS (SELECT * FROM ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326) geojson)
         SELECT data_type,
-        SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
+            SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
+            {additional_select}
         FROM imazon_clean i, poly
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
@@ -37,6 +38,7 @@ class ImazonSql(Sql):
     ISO = """
         SELECT data_type,
             sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
+            {additional_select}
         FROM imazon_clean i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
@@ -47,6 +49,7 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
+            {additional_select}
         FROM imazon_clean i,
             (SELECT *
                 FROM gadm2_provinces_simple
@@ -60,6 +63,7 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
+            {additional_select}
         FROM (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) p,
             imazon_clean i
         WHERE i.date >= '{begin}'::date
@@ -71,6 +75,7 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
+            {additional_select}
         FROM {use_table} p, imazon_clean i
         WHERE p.cartodb_id = {pid}
             AND i.date >= '{begin}'::date
@@ -87,9 +92,10 @@ class ImazonSql(Sql):
         
     @classmethod
     def download(cls, sql):
-        x = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')
-        x = x.replace('GROUP BY data_type', 'GROUP BY i.data_type, i.the_geom')
-        query = ' '.join(x.split())
+        download_sql = sql.replace(ImazonSql.MIN_MAX_DATE_SQL, "")
+        download_sql = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')
+        download_sql = download_sql.replace('GROUP BY data_type', 'GROUP BY i.data_type, i.the_geom')
+        query = ' '.join(download_sql.split())
         return query
 
 

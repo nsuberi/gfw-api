@@ -25,6 +25,10 @@ def classify_query(args):
         return 'world'
 
 def args_params(params,args):
+    if args.get('alert_query'):
+        params['additional_select'] = Sql.MIN_MAX_DATE_SQL
+    else:
+        params['additional_select'] = ""
     if args.get('iso'):
         params['iso'] = args['iso']
     if args.get('id1'):
@@ -41,6 +45,8 @@ class SqlError(ValueError):
 
 
 class Sql(object):
+
+    MIN_MAX_DATE_SQL = ', MIN(date) as min_date, MAX(date) as max_date'
 
     @classmethod
     def get_query_type(cls, params, args, the_geom_table=''):

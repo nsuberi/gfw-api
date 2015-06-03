@@ -24,75 +24,85 @@ from gfw.forestchange.common import Sql
 
 class TerraiSql(Sql):
 
+    DATE = "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || ***'-01-01') +  (MOD(f.grid_code,23)*16 )"
+    MIN_MAX_DATE_SQL = ", MIN(%s) as min_date, MAX(%s) as max_date" % (DATE,DATE)
+
     WORLD = """
         SELECT 
             COUNT(f.*) AS value,
-            DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
+            %s as date
+            {additional_select}
         FROM terra_i_decrease f
-        WHERE DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
+        WHERE %s >= '{begin}'::date
+              AND %s <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
-        GROUP BY f.grid_code"""
+        GROUP BY f.grid_code""" % (DATE,DATE,DATE)
 
     ISO = """
         SELECT 
             COUNT(f.*) AS value,
-            DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
+            %s as date
+            {additional_select}
         FROM terra_i_decrease f
         WHERE iso = UPPER('{iso}')
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
-        GROUP BY f.grid_code"""
+            AND %s >= '{begin}'::date
+            AND %s <= '{end}'::date
+        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
 
     ID1 = """
         SELECT 
             COUNT(f.*) AS value,
-            DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
+            %s as date
+            {additional_select}
         FROM terra_i_decrease f,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-            AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
-        GROUP BY f.grid_code"""
+            AND %s >= '{begin}'::date
+            AND %s <= '{end}'::date
+        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
 
     WDPA = """
         SELECT 
             COUNT(f.*) AS value,
-            DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
+            %s as date
+            {additional_select}
         FROM terra_i_decrease f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
-        GROUP BY f.grid_code"""
+              AND %s >= '{begin}'::date
+              AND %s <= '{end}'::date
+        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
 
     USE = """
         SELECT 
             COUNT(f.*) AS value,
-            DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
+            %s as date
+            {additional_select}
         FROM {use_table} u, terra_i_decrease f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
-              AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
-        GROUP BY f.grid_code"""
+              AND %s >= '{begin}'::date
+              AND %s <= '{end}'::date
+        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
 
     LATEST = """
         SELECT DISTINCT
             grid_code,
-            (DATE ((2004+FLOOR((grid_code-1)/23))::text || '-01-01') +  (MOD(grid_code,23)*16 )) as date
+            %s as date
         FROM terra_i_decrease 
         WHERE grid_code IS NOT NULL
         GROUP BY grid_code
         ORDER BY grid_code DESC
-        LIMIT {limit}"""
+        LIMIT {limit}""" % (DATE)
 
     @classmethod
     def download(cls, sql):
+        download_sql = sql.replace(TerraiSql.MIN_MAX_DATE_SQL, "")
+        download_sql = download_sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*")
         return ' '.join(
-            sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*").split())
+            download_sql.split())
 
 
 def _processResults(action, data):

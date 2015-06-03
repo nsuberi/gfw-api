@@ -25,6 +25,7 @@ class QuiccSql(Sql):
 
     WORLD = """
         SELECT COUNT(pt.*) AS value
+            {additional_select}
         FROM quicc_alerts pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
@@ -33,6 +34,7 @@ class QuiccSql(Sql):
 
     ISO = """
         SELECT COUNT(pt.*) AS value
+            {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
@@ -43,6 +45,7 @@ class QuiccSql(Sql):
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
+            {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
@@ -53,6 +56,7 @@ class QuiccSql(Sql):
 
     WDPA = """
         SELECT COUNT(pt.*) AS value
+            {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -61,6 +65,7 @@ class QuiccSql(Sql):
 
     USE = """
         SELECT COUNT(pt.*) AS value
+            {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
@@ -76,9 +81,10 @@ class QuiccSql(Sql):
         
     @classmethod
     def download(cls, sql):
+        download_sql = sql.replace(QuiccSql.MIN_MAX_DATE_SQL, "")
+        download_sql = download_sql.replace("SELECT COUNT(pt.*) AS value", "SELECT pt.*")
         return ' '.join(
-            sql.replace("SELECT COUNT(pt.*) AS value", "SELECT pt.*").split())
-
+            download_sql.split())
 
 def _processResults(action, data):
     if 'rows' in data:

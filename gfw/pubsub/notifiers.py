@@ -71,14 +71,17 @@ class DigestNotifer(webapp2.RequestHandler):
                         'degrad': 'hectares degradation',
                         'defor': 'hectares deforestation'
                     }
-                })            
+                })    
+
+            max_quicc_date = self._get_max_date('quicc')
+            force_min_date, force_max_date, quicc_interval = self._period(max_quicc_date,3,True)        
             quiccData = self._moduleData(s,{
                     'name': 'quicc',
                     'url_id': 'modis',
                     'email_name': 'QUICC',
                     'summary':'Identifies areas of land that have lost at least 40% of their green vegetation cover from the previous quarterly product',
                     'specs':'quarterly, 5km, <37 degrees north, NASA'
-                })
+                },True,force_min_date,force_max_date)
             storiesData = self._storiesData(s,{
                     'name': 'stories',
                     'url_id': 'none/580',
@@ -102,6 +105,31 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(quiccData)
                 self.body += self.mailer.table_footer
                 self.body += self.mailer.outro.format(**s)
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+
+                print self.body
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+                print " "
+
                 #
                 # send email
                 #
@@ -226,29 +254,40 @@ class DigestNotifer(webapp2.RequestHandler):
         data['url_id'] = module_info.get('url_id')
         return data
 
-    def _moduleData(self,sub,module_info,increment_value=True):
+    def _moduleData(self,sub,module_info,increment_value=True,force_min_date=None,force_max_date=None):
         data = self._prepData(sub,module_info)
         try:
 
             action, response = eval(module_info.get('name')).execute(data)
             total_value, alerts, alert_types, min_date, max_date = self._valueAndAlerts(response,module_info.get('value_names'))
-
-            if max_date:
-                module_info['max_date'] = max_date.split('T')[0]
-            elif total_value > 0:
-                module_info['max_date'] = data.get('end')
+            if force_max_date:
+                if (min_date <= force_max_date):
+                    module_info['min_date'] = force_min_date
+                    module_info['max_date'] = force_max_date
+                else:
+                    return None
             else:
-                module_info['max_date'] = ""
+                if min_date:
+                    module_info['min_date'] = min_date.split('T')[0]
+                elif total_value > 0:
+                    module_info['min_date'] =  data.get('begin')
+                else:
+                    module_info['min_date'] = ""
 
-            if min_date:
-                module_info['min_date'] = min_date.split('T')[0]
-            elif total_value > 0:
-                module_info['min_date'] =  data.get('begin')
-            else:
-                module_info['min_date'] = ""
 
-            data['max_date'] = module_info['max_date']
+                if max_date:
+                    module_info['max_date'] = max_date.split('T')[0]
+                elif total_value > 0:
+                    module_info['max_date'] = data.get('end')
+                else:
+                    module_info['max_date'] = ""
+
+
+
+
+
             data['min_date'] = module_info['min_date']
+            data['max_date'] = module_info['max_date']
             module_info['url'] = self._linkUrl(data)
 
             module_info['date_range'] = self._dateRange(module_info)
