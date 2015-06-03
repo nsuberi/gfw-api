@@ -24,9 +24,9 @@ def classify_query(args):
     else:
         return 'world'
 
-def args_params(params,args):
+def args_params(params,args,min_max_sql):
     if args.get('alert_query'):
-        params['additional_select'] = Sql.MIN_MAX_DATE_SQL
+        params['additional_select'] = min_max_sql
     else:
         params['additional_select'] = ""
     if args.get('iso'):
@@ -62,6 +62,16 @@ class Sql(object):
         return query_type, params
 
     @classmethod
+    def cleanAlert(cls, args, query):
+        """Remove specified sql for alerts if exists"""
+        if (args.get('alert_query') and hasattr(cls, "ALERT_SQL_REMOVALS")):
+            for removal_sql in cls.ALERT_SQL_REMOVALS:
+                query = query.replace(removal_sql,"")
+            query = ' '.join(query.split())
+            query = query.replace(', ,',',')
+        return query
+
+    @classmethod
     def clean(cls, sql):
         """Return sql clean  with extra whitespace removed."""
         if sql:
@@ -78,49 +88,55 @@ class Sql(object):
 
     @classmethod
     def world(cls, params, args):
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
-        query = cls.WORLD.format(**params)         
+        query = cls.WORLD.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(query)     
         return query, download_query
 
     @classmethod
     def ifl(cls, params, args):
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(cls.IFL.format(**params)) 
         return query, download_query
 
     @classmethod
     def ifl_id1(cls, params, args):
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL_ID1.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(cls.IFL_ID1.format(**params))
         return query, download_query
 
     @classmethod
     def iso(cls, params, args):
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(cls.ISO.format(**params))
         return query, download_query
 
     @classmethod
     def id1(cls, params, args): 
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ID1.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(cls.ID1.format(**params))
         return query, download_query
 
     @classmethod
     def wdpa(cls, params, args):
-        params = args_params(params,args)
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.WDPA.format(**params)
+        query = cls.cleanAlert(args,query)         
         download_query = cls.download(cls.WDPA.format(**params))
         return query, download_query
 

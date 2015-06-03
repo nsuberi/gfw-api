@@ -24,8 +24,9 @@ from gfw.forestchange.common import Sql
 
 class TerraiSql(Sql):
 
-    DATE = "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || ***'-01-01') +  (MOD(f.grid_code,23)*16 )"
+    DATE = "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
     MIN_MAX_DATE_SQL = ", MIN(%s) as min_date, MAX(%s) as max_date" % (DATE,DATE)
+    ALERT_SQL_REMOVALS = ["%s as date" % (DATE), "GROUP BY f.grid_code"]
 
     WORLD = """
         SELECT 

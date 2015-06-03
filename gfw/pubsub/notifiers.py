@@ -105,7 +105,6 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(quiccData)
                 self.body += self.mailer.table_footer
                 self.body += self.mailer.outro.format(**s)
-<<<<<<< Updated upstream
                 print " "
                 print " "
                 print " "
@@ -117,7 +116,6 @@ class DigestNotifer(webapp2.RequestHandler):
                 print " "
                 print " "
                 print " "
-
                 print self.body
                 print " "
                 print " "
@@ -130,9 +128,6 @@ class DigestNotifer(webapp2.RequestHandler):
                 print " "
                 print " "
                 print " "
-
-=======
->>>>>>> Stashed changes
                 #
                 # send email
                 #
