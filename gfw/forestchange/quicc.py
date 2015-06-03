@@ -29,7 +29,6 @@ class QuiccSql(Sql):
         FROM quicc_alerts pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
             AND ST_INTERSECTS(
                 ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'), 4326), the_geom)"""
 
@@ -42,7 +41,6 @@ class QuiccSql(Sql):
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
         """
 
     ID1 = """
@@ -54,7 +52,6 @@ class QuiccSql(Sql):
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
-            {min_alert_date}
         """
 
     WDPA = """
@@ -73,6 +70,13 @@ class QuiccSql(Sql):
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date"""
 
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM quicc_alerts
+        WHERE date IS NOT NULL
+        ORDER BY date DESC
+        LIMIT {limit}"""
+        
     @classmethod
     def download(cls, sql):
         return ' '.join(
@@ -81,8 +85,10 @@ class QuiccSql(Sql):
 
 def _processResults(action, data):
     if 'rows' in data:
-        result = data['rows'][0]
-        data.pop('rows')
+        results = data.pop('rows')
+        result = results[0]
+        if not result.get('value'):
+            data['results'] = results
     else:
         result = dict(value=None)
 

@@ -36,6 +36,7 @@ libraries:
   version: "latest"  
 
 ## GAE python console:
+# remote_api_shell.py -s dev.gfw-apis.appspot.com
 builtins:
 - remote_api: on
 
@@ -82,6 +83,11 @@ handlers:
 # Stories
 - url: /stories.*
   script: gfw.stories.handlers
+
+# PubSub
+# - url: /publish
+#   script: gfw.pubsub.api.handlers
+#   login: admin
 
 - url: /.*
   script: gfw.pubsub.api.handlers

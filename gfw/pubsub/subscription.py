@@ -34,6 +34,7 @@ class Subscription(ndb.Model):
     topic = ndb.StringProperty()
     email = ndb.StringProperty()
     params = ndb.JsonProperty()
+    updates = ndb.JsonProperty()
     confirmed = ndb.BooleanProperty(default=False)
     created = ndb.DateTimeProperty(auto_now_add=True)
 

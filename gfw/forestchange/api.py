@@ -197,6 +197,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust','limit']
     },
     'nasa-active-fires': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -204,6 +205,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust','limit']
     },
     'quicc-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -211,6 +213,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust','limit']
     },
     'imazon-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -218,6 +221,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust','limit']
     },
     'umd-loss-gain': {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
@@ -234,6 +238,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust','limit']
     }
 }
 
@@ -269,6 +274,8 @@ def _classify_request(path):
 
     if re.match(r'forest-change/%s$' % dataset, path):
         rtype = 'all'
+    elif re.match(r'forest-change/%s/latest$' % dataset, path):
+        rtype = 'latest'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset, path):

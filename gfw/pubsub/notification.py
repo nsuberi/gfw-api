@@ -40,9 +40,10 @@ class Notification(ndb.Model):
 
     @classmethod
     def create(cls, event, subscription):
-        id = '%s+%s' % (event.key.id(), subscription.key.id())
+        subscription_id = subscription.key.id()
+        id = '%s+%s' % (event.key.id(), subscription_id)
         return cls(
             id=id,
             topic=event.topic,
-            params=dict(event=event.params, subscription=subscription.params))
+            params=dict(event=event.params, updates=subscription.updates, subscription=subscription.params, subscription_id=subscription_id ))
 

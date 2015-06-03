@@ -4,30 +4,6 @@ import json
 
 from gfw import cdb
 
-def query_vars(args):
-    if args.get('alert_query'):
-        min_alert_date = args.get('min_alert_date')
-        if min_alert_date:
-            if (min_alert_date[0:3] == 'AND'):
-                min_alert_date_sql = min_alert_date
-            else:
-                min_alert_date_sql = ("AND date >= '%s'::date" % min_alert_date)
-        else:
-            min_alert_date_sql = ''
-        additional_select = args.get('additional_select') or ', MIN(date) as min_date, MAX(date) as max_date'
-        return 'created_at', additional_select, min_alert_date_sql
-        
-    else:
-        return 'date', '', ''
-
-def params_with_vars(params,args):
-    date_column, additional_select, min_alert_date = query_vars(args)
-    params['date_column'] = date_column
-    params['additional_select'] = additional_select
-    params['min_alert_date'] = min_alert_date
-    params['max_min_selector'] = args.get('max_min_selector')
-    return params
-
 def classify_query(args):
     if 'ifl' in args:
         return 'ifl'
@@ -43,9 +19,25 @@ def classify_query(args):
         return 'pa'
     elif 'wdpaid' in args:
         return 'wdpa'
+    elif 'latest' in args:
+        return 'latest'
     else:
         return 'world'
 
+def args_params(params,args):
+    if args.get('alert_query'):
+        params['additional_select'] = ', MIN(date) as min_date, MAX(date) as max_date'
+    else:
+        params['additional_select'] = ""
+    if args.get('iso'):
+        params['iso'] = args['iso']
+    if args.get('id1'):
+        params['id1'] = args['id1']
+    if args.get('geojson'):
+        params['geojson'] = args['geojson']
+    if args.get('wdpaid'):
+        params['wdpaid'] = args['wdpaid']
+    return params
 
 class SqlError(ValueError):
     def __init__(self, msg):
@@ -70,40 +62,37 @@ class Sql(object):
     @classmethod
     def clean(cls, sql):
         """Return sql clean  with extra whitespace removed."""
-        return ' '.join(sql.split())
+        if sql:
+            return ' '.join(sql.split())
 
     @classmethod
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
         params = dict(begin=begin, end=end, geojson='', the_geom='')    
-        params = params_with_vars(params,args)              
         classification = classify_query(args)
         if hasattr(cls, classification):
             return map(cls.clean, getattr(cls, classification)(params, args))
 
     @classmethod
     def world(cls, params, args):
-        params = params_with_vars(params,args)
-        params['geojson'] = args['geojson']
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
-        query = cls.WORLD.format(**params)        
-        download_query = cls.download(cls.WORLD.format(**params))
+        query = cls.WORLD.format(**params)         
+        download_query = cls.download(query)     
         return query, download_query
 
     @classmethod
-    def ifl(cls, params, args):        
-        params = params_with_vars(params,args)
-        params['iso'] = args['iso']
+    def ifl(cls, params, args):
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL.format(**params)
         download_query = cls.download(cls.IFL.format(**params)) 
         return query, download_query
 
     @classmethod
-    def ifl_id1(cls, params, args):        
-        params['iso'] = args['iso']
-        params['id1'] = args['id1']
+    def ifl_id1(cls, params, args):
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL_ID1.format(**params)
         download_query = cls.download(cls.IFL_ID1.format(**params))
@@ -111,17 +100,15 @@ class Sql(object):
 
     @classmethod
     def iso(cls, params, args):
-        params = params_with_vars(params,args)
-        params['iso'] = args['iso']
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)
         download_query = cls.download(cls.ISO.format(**params))
         return query, download_query
 
     @classmethod
-    def id1(cls, params, args):        
-        params['iso'] = args['iso']
-        params['id1'] = args['id1']
+    def id1(cls, params, args): 
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ID1.format(**params)
         download_query = cls.download(cls.ID1.format(**params))
@@ -129,7 +116,7 @@ class Sql(object):
 
     @classmethod
     def wdpa(cls, params, args):
-        params['wdpaid'] = args['wdpaid']
+        params = args_params(params,args)
         query_type, params = cls.get_query_type(params, args)
         query = cls.WDPA.format(**params)
         download_query = cls.download(cls.WDPA.format(**params))
@@ -150,6 +137,11 @@ class Sql(object):
         download_query = cls.download(cls.USE.format(**params))
         return query, download_query
 
+    @classmethod
+    def latest(cls, params, args):
+        params['limit'] = args.get('limit') or 3
+        query = cls.LATEST.format(**params)
+        return query, None
 
 def get_download_urls(query, params):
     urls = {}

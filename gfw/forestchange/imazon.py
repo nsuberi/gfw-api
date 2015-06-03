@@ -29,9 +29,8 @@ class ImazonSql(Sql):
         SUM(ST_Area(ST_Intersection(ST_Transform(poly.geojson, 3857), i.the_geom_webmercator))/(100*100)) AS value
         {additional_select}
         FROM imazon_sad i, poly
-        WHERE i.{date_column} >= '{begin}'::date
-            AND i.{date_column} <= '{end}'::date
-            {min_alert_date}
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
         GROUP BY data_type"""
         
     # ISO same as WORLD since imazon only in Brazil
@@ -39,11 +38,10 @@ class ImazonSql(Sql):
     ISO = """
         SELECT data_type,
             sum(ST_Area(i.the_geom_webmercator)/(100*100)) AS value
-        {additional_select}
+            {additional_select}
         FROM imazon_sad i
-        WHERE i.{date_column} >= '{begin}'::date
-            AND i.{date_column} <= '{end}'::date
-            {min_alert_date}
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
         GROUP BY data_type"""
 
     ID1 = """
@@ -51,14 +49,13 @@ class ImazonSql(Sql):
             SUM(ST_Area(ST_Intersection(
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
-        {additional_select}
+            {additional_select}
         FROM imazon_sad i,
             (SELECT *
                 FROM gadm2_provinces_simple
                 WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
-        WHERE i.{date_column} >= '{begin}'::date
-            AND i.{date_column} <= '{end}'::date
-            {min_alert_date}
+        WHERE i.date >= '{begin}'::date
+            AND i.date <= '{end}'::date
         GROUP BY data_type"""
 
     WDPA = """
@@ -83,6 +80,14 @@ class ImazonSql(Sql):
             AND i.date <= '{end}'::date
         GROUP BY data_type"""
 
+
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM imazon_sad
+        WHERE date IS NOT NULL
+        ORDER BY date DESC
+        LIMIT {limit}"""
+        
     @classmethod
     def download(cls, sql):
         x = sql.replace('SELECT data_type,', 'SELECT i.data_type, i.the_geom,')
@@ -101,12 +106,13 @@ def _processResults(action, data, args):
     if 'iso' in args and args['iso'].lower() != 'bra':
         result = NO_DATA
     elif 'rows' in data:
-        result = data['rows']
+        results = data.pop('rows')
+        result = results[0]
+        if not result.get('value'):
+            data['results'] = results
+            
     else:
         result = NO_DATA
-
-    if 'rows' in data:
-        data.pop('rows')
 
     data['value'] = result
 

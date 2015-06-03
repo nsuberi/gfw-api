@@ -24,12 +24,11 @@ from gfw.forestchange.common import Sql
 class FormaSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value 
+        SELECT COUNT(f.*) AS value
         {additional_select}
         FROM forma_api f
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
-              {min_alert_date}
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
@@ -39,10 +38,9 @@ class FormaSql(Sql):
         SELECT COUNT(f.*) AS value
         {additional_select}
         FROM forma_api f
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
               AND f.iso = UPPER('{iso}')
-              {min_alert_date}
         """
 
     ID1 = """
@@ -55,9 +53,8 @@ class FormaSql(Sql):
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.{date_column} >= '{begin}'::date
-              AND f.{date_column} <= '{end}'::date
-              {min_alert_date}
+        WHERE f.date >= '{begin}'::date
+              AND f.date <= '{end}'::date
         """
 
     WDPA = """
@@ -75,6 +72,13 @@ class FormaSql(Sql):
               AND f.date >= '{begin}'::date
               AND f.date <= '{end}'::date"""
 
+    LATEST = """
+        SELECT DISTINCT date 
+        FROM forma_api
+        WHERE date IS NOT NULL
+        ORDER BY date DESC
+        LIMIT {limit}"""
+
     @classmethod
     def download(cls, sql):
         return ' '.join(
@@ -83,8 +87,10 @@ class FormaSql(Sql):
 
 def _processResults(action, data):
     if 'rows' in data:
-        result = data['rows'][0]
-        data.pop('rows')
+        results = data.pop('rows')
+        result = results[0]
+        if not result.get('value'):
+            data['results'] = results
     else:
         result = dict(value=None,min_date=None,max_date=None)
 
