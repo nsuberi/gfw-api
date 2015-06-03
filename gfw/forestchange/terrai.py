@@ -28,7 +28,6 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value,
             DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
-            {additional_select}
         FROM terra_i_decrease f
         WHERE DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
               AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) <= '{end}'::date
@@ -41,7 +40,6 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value,
             DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
-            {additional_select}
         FROM terra_i_decrease f
         WHERE iso = UPPER('{iso}')
             AND DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) >= '{begin}'::date
@@ -52,7 +50,6 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value,
             DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 ) as date
-            {additional_select}
         FROM terra_i_decrease f,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
@@ -121,15 +118,8 @@ def _gridCodeToDate(grid_code):
     else:
         return None
 
-def _maxMinSelector(args):
-    if args.get('alert_query'):
-        return 'f.created_at'
-    else: 
-        return "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
-
 def execute(args):
     args['version'] = 'v2'
-    args['max_min_selector'] = _maxMinSelector(args)
     action, data = CartoDbExecutor.execute(args, TerraiSql)
     if action == 'redirect' or action == 'error':
         return action, data

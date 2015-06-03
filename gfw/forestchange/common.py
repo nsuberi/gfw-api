@@ -25,10 +25,6 @@ def classify_query(args):
         return 'world'
 
 def args_params(params,args):
-    if args.get('alert_query'):
-        params['additional_select'] = ', MIN(date) as min_date, MAX(date) as max_date'
-    else:
-        params['additional_select'] = ""
     if args.get('iso'):
         params['iso'] = args['iso']
     if args.get('id1'):

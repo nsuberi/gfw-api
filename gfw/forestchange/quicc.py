@@ -25,7 +25,6 @@ class QuiccSql(Sql):
 
     WORLD = """
         SELECT COUNT(pt.*) AS value
-        {additional_select}
         FROM quicc_alerts pt
         WHERE pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date
@@ -34,7 +33,6 @@ class QuiccSql(Sql):
 
     ISO = """
         SELECT COUNT(pt.*) AS value
-        {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_countries_simple
              WHERE iso = UPPER('{iso}')) as p
@@ -45,7 +43,6 @@ class QuiccSql(Sql):
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
-        {additional_select}
         FROM quicc_alerts pt,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p

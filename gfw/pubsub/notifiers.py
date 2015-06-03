@@ -223,13 +223,13 @@ class DigestNotifer(webapp2.RequestHandler):
         data = data.copy()
         data['end'] = arrow.now().format("YYYY-MM-DD")
         data['begin'] = self._beginDate(data,module_info)
-        data['additional_select'] = module_info.get('additional_select')
         data['url_id'] = module_info.get('url_id')
         return data
 
     def _moduleData(self,sub,module_info,increment_value=True):
         data = self._prepData(sub,module_info)
         try:
+
             action, response = eval(module_info.get('name')).execute(data)
             total_value, alerts, alert_types, min_date, max_date = self._valueAndAlerts(response,module_info.get('value_names'))
 
@@ -247,10 +247,13 @@ class DigestNotifer(webapp2.RequestHandler):
             else:
                 module_info['min_date'] = ""
 
+            data['max_date'] = module_info['max_date']
+            data['min_date'] = module_info['min_date']
+            module_info['url'] = self._linkUrl(data)
+
             module_info['date_range'] = self._dateRange(module_info)
             module_info['alerts'] = alerts
             module_info['alert_types'] = alert_types
-            module_info['url'] = self._linkUrl(data)
 
             if total_value > 0:
                 if increment_value:
