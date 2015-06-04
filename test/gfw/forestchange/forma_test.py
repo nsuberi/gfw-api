@@ -55,6 +55,7 @@ class FormaSqlTest(common.FetchBaseTest):
         correct_params = self.params.copy()
         correct_params['use_table'] = 'gfw_mining'
         correct_params['pid'] = args['useid']
+        correct_params['additional_select'] = ''
         mock_get_query_type.return_value = ('fake-type', self.params)
         query, download_query = forma.FormaSql.use(self.params,args)
         mock_get_query_type.assert_called_with(correct_params,args)
@@ -70,6 +71,7 @@ class FormaSqlTest(common.FetchBaseTest):
         correct_params = self.params.copy()
         correct_params['use_table'] = 'generic'
         correct_params['pid'] = args['useid']
+        correct_params['additional_select'] = ''
         mock_get_query_type.return_value = ('fake-type', self.params)
         query, download_query = forma.FormaSql.use(self.params,args)
         mock_get_query_type.assert_called_with(correct_params,args)

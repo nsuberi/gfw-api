@@ -81,7 +81,7 @@ class Sql(object):
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
         end = args['end'] if 'end' in args else '2015-01-01'
-        params = dict(begin=begin, end=end, geojson='', the_geom='')    
+        params = dict(begin=begin, end=end)
         classification = classify_query(args)
         if hasattr(cls, classification):
             return map(cls.clean, getattr(cls, classification)(params, args))
@@ -92,7 +92,7 @@ class Sql(object):
         query_type, params = cls.get_query_type(params, args)
         query = cls.WORLD.format(**params)
         query = cls.cleanAlert(args,query)         
-        download_query = cls.download(query)     
+        download_query = cls.download(query)
         return query, download_query
 
     @classmethod
@@ -150,6 +150,7 @@ class Sql(object):
         }
         params['use_table'] = concessions.get(args['use']) or args['use']
         params['pid'] = args['useid']
+        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.USE.format(**params)
         download_query = cls.download(cls.USE.format(**params))
