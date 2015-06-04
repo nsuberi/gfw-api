@@ -401,7 +401,7 @@ class DigestNotifer(webapp2.RequestHandler):
         alert_tables = {
             'forma':'forma_api',
             'terrai':'terra_i_decrease',
-            'imazon':'imazon_clean',
+            'imazon':'imazon_sad',
             'quicc':'modis_forest_change_copy'
         }
         table_name = alert_tables.get(name) or name
