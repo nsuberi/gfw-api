@@ -325,7 +325,7 @@ class DigestNotifer(webapp2.RequestHandler):
                 lat, lon = self._center(data['geom'])
                 data['lat'] = lat
                 data['lon'] = lon
-                data['geom'] = data['geom']             
+                data['geom'] = json.dumps(data['geom'])
                 link = self.mailer.link_geom.format(**data)
             else:
                 link = self.mailer.link_iso.format(**data)
