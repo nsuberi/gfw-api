@@ -26,12 +26,10 @@ class TerraiSql(Sql):
 
     DATE = "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
     MIN_MAX_DATE_SQL = ", MIN(%s) as min_date, MAX(%s) as max_date" % (DATE,DATE)
-    ALERT_SQL_REMOVALS = ["%s as date" % (DATE), "GROUP BY f.grid_code"]
 
     WORLD = """
         SELECT 
-            COUNT(f.*) AS value,
-            %s as date
+            COUNT(f.*) AS value
             {additional_select}
         FROM terra_i_decrease f
         WHERE %s >= '{begin}'::date
@@ -39,23 +37,21 @@ class TerraiSql(Sql):
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
-        GROUP BY f.grid_code""" % (DATE,DATE,DATE)
+        """ % (DATE,DATE)
 
     ISO = """
         SELECT 
-            COUNT(f.*) AS value,
-            %s as date
+            COUNT(f.*) AS value
             {additional_select}
         FROM terra_i_decrease f
         WHERE iso = UPPER('{iso}')
             AND %s >= '{begin}'::date
             AND %s <= '{end}'::date
-        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
+        """  % (DATE,DATE)
 
     ID1 = """
         SELECT 
-            COUNT(f.*) AS value,
-            %s as date
+            COUNT(f.*) AS value
             {additional_select}
         FROM terra_i_decrease f,
             (SELECT * FROM gadm2_provinces_simple
@@ -63,30 +59,28 @@ class TerraiSql(Sql):
         WHERE ST_Intersects(f.the_geom, p.the_geom)
             AND %s >= '{begin}'::date
             AND %s <= '{end}'::date
-        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
+        """  % (DATE,DATE)
 
     WDPA = """
         SELECT 
-            COUNT(f.*) AS value,
-            %s as date
+            COUNT(f.*) AS value
             {additional_select}
         FROM terra_i_decrease f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND %s >= '{begin}'::date
               AND %s <= '{end}'::date
-        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
+        """  % (DATE,DATE)
 
     USE = """
         SELECT 
-            COUNT(f.*) AS value,
-            %s as date
+            COUNT(f.*) AS value
             {additional_select}
         FROM {use_table} u, terra_i_decrease f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
               AND %s >= '{begin}'::date
               AND %s <= '{end}'::date
-        GROUP BY f.grid_code"""  % (DATE,DATE,DATE)
+        """  % (DATE,DATE)
 
     LATEST = """
         SELECT DISTINCT
