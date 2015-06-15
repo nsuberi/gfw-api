@@ -24,7 +24,7 @@ from gfw.forestchange.common import Sql
 
 class TerraiSql(Sql):
 
-    MIN_MAX_DATE_SQL = ", MIN(%s) as min_date, MAX(%s) as max_date" % (DATE,DATE)
+    MIN_MAX_DATE_SQL = ", MIN(date) as min_date, MAX(date) as max_date"
 
     WORLD = """
         SELECT 
