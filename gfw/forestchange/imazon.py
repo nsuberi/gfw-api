@@ -109,11 +109,7 @@ def _processResults(action, data, args):
     if 'iso' in args and args['iso'].lower() != 'bra':
         result = NO_DATA
     elif 'rows' in data:
-        results = data.pop('rows')
-        result = results[0]
-        if not result.get('value'):
-            data['results'] = results
-            
+        result = data.pop('rows')            
     else:
         result = NO_DATA
 
