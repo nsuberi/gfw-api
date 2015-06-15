@@ -24,7 +24,6 @@ from gfw.forestchange.common import Sql
 
 class TerraiSql(Sql):
 
-    DATE = "DATE ((2004+FLOOR((f.grid_code-1)/23))::text || '-01-01') +  (MOD(f.grid_code,23)*16 )"
     MIN_MAX_DATE_SQL = ", MIN(%s) as min_date, MAX(%s) as max_date" % (DATE,DATE)
 
     WORLD = """
@@ -32,12 +31,12 @@ class TerraiSql(Sql):
             COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f
-        WHERE %s >= '{begin}'::date
-              AND %s <= '{end}'::date
+        WHERE date >= '{begin}'::date
+              AND date <= '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
-        """ % (DATE,DATE)
+        """
 
     ISO = """
         SELECT 
@@ -45,9 +44,9 @@ class TerraiSql(Sql):
             {additional_select}
         FROM latin_decrease_current_points f
         WHERE iso = UPPER('{iso}')
-            AND %s >= '{begin}'::date
-            AND %s <= '{end}'::date
-        """  % (DATE,DATE)
+            AND date >= '{begin}'::date
+            AND date <= '{end}'::date
+        """
 
     ID1 = """
         SELECT 
@@ -57,9 +56,9 @@ class TerraiSql(Sql):
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-            AND %s >= '{begin}'::date
-            AND %s <= '{end}'::date
-        """  % (DATE,DATE)
+            AND date >= '{begin}'::date
+            AND date <= '{end}'::date
+        """
 
     WDPA = """
         SELECT 
@@ -67,9 +66,9 @@ class TerraiSql(Sql):
             {additional_select}
         FROM latin_decrease_current_points f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND %s >= '{begin}'::date
-              AND %s <= '{end}'::date
-        """  % (DATE,DATE)
+              AND date >= '{begin}'::date
+              AND date <= '{end}'::date
+        """
 
     USE = """
         SELECT 
@@ -78,19 +77,19 @@ class TerraiSql(Sql):
         FROM {use_table} u, latin_decrease_current_points f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND %s >= '{begin}'::date
-              AND %s <= '{end}'::date
-        """  % (DATE,DATE)
+              AND date >= '{begin}'::date
+              AND date <= '{end}'::date
+        """
 
     LATEST = """
         SELECT DISTINCT
             grid_code,
-            %s as date
+            date
         FROM latin_decrease_current_points 
         WHERE grid_code IS NOT NULL
         GROUP BY grid_code
         ORDER BY grid_code DESC
-        LIMIT {limit}""" % (DATE)
+        LIMIT {limit}"""
 
     @classmethod
     def download(cls, sql):
