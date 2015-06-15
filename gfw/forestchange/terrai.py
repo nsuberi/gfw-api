@@ -31,7 +31,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM terra_i_decrease f
+        FROM latin_decrease_current_points f
         WHERE %s >= '{begin}'::date
               AND %s <= '{end}'::date
               AND ST_INTERSECTS(
@@ -43,7 +43,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM terra_i_decrease f
+        FROM latin_decrease_current_points f
         WHERE iso = UPPER('{iso}')
             AND %s >= '{begin}'::date
             AND %s <= '{end}'::date
@@ -53,7 +53,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM terra_i_decrease f,
+        FROM latin_decrease_current_points f,
             (SELECT * FROM gadm2_provinces_simple
              WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
@@ -65,7 +65,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM terra_i_decrease f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
+        FROM latin_decrease_current_points f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND %s >= '{begin}'::date
               AND %s <= '{end}'::date
@@ -75,7 +75,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM {use_table} u, terra_i_decrease f
+        FROM {use_table} u, latin_decrease_current_points f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
               AND %s >= '{begin}'::date
@@ -86,7 +86,7 @@ class TerraiSql(Sql):
         SELECT DISTINCT
             grid_code,
             %s as date
-        FROM terra_i_decrease 
+        FROM latin_decrease_current_points 
         WHERE grid_code IS NOT NULL
         GROUP BY grid_code
         ORDER BY grid_code DESC
