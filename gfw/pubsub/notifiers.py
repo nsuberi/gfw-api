@@ -400,7 +400,7 @@ class DigestNotifer(webapp2.RequestHandler):
     def _get_max_date(self,name):
         alert_tables = {
             'forma':'forma_api',
-            'terrai':'terra_i_decrease',
+            'terrai':'latin_decrease_current_points',
             'imazon':'imazon_sad',
             'quicc':'modis_forest_change_copy'
         }
