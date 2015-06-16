@@ -64,7 +64,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM latin_decrease_current_points f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
+        FROM latin_decrease_current_points f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND date >= '{begin}'::date
               AND date <= '{end}'::date
