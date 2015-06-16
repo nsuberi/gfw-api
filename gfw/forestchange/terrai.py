@@ -53,8 +53,8 @@ class TerraiSql(Sql):
             COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f,
-            (SELECT * FROM gadm2_provinces_simple
-             WHERE iso = UPPER('{iso}') AND id_1 = {id1}) as p
+            (SELECT st_simplify (the_geom, 0.0001) as the_geom FROM gadm2_provinces_simple
+             WHERE iso = UPPER('{iso}') AND id_1 = {id1} LIMIT 1) as p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
             AND date >= '{begin}'::date
             AND date <= '{end}'::date
@@ -64,7 +64,7 @@ class TerraiSql(Sql):
         SELECT 
             COUNT(f.*) AS value
             {additional_select}
-        FROM latin_decrease_current_points f, (SELECT * FROM wdpa_all WHERE wdpaid={wdpaid}) AS p
+        FROM latin_decrease_current_points f, (SELECT st_simplify (the_geom, 0.0001) as the_geom FROM wdpa_protected_areas WHERE wdpaid={wdpaid} LIMIT 1) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND date >= '{begin}'::date
               AND date <= '{end}'::date
