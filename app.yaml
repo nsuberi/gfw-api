@@ -85,10 +85,6 @@ handlers:
   script: gfw.stories.handlers
 
 # PubSub
-# - url: /publish
-#   script: gfw.pubsub.api.handlers
-#   login: admin
-
 - url: /.*
   script: gfw.pubsub.api.handlers
 
