@@ -36,12 +36,7 @@ routes = [
     handler_method='unsubscribe',
     methods=['POST']
   ),
-  webapp2.Route(
-    r'/publish', 
-    handler=handlers.PubSubApi,
-    handler_method='publish',
-    methods=['POST']
-  ),
+
   # pubsub queue 
   webapp2.Route(
     r'/pubsub/publish', 

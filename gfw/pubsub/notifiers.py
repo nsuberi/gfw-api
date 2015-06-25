@@ -132,7 +132,8 @@ class DigestNotifer(webapp2.RequestHandler):
                 # send email
                 #
                 to = s['email']
-                if 'dry_run' in e:
+                dry_run = e.get('dry_run')
+                if dry_run:
                     # eightysteele@gmail.com,asteele.wri.org
                     tester, subscriber = e['dry_run'].split(',')
                     print "%s  %s" % (tester, subscriber)
