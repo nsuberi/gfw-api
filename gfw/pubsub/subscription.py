@@ -26,79 +26,146 @@ from google.appengine.api import mail
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 from google.appengine.api import users
 
-
 #
 # Model
 #
 class Subscription(ndb.Model):
     topic = ndb.StringProperty()
     email = ndb.StringProperty()
+    iso = ndb.StringProperty()
+    id1 = ndb.StringProperty()
+    has_geom = ndb.BooleanProperty(default=False)
+    confirmed = ndb.BooleanProperty(default=False)
     params = ndb.JsonProperty()
     updates = ndb.JsonProperty()
-    confirmed = ndb.BooleanProperty(default=False)
     created = ndb.DateTimeProperty(auto_now_add=True)
 
-    #
-    #   Class Methods
-    #
+
+    """ Class Methods """
+
     @classmethod
-    def get_confirmed(cls):
+    def create(cls,params):
+        """Create subscription if email and, iso or geom is present"""
+        subscription = None
+        email = params.get('email')
+        if email:
+            iso = params.get('iso')
+            has_geom = bool(params.get('geom'))
+            if iso or has_geom:
+                id1 = params.get('id1')
+                topic = params.get('topic')        
+                subscription = Subscription(
+                    email=email,
+                    topic=topic, 
+                    iso=iso,
+                    id1=id1,
+                    has_geom=has_geom,
+                    params=params
+                )
+        if subscription:
+            subscription.put()
+            return subscription
+        else:
+            return False
+
+    #
+    #   Query Helpers
+    #
+
+    @classmethod 
+    def with_token(cls, token):
+        """Return subscription for a given token"""
+        if type(token) is str:
+            subscription = ndb.Key(urlsafe=token).get()
+            if subscription.key.kind()=='Subscription':
+                subscription = subscription
+            else:
+                subscription = False
+        else:
+            print type(token)
+            subscription = token.get()
+        return subscription
+
+    @classmethod
+    def with_confirmation(cls):
         """Return all confirmed Subscription entities"""
         return cls.query(cls.confirmed == True).iter()
 
     @classmethod
-    def get_by_topic(cls, topic):
+    def without_confirmation(cls):
+        """Return all unconfirmed Subscription entities"""
+        return cls.query(cls.confirmed == True).iter()
+
+    @classmethod
+    def with_topic(cls, topic):
         """Return all confirmed Subscription entities for supplied topic."""
         return cls.query(cls.topic == topic, cls.confirmed == True).iter()
 
     @classmethod
-    def get_by_email(cls, email):
+    def with_email(cls, email):
         return cls.query(cls.email == email).iter()
 
-    @classmethod
-    def get_by_token(cls, token):
-        return ndb.Key(urlsafe=token).get()
+    #
+    # Subscriptions
+    #
+
 
     @classmethod
-    def unsubscribe(cls, topic, email):
-        x = cls.query(cls.topic == topic, cls.email == email).get()
-        if x:
-            x.key.delete()
-    
-    @classmethod
-    def subscribe(cls, topic, email, params):        
-        subscription = Subscription(topic=topic, email=email, params=params)
-        token = subscription.put()
-        if token:           
-            subscription.send_mail(token,email)
-            return True
+    def subscribe(cls, params): 
+        subscription = Subscription.create(params)
+        if subscription:
+            subscription.send_mail()
+            return subscription
         else:
             return False
 
     @classmethod
-    def confirm(cls,token):
-        subscription = cls.get_by_token(token)
-        try:
-            if not subscription or subscription.confirmed:
-                return False
-            else:
-                subscription.confirmed = True
-                return subscription.put()
-        except:
+    def unsubscribe(cls, token):
+        subscription = cls.with_token(token)
+        if subscription:
+            return subscription.unsubscribe()
+            
+    @classmethod
+    def unsubscribe_all(cls, topic, email):
+        subs = cls.query(cls.topic == topic, cls.email == email)
+        for sub in subs:
+            sub.unsubscribe()
+
+    @classmethod
+    def confirm_by_token(cls,token):
+        subscription = cls.with_token(token)
+        if subscription:
+            return subscription.confirm()
+        else:
             return False
 
 
+    """ Instance Methods """
+
     #
-    #   Instance Methods
-    #            
-    def send_mail(self,token,email):  
-        safe_token = token.urlsafe()
+    # Subscriptions
+    #
+
+    def confirm(self):
+        if not self.confirmed:
+            self.confirmed = True
+            return self.put()
+
+    def unsubscribe(self):
+        return self.key.delete()
+
+    #
+    # Mailer
+    #
+
+    def send_mail(self):  
+        safe_token = self.key.urlsafe()
         reply_to = 'sub+%s@gfw-apis.appspotmail.com' % safe_token
         conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], safe_token)
         logging.info("sending confirmation email: %s" % safe_token)
         mail.send_mail(
             sender=reply_to,
-            to=email,
+            to=self.email,
             reply_to=reply_to,
             subject=subscribe_mailer.subject,
             body=subscribe_mailer.body % conf_url

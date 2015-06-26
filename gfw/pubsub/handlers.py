@@ -66,7 +66,7 @@ class Publisher(webapp2.RequestHandler):
         e = ndb.Key(urlsafe=self.request.get('event')).get()
 
         if not e.multicasted:
-            for s in Subscription.get_confirmed():
+            for s in Subscription.with_confirmation():
                 n = Notification.get(e, s)
                 if not n:
                     n = Notification.create(e, s)
@@ -83,7 +83,7 @@ class Publisher(webapp2.RequestHandler):
 class SubscriptionDump(webapp2.RequestHandler):
     def get(self):
         email = self.request.get('email')
-        subs = [x.to_dict(exclude=['created']) for x in Subscription.get_by_email(email)]
+        subs = [x.to_dict(exclude=['created']) for x in Subscription.with_email(email)]
         self.response.headers.add_header('charset', 'utf-8')
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(json.dumps(subs, sort_keys=True))
@@ -143,10 +143,11 @@ class PubSubApi(BaseApi):
     def subscribe(self):
         try:
             params = self._get_params(body=True)
-            topic, email = map(params.get, ['topic', 'email'])
-            if Subscription.subscribe(topic, email, params):
+            subscription = Subscription.subscribe(params)
+            if subscription:
+                token = subscription.key.urlsafe()
                 self.response.set_status(201)
-                self._send_response(json.dumps(dict(subscribe=True)))
+                self._send_response(json.dumps(dict(subscribe=True,token=token)))
             else:
                 self.error(404)  
 
