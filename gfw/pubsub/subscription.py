@@ -40,6 +40,7 @@ class Subscription(ndb.Model):
     updates = ndb.JsonProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
 
+    kind = 'Subscription'
 
     """ Class Methods """
 
@@ -75,14 +76,14 @@ class Subscription(ndb.Model):
     @classmethod 
     def with_token(cls, token):
         """Return subscription for a given token"""
-        if type(token) is str:
+        token_type = type(token)
+        if (token_type is str) or (token_type is unicode):
             subscription = ndb.Key(urlsafe=token).get()
-            if subscription.key.kind()=='Subscription':
+            if subscription.key.kind()==cls.kind:
                 subscription = subscription
             else:
                 subscription = False
         else:
-            print type(token)
             subscription = token.get()
         return subscription
 

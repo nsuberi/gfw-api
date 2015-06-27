@@ -45,8 +45,8 @@ class Subscriber(InboundMailHandler):
         else:
             token = message.to.split('+')[1].split('@')[0]
         token = self.request.get('token')
-        if Subscription.confirm(token):
-          self.response.write('Subscription confirmed!')
+        if Subscription.confirm_by_token(token):
+            self.response.write(json.dumps(dict(confirmed=True)))
         else:
           self.error(404)  
 
@@ -54,8 +54,8 @@ class Subscriber(InboundMailHandler):
 class Confirmer(webapp2.RequestHandler):
     def get(self):
         token = self.request.get('token')
-        if Subscription.confirm(token):
-            self.response.write('Subscription confirmed!')
+        if Subscription.confirm_by_token(token):
+            self.response.write(json.dumps(dict(confirmed=True)))
         else:
             self.error(404)        
 
