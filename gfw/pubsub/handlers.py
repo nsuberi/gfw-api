@@ -165,9 +165,13 @@ class PubSubApi(BaseApi):
     def unsubscribe(self):
         try:
             params = self._get_params(body=True)
-            topic, email = map(params.get, ['topic', 'email'])
-            Subscription.unsubscribe(topic, email)
-            self._send_response(json.dumps(dict(unsubscribe=True)))
+            token = params.get('token')
+            if token:
+                Subscription.unsubscribe_by_token(token)
+                self.response.set_status(201)
+                self._send_response(json.dumps(dict(unsubscribe=True)))
+            else:
+                self.error(404) 
 
         except Exception, e:
             name = e.__class__.__name__

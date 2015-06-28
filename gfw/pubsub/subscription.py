@@ -121,7 +121,7 @@ class Subscription(ndb.Model):
             return False
 
     @classmethod
-    def unsubscribe(cls, token):
+    def unsubscribe_by_token(cls, token):
         subscription = cls.with_token(token)
         if subscription:
             return subscription.unsubscribe()
