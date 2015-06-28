@@ -116,7 +116,7 @@ class BaseApi(webapp2.RequestHandler):
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
     def _get_params(self, body=False):
-        if body:
+        if body and self.request.body:
             params = json.loads(self.request.body)
         else:
             args = self.request.arguments()
