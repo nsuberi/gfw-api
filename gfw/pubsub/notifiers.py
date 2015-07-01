@@ -54,13 +54,13 @@ class DigestNotifer(webapp2.RequestHandler):
                     'summary':'Detects areas where tree cover loss is likely to have recently occurred',
                     'specs':'monthly, 500m, humid tropics, WRI/CGD'
                 })
-            terraiData = self._moduleData(s,{
-                    'name': 'terrai',
-                    'url_id': 'terrailoss',
-                    'email_name': 'Terra-i',
-                    'summary':'Detects areas in Latin American where tree cover loss is likely to have recently occurred',
-                    'specs':'monthly, 250m, Latin America, CIAT',
-                })
+            # terraiData = self._moduleData(s,{
+            #         'name': 'terrai',
+            #         'url_id': 'terrailoss',
+            #         'email_name': 'Terra-i',
+            #         'summary':'Detects areas in Latin American where tree cover loss is likely to have recently occurred',
+            #         'specs':'monthly, 250m, Latin America, CIAT',
+            #     })
             imazonData = self._moduleData(s,{
                     'name': 'imazon',
                     'url_id': 'imazon',
@@ -99,7 +99,7 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self.mailer.header.format(selected_area_name=s['aoi'])
                 self.body += self.mailer.table_header
                 self.body += self._alert(formaData)
-                self.body += self._alert(terraiData)
+                # self.body += self._alert(terraiData)
                 self.body += self._alert(imazonData)
                 self.body += self._alert(storiesData)                
                 self.body += self._alert(quiccData)
