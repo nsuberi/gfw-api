@@ -102,6 +102,21 @@ def report_dict(begin=None,end=None):
     }
   return rpt
 
+#
+# SUBSCRIBE 
+#
+def subscribe(**params):
+  auto_confirm = params.pop('auto_confirm',False)
+  token = Subscription.subscribe(params)
+  if token and auto_confirm:
+    confirm(token)
+  return token
+
+def confirm(token):
+  return Subscription.confirm(token)
+
+def unsubscribe(token):
+  return Subscription.unsubscribe(token)
 
 #
 # INSPECT/RESET
@@ -145,7 +160,12 @@ def clearSubs(email=None):
       s.put()
 
 def confirmed():
-  subs = Subscription.get_confirmed()
+  subs = Subscription.with_confirmation()
+  for s in subs:
+    print("%s" % s)
+
+def unconfirmed():
+  subs = Subscription.without_confirmation()
   for s in subs:
     print("%s" % s)
 

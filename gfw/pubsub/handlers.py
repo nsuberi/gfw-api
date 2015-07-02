@@ -45,8 +45,8 @@ class Subscriber(InboundMailHandler):
         else:
             token = message.to.split('+')[1].split('@')[0]
         token = self.request.get('token')
-        if Subscription.confirm(token):
-          self.response.write('Subscription confirmed!')
+        if Subscription.confirm_by_token(token):
+            self.response.write(json.dumps(dict(confirmed=True)))
         else:
           self.error(404)  
 
@@ -54,8 +54,8 @@ class Subscriber(InboundMailHandler):
 class Confirmer(webapp2.RequestHandler):
     def get(self):
         token = self.request.get('token')
-        if Subscription.confirm(token):
-            self.response.write('Subscription confirmed!')
+        if Subscription.confirm_by_token(token):
+            self.response.write(json.dumps(dict(confirmed=True)))
         else:
             self.error(404)        
 
@@ -66,7 +66,7 @@ class Publisher(webapp2.RequestHandler):
         e = ndb.Key(urlsafe=self.request.get('event')).get()
 
         if not e.multicasted:
-            for s in Subscription.get_confirmed():
+            for s in Subscription.with_confirmation():
                 n = Notification.get(e, s)
                 if not n:
                     n = Notification.create(e, s)
@@ -83,7 +83,7 @@ class Publisher(webapp2.RequestHandler):
 class SubscriptionDump(webapp2.RequestHandler):
     def get(self):
         email = self.request.get('email')
-        subs = [x.to_dict(exclude=['created']) for x in Subscription.get_by_email(email)]
+        subs = [x.to_dict(exclude=['created']) for x in Subscription.with_email(email)]
         self.response.headers.add_header('charset', 'utf-8')
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(json.dumps(subs, sort_keys=True))
@@ -116,7 +116,7 @@ class BaseApi(webapp2.RequestHandler):
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
     def _get_params(self, body=False):
-        if body:
+        if body and self.request.body:
             params = json.loads(self.request.body)
         else:
             args = self.request.arguments()
@@ -143,10 +143,11 @@ class PubSubApi(BaseApi):
     def subscribe(self):
         try:
             params = self._get_params(body=True)
-            topic, email = map(params.get, ['topic', 'email'])
-            if Subscription.subscribe(topic, email, params):
+            subscription = Subscription.subscribe(params)
+            if subscription:
+                token = subscription.key.urlsafe()
                 self.response.set_status(201)
-                self._send_response(json.dumps(dict(subscribe=True)))
+                self._send_response(json.dumps(dict(subscribe=True,token=token)))
             else:
                 self.error(404)  
 
@@ -164,9 +165,13 @@ class PubSubApi(BaseApi):
     def unsubscribe(self):
         try:
             params = self._get_params(body=True)
-            topic, email = map(params.get, ['topic', 'email'])
-            Subscription.unsubscribe(topic, email)
-            self._send_response(json.dumps(dict(unsubscribe=True)))
+            token = params.get('token')
+            if token:
+                Subscription.unsubscribe_by_token(token)
+                self.response.set_status(201)
+                self._send_response(json.dumps(dict(unsubscribe=True)))
+            else:
+                self.error(404) 
 
         except Exception, e:
             name = e.__class__.__name__
