@@ -97,12 +97,12 @@ def report_summary(rpt):
   return rpt_str.format(**rpt_params)
 
 def report_csv(rpt):
-  csv = "iso-geojson,date,email\n"
+  csv = "iso-geojson,date,email,confirmed\n"
   for sub in rpt['filtered']['confirmed']['subscriptions']:
-    csv += "%s, %s, %s\n" % (sub)
+    csv += "%s, %s, %s, true\n" % (sub)
   unconfirmed_subscriptions = ""
   for sub in rpt['filtered']['unconfirmed']['subscriptions']:
-    csv += "%s, %s, %s\n" % (sub)
+    csv += "%s, %s, %s, false\n" % (sub)
   return csv
 
 
