@@ -1,6 +1,15 @@
 # -- launch shell
-# remote_api_shell.py -s dev.gfw-apis.appspot.com
+# remote_api_shell.py -s dev.gfw-apis.appspot.com\
+# 
+# ex:
+#
 # import gfw.console.pubsub as ps
+# b = '2015-06-01'
+# rpt = ps.report(b)
+# print ps.report_summary(rpt)
+# print ps.report_csv(rpt)
+#
+
 import json
 import arrow
 
@@ -31,45 +40,6 @@ def publish(**params):
 # REPORTING
 #
 def report(begin=None,end=None):
-  rpt = report_dict(begin,end)
-  confirmed_subscriptions = ""
-  for sub in rpt['filtered']['confirmed']['subscriptions']:
-    confirmed_subscriptions += "        %s, %s, %s\n" % (sub)
-  unconfirmed_subscriptions = ""
-  for sub in rpt['filtered']['unconfirmed']['subscriptions']:
-    unconfirmed_subscriptions += "        %s, %s, %s\n" % (sub)
-
-  rpt_params = {
-    'begin':rpt['filtered']['begin'],
-    'end':rpt['filtered']['end'],
-    'confirmed_count':rpt['total']['confirmed'],
-    'unconfirmed_count':rpt['total']['unconfirmed'],
-    'filtered_confirmed_count':rpt['filtered']['confirmed']['count'],
-    'filtered_unconfirmed_count':rpt['filtered']['unconfirmed']['count'],
-    'confirmed_subscriptions':confirmed_subscriptions,
-    'unconfirmed_subscriptions':unconfirmed_subscriptions
-  }
-
-  rpt_str = """
-    Subscription API Report --
-
-    Totals:
-      confirmed:{confirmed_count}
-      unconfirmed: {unconfirmed_count}
-
-    Filtered[{begin} to {end}]:
-      confirmed: {filtered_confirmed_count}
-      unconfirmed: {filtered_unconfirmed_count}
-
-    Subscriptions:
-      confirmed:\n{confirmed_subscriptions}
-      unconfirmed:\n{unconfirmed_subscriptions}
-  """
-  return rpt_str.format(**rpt_params)
-
-
-
-def report_dict(begin=None,end=None):
   if not end:
     end = arrow.now().format('YYYY-MM-DD')
   rpt = {}
@@ -101,6 +71,43 @@ def report_dict(begin=None,end=None):
       'subscriptions': map(sub_tuple,filtered_unconfirmed)
     }
   return rpt
+
+def report_summary(rpt):
+  rpt_params = {
+    'today': arrow.now().format('YYYY-MM-DD'),
+    'begin':rpt['filtered']['begin'],
+    'end':rpt['filtered']['end'],
+    'confirmed_count':rpt['total']['confirmed'],
+    'unconfirmed_count':rpt['total']['unconfirmed'],
+    'filtered_confirmed_count':rpt['filtered']['confirmed']['count'],
+    'filtered_unconfirmed_count':rpt['filtered']['unconfirmed']['count']
+  }
+
+  rpt_str = """
+    Subscription API Report ({today})
+
+    Totals:
+      confirmed:{confirmed_count}
+      unconfirmed: {unconfirmed_count}
+
+    Filtered[{begin} to {end}]:
+      confirmed: {filtered_confirmed_count}
+      unconfirmed: {filtered_unconfirmed_count}
+  """
+  return rpt_str.format(**rpt_params)
+
+def report_csv(rpt):
+  csv = "iso-geojson,date,email\n"
+  for sub in rpt['filtered']['confirmed']['subscriptions']:
+    csv += "%s, %s, %s\n" % (sub)
+  unconfirmed_subscriptions = ""
+  for sub in rpt['filtered']['unconfirmed']['subscriptions']:
+    csv += "%s, %s, %s\n" % (sub)
+  return csv
+
+
+
+
 
 #
 # SUBSCRIBE 
