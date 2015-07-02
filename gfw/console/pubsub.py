@@ -2,9 +2,9 @@
 # remote_api_shell.py -s dev.gfw-apis.appspot.com
 # import gfw.console.pubsub as ps
 import json
+import arrow
 
 from google.appengine.ext import ndb
-import arrow
 
 from gfw.pubsub.event import Event
 from gfw.pubsub.notification import Notification
@@ -129,7 +129,7 @@ def filter_subscriptions(subscriptions,begin=None,end=None):
       end_date = arrow.get(end).datetime
     else:
       end_date = arrow.now().datetime
-    filtered_subscriptions = subscriptions.filter(Subscription.created<=end_date)
+    filtered_subscriptions = filtered_subscriptions.filter(Subscription.created<=end_date)
     return filtered_subscriptions
   else:
     return subscriptions
