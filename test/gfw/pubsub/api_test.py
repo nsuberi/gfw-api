@@ -117,13 +117,6 @@ class SubscribeConfirmTest(common.BaseTest):
         sub = api.Subscription.query(namespace=ns).fetch(1)[0]
         self.assertEqual(True, sub.confirmed)
 
-    def testSubcribeConfirmInvalid(self):
-        url = '/pubsub/sub-confirm?token=INVALID-TOKEN'
-        try:
-            self.api.get(url)  # Should see ERROR log in console
-        except:
-            pass
-
 
 class PublishTest(common.BaseTest):
 
@@ -226,7 +219,6 @@ class NotifyTest(common.BaseTest):
         event.put()
         params = dict(topic=topic, event=event.key.urlsafe(),
                       subscription=s.key.urlsafe())
-        print params
         response = self.api.post(
             '/pubsub/pub-event-notification', params)
         self._test_response(response)

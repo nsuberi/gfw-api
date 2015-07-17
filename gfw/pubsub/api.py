@@ -190,20 +190,29 @@ class ArgProcessor():
         return processed
 
 
+def send_mail(action, data):
+    """TODO"""
+    mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
+    assert mandrill_client
+    pass
+
+
+def get_deltas(topic, params):
+    if topic == 'alerts/forma':
+        action, data = forma.execute(params)
+    return action, data
+
+
 def notify(params):
     """Send notification to subscriber."""
-    mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
-    logging.exception('PING %s' % mandrill_client.users.ping())
     event = ndb.Key(urlsafe=params.get('event')).get()
     sub = ndb.Key(urlsafe=params.get('subscription')).get()
     params = copy.copy(sub.params)
     params['begin'] = event.latest_date(event.topic)
     params['end'] = event.date
-    if event.topic == 'alerts/forma':
-        action, data = forma.execute(params)
-    data.pop('params')
-    data.pop('download_urls')
-    logging.exception('ACTION %s, DATA %s, PARAMS %s' % (action, data, params))
+    if runtime_config.get('APP_VERSION') != 'unittest':
+        action, data = get_deltas(event.topic, params)
+        send_mail(action, data)
 
 
 def multicast(params):
