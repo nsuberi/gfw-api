@@ -23,6 +23,8 @@ import json
 import logging
 import webapp2
 
+import mandrill
+
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -190,6 +192,8 @@ class ArgProcessor():
 
 def notify(params):
     """Send notification to subscriber."""
+    mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
+    logging.exception('PING %s' % mandrill_client.users.ping())
     event = ndb.Key(urlsafe=params.get('event')).get()
     sub = ndb.Key(urlsafe=params.get('subscription')).get()
     params = copy.copy(sub.params)
