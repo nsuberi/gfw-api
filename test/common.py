@@ -25,6 +25,7 @@ from google.appengine.ext import testbed
 
 from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
+from google.appengine.ext import ndb
 
 
 CDB_URL = 'http://wri-01.cartodb.com/api/v2/sql?%s'
@@ -58,7 +59,11 @@ class BaseTest(unittest.TestCase):
         self.testbed.init_urlfetch_stub()
         self.testbed.init_app_identity_stub()
         self.testbed.init_blobstore_stub()
+        self.testbed.init_taskqueue_stub(root_path='.')
+        self.taskqueue_stub = self.testbed.get_stub(
+            testbed.TASKQUEUE_SERVICE_NAME)
         self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
+        ndb.get_context().clear_cache()
 
     def tearDown(self):
         self.testbed.deactivate()
