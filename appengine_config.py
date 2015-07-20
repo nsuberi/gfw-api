@@ -25,13 +25,13 @@ import yaml
 
 def fix_path():
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
 fix_path()
 
-#
-#  LOADERS: 
-#
 
 def _load_config(name):
     """Return dev config environment as dictionary."""
@@ -41,6 +41,7 @@ def _load_config(name):
     except:
         return {}
 
+
 def _load_env_config(name):
     """Return dev config environment as dictionary."""
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), name)
@@ -48,11 +49,8 @@ def _load_env_config(name):
         cfig = yaml.load(open(path, "r").read())
         return cfig
     except:
-        return {"error": ("Missing Config File[%s]" % name) }
+        return {"error": ("Missing Config File[%s]" % name)}
 
-#
-#  CONFIG HELPERS: 
-#
 
 def _update_config(config, env_path):
     env_config = _load_env_config(env_path)
@@ -61,16 +59,15 @@ def _update_config(config, env_path):
 
 http_host = os.environ.get('HTTP_HOST')
 
+
 def _get_runtime_config(app_version, env_json, env_yml):
     config = _load_config(env_json)
-    _update_config(config,env_yml)
+    _update_config(config, env_yml)
     config['APP_VERSION'] = app_version
     config['APP_BASE_URL'] = 'http://%s' % http_host
     return config
 
-#
-# SET ENV
-#
+
 if not http_host:
     appversion, secret, public = ('unittest', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
@@ -82,7 +79,26 @@ elif 'stage' in http_host:
 else:
     appversion, secret, public = ('production', 'prod.json', 'prod.yml')
 
-#
-# RUNTIME CONFIG
-#
+
 runtime_config = _get_runtime_config(appversion, secret, public)
+
+engineauth = {
+    # The user will be returned here if an error occures (default /login):
+    'login_uri': '/',
+    # The user is sent here after successfull authentication:
+    'redirect_back': True,
+    'secret_key': 'SHHHHHH',
+    # Comment out to use default User and UserProfile models:
+    # 'user_model': 'models.CustomUser',
+}
+
+engineauth['provider.twitter'] = {
+    'client_id': 'jgQR7Lg8gLkl9CqziHUoJE4d6',
+    'client_secret': '1pWqfBlPsUyC8Od6kaG0tXcVWaFWaVac7IhU8EhKP0P1U0g73F',
+}
+
+
+def webapp_add_wsgi_middleware(app):
+    """Adds authentication middleware."""
+    from engineauth import middleware
+    return middleware.AuthMiddleware(app)
