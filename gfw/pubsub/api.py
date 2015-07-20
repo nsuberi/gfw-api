@@ -190,7 +190,7 @@ class ArgProcessor():
         return processed
 
 
-def send_mail(action, data):
+def send_mail_notification(action, data):
     """TODO"""
     mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
     assert mandrill_client
@@ -210,9 +210,10 @@ def notify(params):
     params = copy.copy(sub.params)
     params['begin'] = event.latest_date(event.topic)
     params['end'] = event.date
+    # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail(action, data)
+        send_mail_notification(action, data)
 
 
 def multicast(params):
