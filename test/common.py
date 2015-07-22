@@ -27,6 +27,7 @@ from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.ext import ndb
 
+import appengine_config
 
 CDB_URL = 'http://wri-01.cartodb.com/api/v2/sql?%s'
 

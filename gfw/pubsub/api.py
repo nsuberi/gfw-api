@@ -33,6 +33,8 @@ from gfw.common import CORSRequestHandler
 from gfw.forestchange import forma
 from appengine_config import runtime_config
 
+mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
+
 
 class Subscription(ndb.Model):
     """Model for subscriptions."""
@@ -192,7 +194,6 @@ class ArgProcessor():
 
 def send_mail_notification(action, data):
     """TODO"""
-    mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
     assert mandrill_client
     pass
 
@@ -277,14 +278,32 @@ def send_confirmation_email(email, urlsafe):
       urlsafe: Subscription model urlsafe key.
     """
     url_base = runtime_config['APP_BASE_URL']
-    reply_to = r'sub+%s@gfw-apis.appspotmail.com' % urlsafe
     conf_url = '%s/pubsub/sub-confirm?token=%s' % (url_base, urlsafe)
-    mail.send_mail(
-        sender=reply_to,
-        to=email,
-        reply_to=reply_to,
-        subject='Please confirm your GFW subscription request',
-        body="""Click to confirm:%s""" % conf_url)
+    template_content = [
+        {
+            'content': conf_url,
+            'name': 'confirmation_url'
+        }
+    ]
+    message = {
+        'global_merge_vars': [
+            {
+                'content': conf_url, 'name': 'confirmation_url'
+            }],
+        'to': [
+            {
+                'email': email,
+                'name': 'Recipient Name',
+                'type': 'to'}],
+        'track_clicks': True,
+        'merge_language': 'handlebars',
+        'track_opens': True
+    }
+    result = mandrill_client.messages.send_template(
+        template_name='subscription-confirmation',
+        template_content=template_content,
+        message=message)
+    logging.exception("RESULTS %s" % result)
 
 
 def receive_confirmation_email(urlsafe):
