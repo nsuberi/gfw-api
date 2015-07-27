@@ -207,23 +207,6 @@ class ArgProcessor():
             raise PeriodArgError()
 
     @classmethod
-    def iso(cls, value):
-        try:
-            if len(value) != 3:
-                raise
-            return dict(iso=value)
-        except:
-            raise PeriodArgError()
-
-    @classmethod
-    def id1(cls, value):
-        try:
-            int(value)
-            return dict(id1=value)
-        except:
-            raise PeriodArgError()
-
-    @classmethod
     def geojson(cls, value):
         try:
             geom = json.loads(value)
