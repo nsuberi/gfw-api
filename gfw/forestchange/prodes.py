@@ -27,8 +27,8 @@ class ProdesSql(Sql):
         SELECT COUNT(f.*) AS value
             {additional_select}
         FROM prodes_wgs84 f
-        WHERE f.date >= '{begin}'
-              AND f.date <= '{end}'
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
@@ -38,8 +38,8 @@ class ProdesSql(Sql):
         SELECT COUNT(f.*) AS value
             {additional_select}
         FROM prodes_wgs84 f
-        WHERE f.date >= '{begin}'
-              AND f.date <= '{end}'
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
               AND f.iso = UPPER('{iso}')
         """
 
@@ -53,8 +53,8 @@ class ProdesSql(Sql):
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.date >= '{begin}'
-              AND f.date <= '{end}'
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
         """
 
     WDPA = """
@@ -62,8 +62,8 @@ class ProdesSql(Sql):
             {additional_select}
         FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND f.date >= '{begin}'
-              AND f.date <= '{end}'"""
+              AND f.ano >= '{begin}'
+              AND f.ano <= '{end}'"""
 
     USE = """
         SELECT COUNT(f.*) AS value
@@ -71,14 +71,14 @@ class ProdesSql(Sql):
         FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND f.date >= '{begin}'
-              AND f.date <= '{end}'"""
+              AND f.ano >= '{begin}'
+              AND f.ano <= '{end}'"""
 
     LATEST = """
-        SELECT DISTINCT date 
+        SELECT DISTINCT ano 
         FROM prodes_wgs84
-        WHERE date IS NOT NULL
-        ORDER BY date DESC
+        WHERE ano IS NOT NULL
+        ORDER BY ano DESC
         LIMIT {limit}"""
 
     @classmethod
