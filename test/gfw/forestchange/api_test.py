@@ -193,6 +193,20 @@ class ImazonApiTest(BaseApiTest):
     def testGetUse(self):
         self._testGetNational('imazon-alerts')
 
+class ProdesApiTest(BaseApiTest):
+
+    def testGetNational(self):
+        self._testGetNational('prodes-alerts')
+
+    def testGetSubnational(self):
+        self._testGetNational('prodes-alerts')
+
+    def testGetWdpa(self):
+        self._testGetNational('prodes-alerts')
+
+    def testGetUse(self):
+        self._testGetNational('prodes-alerts')
+
 
 class UmdApiTest(BaseApiTest):
 
