@@ -35,12 +35,11 @@ class ProdesSql(Sql):
         """
 
     ISO = """
-        SELECT COUNT(f.*) AS value
+        SELECT sum(ST_Area(f.the_geom_webmercator)/(100*100)) AS value
             {additional_select}
         FROM prodes_wgs84 f
         WHERE f.ano >= '{begin}'
               AND f.ano <= '{end}'
-              AND f.iso = UPPER('{iso}')
         """
 
     ID1 = """
