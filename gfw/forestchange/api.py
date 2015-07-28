@@ -28,6 +28,7 @@ from gfw.forestchange import quicc
 from gfw.forestchange import imazon
 from gfw.forestchange import terrai
 from gfw.forestchange import args
+from gfw.forestchange import prodes
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
@@ -37,6 +38,7 @@ FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
 QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
+PRODES_API = '%s/prodes-loss' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -187,6 +189,30 @@ META = {
             TERRAI_API
         }
     },
+    'prodes-loss': {
+        'meta': {
+            "description": "Alerts for the Brazilian Amazon.",
+            "resolution": "30 x 30 meters",
+            "coverage": "Brazilian Amazon",
+            "timescale": "2000-2014",
+            "updates": "Annual",
+            "source": "Landsat with CBERS, Resourcesat, and UK2-DMC",
+            "units": "Alerts",
+            "name": "PRODES tree cover loss",
+            "id": "prodes-loss"
+        },
+        'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % PRODES_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            PRODES_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            PRODES_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            PRODES_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            PRODES_API
+        }
+    }
 }
 
 # Maps dataset to accepted query params
@@ -238,6 +264,14 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust', 'limit']
+    },
+    'prodes-loss': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust','limit']
     }
 }
@@ -249,7 +283,8 @@ TARGETS = {
     'nasa-active-fires': fires,
     'quicc-alerts': quicc,
     'imazon-alerts': imazon,
-    'terrai-alerts': terrai
+    'terrai-alerts': terrai,
+    'prodes-loss': prodes
 }
 
 
