@@ -59,7 +59,8 @@ class ProdesSql(Sql):
     WDPA = """
         SELECT COUNT(f.*) AS value
             {additional_select}
-        FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
+        FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas
+            WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.ano >= '{begin}'
               AND f.ano <= '{end}'"""
@@ -74,7 +75,7 @@ class ProdesSql(Sql):
               AND f.ano <= '{end}'"""
 
     LATEST = """
-        SELECT DISTINCT ano 
+        SELECT DISTINCT ano
         FROM prodes_wgs84
         WHERE ano IS NOT NULL
         ORDER BY ano DESC
@@ -83,7 +84,8 @@ class ProdesSql(Sql):
     @classmethod
     def download(cls, sql):
         download_sql = sql.replace(ProdesSql.MIN_MAX_DATE_SQL, "")
-        download_sql = download_sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*")
+        download_sql = download_sql.replace(
+            "SELECT COUNT(f.*) AS value", "SELECT f.*")
         return ' '.join(
             download_sql.split())
 
@@ -95,7 +97,7 @@ def _processResults(action, data):
         if not result.get('value'):
             data['results'] = results
     else:
-        result = dict(value=None,min_date=None,max_date=None)
+        result = dict(value=None, min_date=None, max_date=None)
 
     data['value'] = result.get('value')
     data['min_date'] = result.get('min_date')

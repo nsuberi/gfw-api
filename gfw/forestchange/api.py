@@ -223,7 +223,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'nasa-active-fires': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -231,7 +231,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'quicc-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -239,7 +239,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'imazon-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -247,7 +247,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'umd-loss-gain': {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
@@ -264,7 +264,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'prodes-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -272,7 +272,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     }
 }
 
@@ -313,8 +313,9 @@ def _classify_request(path):
         rtype = 'latest'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
-    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset, path):
-        rtype = 'ifl_id1'        
+    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset,
+                  path):
+        rtype = 'ifl_id1'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}$' % dataset, path):
         rtype = 'iso'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path):
@@ -322,7 +323,7 @@ def _classify_request(path):
     elif re.match(r'forest-change/%s/wdpa/\d+$' % dataset, path):
         rtype = 'wdpa'
     elif re.match(r'forest-change/%s/use/[A-z]+/\d+$' % dataset, path):
-        rtype = 'use' 
+        rtype = 'use'
 
     return dataset, rtype
 
