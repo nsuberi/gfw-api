@@ -191,14 +191,14 @@ META = {
     },
     'prodes-alerts': {
         'meta': {
-            "description": "Forest decrease alerts.",
-            "resolution": "250 x 250 meters",
-            "coverage": "Latin America",
-            "timescale": "January 2004 to present",
-            "updates": "16 day",
-            "source": "MODIS",
+            "description": "Alerts for the Brazilian Amazon.",
+            "resolution": "30 x 30 meters",
+            "coverage": "Brazilian Amazon",
+            "timescale": "2000-2014",
+            "updates": "Annual",
+            "source": "Landsat with CBERS, Resourcesat, and UK2-DMC",
             "units": "Alerts",
-            "name": "Terra-i Alerts",
+            "name": "PRODES",
             "id": "prodes-alerts"
         },
         'apis': {
