@@ -24,7 +24,7 @@ from gfw.forestchange.common import Sql
 class ProdesSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
         WHERE f.ano >= '{begin}'
@@ -35,7 +35,7 @@ class ProdesSql(Sql):
         """
 
     ISO = """
-        SELECT sum(ST_Area(f.the_geom_webmercator)/(100*100)) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
         WHERE f.ano >= '{begin}'
@@ -43,7 +43,7 @@ class ProdesSql(Sql):
         """
 
     ID1 = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
         INNER JOIN (
@@ -57,7 +57,7 @@ class ProdesSql(Sql):
         """
 
     WDPA = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas
             WHERE wdpaid={wdpaid}) AS p
@@ -66,7 +66,7 @@ class ProdesSql(Sql):
               AND f.ano <= '{end}'"""
 
     USE = """
-        SELECT COUNT(f.*) AS value
+        SELECT Cround(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
