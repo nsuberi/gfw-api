@@ -100,7 +100,6 @@ class BaseApiTest(common.FetchBaseTest):
             self.assertEqual(r.json['params']['id1'], '2')
             self.assertEqual(200, r.status_code)
 
-
     def _testGetWdpa(self, dataset):
         path = r'/forest-change/%s/wdpa/180' % dataset
 
@@ -193,6 +192,7 @@ class ImazonApiTest(BaseApiTest):
     def testGetUse(self):
         self._testGetNational('imazon-alerts')
 
+
 class ProdesApiTest(BaseApiTest):
 
     def testGetNational(self):
@@ -221,6 +221,7 @@ class UmdApiTest(BaseApiTest):
 
     def testGetIflSubnational(self):
         self._testGetNational('umd-loss-gain')
+
 
 class TerraiApiTest(BaseApiTest):
 
