@@ -36,18 +36,24 @@ class UserApi(CORSRequestHandler):
     """Handler for user info."""
 
     def get(self):
+        # Currently Supports Twitter Auth:
         try:
-            # TODO: get cookie out, look up session
             value = self.request.cookies.get('_eauth')
             if value:
                 session = models.Session.get_by_value(value)
-
-            self.user = User.get_by_id(int(session.user_id))
-            self.profile = UserProfile.get_by_id(self.user.auth_ids[-1])
-            name = self.profile.user_info['info']['displayName']
-            username = self.profile.user_info['info']['nickname']
-
-            self.complete('respond', {'name': name, 'email': self.user.email, 'username': username})
+                if session.user_id:
+                    self.user = User.get_by_id(int(session.user_id))
+                    self.profile = UserProfile.get_by_id(self.user.auth_ids[-1])
+                    if self.profile:
+                        name = self.profile.user_info['info']['displayName']
+                        username = self.profile.user_info['info']['nickname']
+                        self.complete('respond', {'name': name, 'email': self.user.email, 'username': username})
+                    else:
+                        self.complete('respond', {'error': 'No user profile for the current session.'})
+                else:
+                    self.complete('respond', {'error': 'No user info for the current session.'})
+            else:
+                self.complete('respond', {'error': 'No cookie assigned yet.'})
 
         except Exception, e:
             name = e.__class__.__name__
