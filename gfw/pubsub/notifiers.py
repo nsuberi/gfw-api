@@ -30,7 +30,7 @@ class DigestNotifer(webapp2.RequestHandler):
         'forma': forma.FormaSql,
         'terrai': terrai.TerraiSql,
         'imazon': imazon.ImazonSql,
-        'quicc': quicc.QuiccSql
+        'quicc': quicc.QuiccSql,
         'prodes': prodes.ProdesSql
     }
 

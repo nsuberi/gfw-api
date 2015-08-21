@@ -38,7 +38,7 @@ FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
 QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
-PRODES_API = '%s/prodes-alerts' % APP_BASE_URL
+PRODES_API = '%s/prodes-loss' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -189,7 +189,7 @@ META = {
             TERRAI_API
         }
     },
-    'prodes-alerts': {
+    'prodes-loss': {
         'meta': {
             "description": "Alerts for the Brazilian Amazon.",
             "resolution": "30 x 30 meters",
@@ -198,8 +198,8 @@ META = {
             "updates": "Annual",
             "source": "Landsat with CBERS, Resourcesat, and UK2-DMC",
             "units": "Alerts",
-            "name": "PRODES",
-            "id": "prodes-alerts"
+            "name": "PRODES tree cover loss",
+            "id": "prodes-loss"
         },
         'apis': {
             'world': '%s{?period,geojson,download,bust,dev}' % PRODES_API,
@@ -266,7 +266,7 @@ PARAMS = {
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
     },
-    'prodes-alerts': {
+    'prodes-loss': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
         'iso': ['period', 'download', 'dev', 'bust'],
         'id1': ['period', 'download', 'dev', 'bust'],
@@ -284,7 +284,7 @@ TARGETS = {
     'quicc-alerts': quicc,
     'imazon-alerts': imazon,
     'terrai-alerts': terrai,
-    'prodes-alerts': prodes
+    'prodes-loss': prodes
 }
 
 
