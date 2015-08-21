@@ -17,8 +17,36 @@
 
 """This module contains request handlers for user authentication."""
 
+import webapp2
+import monitor
+from gfw import common
+from gfw.common import CORSRequestHandler
+
+
 config = {
     'webapp2_extras.sessions': {
         'secret_key': 'wIDjEesObzp5nonpRHDzSp40aba7STuqC6ZRY'
     }
 }
+
+
+class UserApi(CORSRequestHandler):
+    """Handler for user info."""
+
+    def get(self):
+        try:
+            # TODO: get cookie out, look up session
+            self.complete('respond', {})
+
+        except Exception, e:
+            name = e.__class__.__name__
+            msg = 'Error: Users API (%s)' % name
+            monitor.log(self.request.url, msg, error=e,
+                        headers=self.request.headers)
+
+routes = [webapp2.Route(r'/user/session', handler=UserApi,
+          handler_method='get',
+          methods=['GET'])]
+
+
+handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
