@@ -21,7 +21,9 @@ import webapp2
 import monitor
 from gfw import common
 from gfw.common import CORSRequestHandler
-
+from engineauth import models
+from engineauth.models import User
+from engineauth.models import UserProfile
 
 config = {
     'webapp2_extras.sessions': {
@@ -36,7 +38,16 @@ class UserApi(CORSRequestHandler):
     def get(self):
         try:
             # TODO: get cookie out, look up session
-            self.complete('respond', {})
+            value = self.request.cookies.get('_eauth')
+            if value:
+                session = models.Session.get_by_value(value)
+
+            self.user = User.get_by_id(int(session.user_id))
+            self.profile = UserProfile.get_by_id(self.user.auth_ids[-1])
+            name = self.profile.user_info['info']['displayName']
+            username = self.profile.user_info['info']['nickname']
+
+            self.complete('respond', {'name': name, 'email': self.user.email, 'username': username})
 
         except Exception, e:
             name = e.__class__.__name__
