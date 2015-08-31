@@ -37,16 +37,6 @@ def _sum_range(data, begin, end):
             if (int(key) >= int(begin)) and (int(key) < int(end))])
 
 
-def _get_umd_range(result, begin, end):
-    _sum_range(result.get('area'), begin, end)
-
-
-def _get_range(result, begin, end):
-    loss_area = _sum_range(result.get('loss_area'), begin, end)
-    gain_area = _sum_range(result.get('gain_area'), begin, end)
-    return dict(loss_area=loss_area, gain_area=gain_area, begin=begin, end=end)
-
-
 def _get_thresh_image(thresh, asset_id):
     """Renames image bands using supplied threshold and returns image."""
     image = ee.Image(asset_id)
@@ -59,6 +49,7 @@ def _get_thresh_image(thresh, asset_id):
 
     after = before.map(
         lambda x: ee.String(x).replace('_.*', ''))
+
     image = image.select(before, after)
     return image
 
@@ -108,16 +99,17 @@ def _gain_area(row):
 class UmdSql(Sql):
 
     ISO = """
-        SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc, loss,
-               loss_perc, gain, gain*12 as total_gain, gain_perc
+        SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
+               loss, loss_perc, gain, gain*12 as total_gain, gain_perc
         FROM umd_nat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
         ORDER BY year"""
 
     ID1 = """
-        SELECT iso, country, region, year, thresh, extent_2000 as extent, extent_perc, loss,
-               loss_perc, gain, gain*12 as total_gain, gain_perc, id1
+        SELECT iso, country, region, year, thresh, extent_2000 as extent,
+               extent_perc, loss, loss_perc, gain, gain*12 as total_gain,
+               gain_perc, id1
         FROM umd_subnat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
@@ -129,7 +121,6 @@ class UmdSql(Sql):
         FROM gadm_countries_ifl
         WHERE iso = UPPER('{iso}')
         AND type='intact'"""
-
 
     IFL_ID1 = """
         SELECT ST_AsGeoJson(the_geom) AS geojson, type
@@ -207,6 +198,7 @@ def _executeId1(args):
     data['years'] = rows
     return action, data
 
+
 def _executeIfl(args):
     """Query national by iso code."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
@@ -249,7 +241,7 @@ def _execute_geojson(args):
     logging.info('GAIN: %s' % gain)
     # tree extent in 2000
     tree_extent = hansen_all['tree']
-    logging.info('TREE_EXTENT: %s' % tree_extent )
+    logging.info('TREE_EXTENT: %s' % tree_extent)
 
     # Loss by year
     loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
@@ -314,7 +306,7 @@ def execute(args):
     query_type = classify_query(args)
 
     # Set default threshold
-    if not 'thresh' in args:
+    if 'thresh' not in args:
         args['thresh'] = 10
 
     if query_type == 'iso':
@@ -324,12 +316,10 @@ def execute(args):
     elif query_type == 'ifl':
         return _executeIfl(args)
     elif query_type == 'ifl_id1':
-        return _executeIflId1(args)    
+        return _executeIflId1(args)
     elif query_type == 'use':
         return _executeUse(args)
     elif query_type == 'wdpa':
         return _executeWdpa(args)
     elif query_type == 'world':
         return _executeWorld(args)
-
-    # TODO: Query new EE assets
