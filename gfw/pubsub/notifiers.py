@@ -16,6 +16,7 @@ from gfw.forestchange import forma
 from gfw.forestchange import terrai
 from gfw.forestchange import quicc
 from gfw.forestchange import imazon
+from gfw.forestchange import prodes
 from gfw import stories
 
 #
@@ -29,7 +30,8 @@ class DigestNotifer(webapp2.RequestHandler):
         'forma': forma.FormaSql,
         'terrai': terrai.TerraiSql,
         'imazon': imazon.ImazonSql,
-        'quicc': quicc.QuiccSql
+        'quicc': quicc.QuiccSql,
+        'prodes': prodes.ProdesSql
     }
 
     def post(self):
@@ -71,7 +73,7 @@ class DigestNotifer(webapp2.RequestHandler):
                         'degrad': 'hectares degradation',
                         'defor': 'hectares deforestation'
                     }
-                })    
+                })
 
             max_quicc_date = self._get_max_date('quicc')
             force_min_date, force_max_date, quicc_interval = self._period(max_quicc_date,3,True)        
@@ -82,6 +84,19 @@ class DigestNotifer(webapp2.RequestHandler):
                     'summary':'Identifies areas of land that have lost at least 40% of their green vegetation cover from the previous quarterly product',
                     'specs':'quarterly, 5km, <37 degrees north, NASA'
                 },True,force_min_date,force_max_date)
+
+            prodesData = self._moduleData(s,{
+                    'name': 'prodes',
+                    'url_id': 'prodes',
+                    'email_name': 'SAD',
+                    'summary':'Detects forest cover loss and forest degradation in the Brazilian Amazon',
+                    'specs':'monthly, 250m, Brazilian Amazon, prodes',
+                    'value_names': {
+                        'degrad': 'hectares degradation',
+                        'defor': 'hectares deforestation'
+                    }
+                })
+
             storiesData = self._storiesData(s,{
                     'name': 'stories',
                     'url_id': 'none/580',
@@ -101,6 +116,7 @@ class DigestNotifer(webapp2.RequestHandler):
                 self.body += self._alert(formaData)
                 # self.body += self._alert(terraiData)
                 self.body += self._alert(imazonData)
+                self.body += self._alert(prodesData)
                 self.body += self._alert(storiesData)                
                 self.body += self._alert(quiccData)
                 self.body += self.mailer.table_footer
@@ -403,6 +419,7 @@ class DigestNotifer(webapp2.RequestHandler):
             'forma':'forma_api',
             'terrai':'latin_decrease_current_points',
             'imazon':'imazon_sad',
+            'prodes':'prodes_wgs84',
             'quicc':'modis_forest_change_copy'
         }
         table_name = alert_tables.get(name) or name

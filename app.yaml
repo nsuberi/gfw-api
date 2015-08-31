@@ -51,11 +51,11 @@ handlers:
   login: admin
 
 # Download handler:
-- url: /analysis/(imazon|forma|modis).(shp|geojson|kml|svg|csv)
+- url: /analysis/(imazon|forma|modis|prodes).(shp|geojson|kml|svg|csv)
   script: download.handlers
 
 # Analysis handler:
-- url: /analysis/(imazon|forma|modis|umd)
+- url: /analysis/(imazon|forma|modis|umd|prodes)
   script: analysis.handlers
 
 # Monitor
@@ -77,7 +77,7 @@ handlers:
 - url: /countries.*
   script: gfw.countries.api.handlers
 
-- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts).*
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss).*
   script: gfw.forestchange.api.handlers
 
 # Stories
