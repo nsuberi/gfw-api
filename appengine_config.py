@@ -20,15 +20,18 @@
 import json
 import os
 import sys
+import yaml
 
 
 def fix_path():
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
-
 fix_path()
 
+#
+#  LOADERS: 
+#
 
 def _load_config(name):
     """Return dev config environment as dictionary."""
@@ -38,16 +41,48 @@ def _load_config(name):
     except:
         return {}
 
-IS_DEV = 'Development' in os.environ['SERVER_SOFTWARE']
+def _load_env_config(name):
+    """Return dev config environment as dictionary."""
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), name)
+    try:
+        cfig = yaml.load(open(path, "r").read())
+        return cfig
+    except:
+        return {"error": ("Missing Config File[%s]" % name) }
 
-if IS_DEV:
-    APP_BASE_URL = 'http://localhost:8080'
-    runtime_config = _load_config('dev.json')
+#
+#  CONFIG HELPERS: 
+#
+
+def _update_config(config, env_path):
+    env_config = _load_env_config(env_path)
+    if not env_config.get('error'):
+        config.update(env_config)
+
+http_host = os.environ.get('HTTP_HOST')
+
+def _get_runtime_config(app_version, env_json, env_yml):
+    config = _load_config(env_json)
+    _update_config(config,env_yml)
+    config['APP_VERSION'] = app_version
+    config['APP_BASE_URL'] = 'http://%s' % http_host
+    return config
+
+#
+# SET ENV
+#
+if not http_host:
+    appversion, secret, public = ('unittest', 'dev.json', 'local.yml')
+elif 'localhost' in http_host:
+    appversion, secret, public = ('local', 'dev.json', 'local.yml')
+elif 'dev' in http_host:
+    appversion, secret, public = ('dev', 'dev.json', 'dev.yml')
+elif 'stage' in http_host:
+    appversion, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
-    APP_BASE_URL = 'http://gfw-apis.appspot.com'
-    runtime_config = _load_config('prod.json')
+    appversion, secret, public = ('production', 'prod.json', 'prod.yml')
 
-
-runtime_config['APP_BASE_URL'] = APP_BASE_URL
-runtime_config['IS_DEV'] = IS_DEV
-
+#
+# RUNTIME CONFIG
+#
+runtime_config = _get_runtime_config(appversion, secret, public)

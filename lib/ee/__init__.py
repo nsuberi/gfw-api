@@ -1,22 +1,27 @@
 """The EE Javascript library."""
 
 
+__version__ = '0.1.37'
 
 # Using lowercase function naming to match the JavaScript names.
 # pylint: disable=g-bad-name
 
 import datetime
+import inspect
 import numbers
 import sys
 
-import oauth2client.client
+import oauth2client.client  # pylint: disable=g-bad-import-order
 
 from apifunction import ApiFunction
 from collection import Collection
 from computedobject import ComputedObject
 from customfunction import CustomFunction
 import data
+from dictionary import Dictionary
+from ee_date import Date
 from ee_exception import EEException
+from ee_list import List
 from ee_number import Number
 from ee_string import String
 import ee_types as types
@@ -40,6 +45,7 @@ _generatedClasses = []
 
 # A lightweight class that is used as a dictionary with dot notation.
 class _AlgorithmsContainer(dict):
+
   def __getattr__(self, name):
     return self[name]
 
@@ -76,8 +82,11 @@ def Initialize(credentials=None, opt_url=None):
   FeatureCollection.initialize()
   Filter.initialize()
   Geometry.initialize()
+  List.initialize()
   Number.initialize()
   String.initialize()
+  Date.initialize()
+  Dictionary.initialize()
   _InitializeGeneratedClasses()
   _InitializeUnboundMethods()
 
@@ -94,8 +103,11 @@ def Reset():
   FeatureCollection.reset()
   Filter.reset()
   Geometry.reset()
+  List.reset()
   Number.reset()
   String.reset()
+  Date.reset()
+  Dictionary.reset()
   _ResetGeneratedClasses()
   global Algorithms
   Algorithms = _AlgorithmsContainer()
@@ -203,7 +215,7 @@ def _Promote(arg, klass):
       return arg
     elif isinstance(arg, ComputedObject):
       # Try a cast.
-      return Element(arg.func, arg.args)
+      return Element(arg.func, arg.args, arg.varName)
     else:
       # No way to convert.
       raise EEException('Cannot convert %s to Element.' % arg)
@@ -222,55 +234,54 @@ def _Promote(arg, klass):
     return ImageCollection(arg)
   elif klass == 'Filter':
     return Filter(arg)
-  elif klass == 'Algorithm' and isinstance(arg, basestring):
-    return ApiFunction.lookup(arg)
-  elif klass == 'Date':
+  elif klass == 'Algorithm':
     if isinstance(arg, basestring):
-      try:
-        import dateutil.parser    # pylint: disable=g-import-not-at-top
-      except ImportError:
-        raise EEException(
-            'Conversion of strings to dates requires the dateutil library.')
-      else:
-        return dateutil.parser.parse(arg)
-    elif isinstance(arg, numbers.Number):
-      return datetime.datetime.fromtimestamp(arg / 1000)
-    elif isinstance(arg, ComputedObject):
-      # Bypass promotion of this and do it directly.
-      func = ApiFunction.lookup('Date')
-      return ComputedObject(func, func.promoteArgs(func.nameArgs([arg])))
-    else:
+      # An API function name.
+      return ApiFunction.lookup(arg)
+    elif callable(arg):
+      # A native function that needs to be wrapped.
+      args_count = len(inspect.getargspec(arg).args)
+      return CustomFunction.create(arg, 'Object', ['Object'] * args_count)
+    elif isinstance(arg, Encodable):
+      # An ee.Function or a computed function like the return value of
+      # Image.parseExpression().
       return arg
+    else:
+      raise EEException('Argument is not a function: %s' % arg)
   elif klass == 'Dictionary':
-    if klass not in globals():
-      # No dictionary class defined.
+    if isinstance(arg, dict):
       return arg
-    cls = globals()[klass]
-    if isinstance(arg, cls):
-      return arg
-    elif isinstance(arg, ComputedObject):
-      return cls(arg)
     else:
-      # Can't promote non-ComputedObjects up to Dictionary; no constructor.
-      return arg
+      return Dictionary(arg)
   elif klass == 'String':
     if (types.isString(arg) or
         isinstance(arg, ComputedObject) or
-        isinstance(arg, String) or
-        types.isVarOfType(arg, String)):
+        isinstance(arg, String)):
       return String(arg)
     else:
       return arg
+  elif klass == 'List':
+    return List(arg)
+  elif klass in ('Number', 'Float', 'Long', 'Integer', 'Short', 'Byte'):
+    return Number(arg)
   elif klass in globals():
     cls = globals()[klass]
+    ctor = ApiFunction.lookupInternal(klass)
     # Handle dynamically created classes.
     if isinstance(arg, cls):
+      # Return unchanged.
       return arg
+    elif ctor:
+      # The client-side constructor will call the server-side constructor.
+      return cls(arg)
     elif isinstance(arg, basestring):
-      if not hasattr(cls, arg):
+      if hasattr(cls, arg):
+        # arg is the name of a method in klass.
+        return getattr(cls, arg)()
+      else:
         raise EEException('Unknown algorithm: %s.%s' % (klass, arg))
-      return getattr(cls, arg)()
     else:
+      # Client-side cast.
       return cls(arg)
   else:
     return arg
@@ -313,16 +324,13 @@ def _InitializeGeneratedClasses():
   names = set([name.split('.')[0] for name in signatures])
   # Collect the return types of all functions.
   returns = set([signatures[sig]['returns'] for sig in signatures])
-  # We generate classes for all return types that match algorithms names TYPE.x
-  # excluding those already handled by the client library, and those
-  # explicitly blacklisted.
-  blacklist = ['List']
-  want = [name for name in names.intersection(returns)
-          if name not in globals() and name not in blacklist]
+
+  want = [name for name in names.intersection(returns) if name not in globals()]
 
   for name in want:
     globals()[name] = _MakeClass(name)
     _generatedClasses.append(name)
+    ApiFunction._bound_signatures.add(name)  # pylint: disable=protected-access
 
   # Warning: we're passing all of globals() into registerClasses.
   # This is a) pass by reference, and b) a lot more stuff.
@@ -343,14 +351,49 @@ def _MakeClass(name):
     Returns:
       The new class.
     """
-    if isinstance(args[0], ComputedObject) and len(args) == 1:
+    klass = globals()[name]
+    onlyOneArg = (len(args) == 1)
+    # Are we trying to cast something that's already of the right class?
+    if onlyOneArg and isinstance(args[0], klass):
       result = args[0]
     else:
-      result = ApiFunction.call_(name, *args)
+      # Decide whether to call a server-side constructor or just do a
+      # client-side cast.
+      ctor = ApiFunction.lookupInternal(name)
+      firstArgIsPrimitive = not isinstance(args[0], ComputedObject)
+      shouldUseConstructor = False
+      if ctor:
+        if not onlyOneArg:
+          # Can't client-cast multiple arguments.
+          shouldUseConstructor = True
+        elif firstArgIsPrimitive:
+          # Can't cast a primitive.
+          shouldUseConstructor = True
+        elif args[0].func != ctor:
+          # We haven't already called the constructor on this object.
+          shouldUseConstructor = True
 
-    ComputedObject.__init__(self, result.func, result.args)
+    # Apply our decision.
+    if shouldUseConstructor:
+      # Call ctor manually to avoid having promote() called on the output.
+      ComputedObject.__init__(self, ctor, ctor.promoteArgs(ctor.nameArgs(args)))
+    else:
+      # Just cast and hope for the best.
+      if not onlyOneArg:
+        # We don't know what to do with multiple args.
+        raise EEException(
+            'Too many arguments for ee.%s(): %s' % (name, args))
+      elif firstArgIsPrimitive:
+        # Can't cast a primitive.
+        raise EEException(
+            'Invalid argument for ee.%s(): %s.  Must be a ComputedObject.' %
+            (name, args))
+      else:
+        result = args[0]
+      ComputedObject.__init__(self, result.func, result.args, result.varName)
 
-  new_class = type(str(name), (ComputedObject,), {'__init__': init})
+  properties = {'__init__': init, 'name': lambda self: name}
+  new_class = type(str(name), (ComputedObject,), properties)
   ApiFunction.importApi(new_class, name, name)
   return new_class
 

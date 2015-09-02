@@ -1,0 +1,5 @@
+ignore-paths:
+    - lib
+    - tools
+strictness: veryhigh
+max-line-length: 80

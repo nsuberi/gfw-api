@@ -18,9 +18,102 @@
 """This module supports common functions."""
 
 import json
-import os
-from hashlib import md5
+import re
+import logging
+import webapp2
 
+from google.appengine.api import memcache
+
+from hashlib import md5
+from appengine_config import runtime_config
+
+
+class CORSRequestHandler(webapp2.RequestHandler):
+
+    def options(self):
+        """Options to support CORS requests."""
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Access-Control-Allow-Headers'] = \
+            'Origin, X-Requested-With, Content-Type, Accept'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+
+    def write(self, data):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(str(data))
+
+    def write_error(self, status, data):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.set_status(status, message=str(data))
+        self.response.out.write(str(data))
+
+    @classmethod
+    def get_or_execute(cls, args, target, rid):
+        if 'bust' in args:
+            memcache.delete(rid)
+            result = target.execute(args)
+        else:
+            result = memcache.get(rid)
+            if not result:
+                result = target.execute(args)
+                try:
+                    memcache.set(key=rid, value=result)
+                except Exception as e:
+                    logging.exception(e)
+        action, data = result
+        return action, data
+
+    def args(self, only=[]):
+        raw = {}
+        if not self.request.arguments():
+            if self.request.body:
+                raw = json.loads(self.request.body)
+        else:
+            args = self.request.arguments()
+            vals = map(self.request.get, args)
+            raw = dict(zip(args, vals))
+
+        result = {}
+        for key, val in raw.iteritems():
+            if only and key in only:
+                result[key] = val
+            else:
+                result[key] = val
+
+        return result
+
+    def complete(self, action, data):
+        if action == 'respond':
+            self.write(json.dumps(data, sort_keys=True))
+        elif action == 'redirect':
+            self.redirect(data)
+        elif action == 'error':
+            self.write_error(400, data.get('message') or data )
+        else:
+            self.write_error(400, 'Unknown action %s' % action)
+
+    def get_id(self, params):
+        whitespace = re.compile(r'\s+')
+        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+
+#
+# SHARED CONSTANTS/TEMPLATES
+#
+APP_VERSION = runtime_config.get('APP_VERSION')
+APP_BASE_URL = runtime_config.get('APP_BASE_URL')
+IS_DEV = runtime_config.get('IS_DEV')
 CONTENT_TYPES = {
     'shp': 'application/octet-stream',
     'kml': 'application/vnd.google-earth.kmz',
@@ -29,18 +122,12 @@ CONTENT_TYPES = {
     'geojson': 'application/json',
     'json': 'application/json'
 }
-
-
 GCS_URL_TMPL = 'http://storage.googleapis.com/gfw-apis-analysis%s.%s'
 
-IS_DEV = 'Development' in os.environ['SERVER_SOFTWARE']
 
-if IS_DEV:
-    APP_BASE_URL = 'http://localhost:8080'
-else:
-    APP_BASE_URL = 'http://gfw-apis.appspot.com'
-
-
+#
+# Helper Methods
+#
 def get_params_hash(params):
     return md5(json.dumps(params, sort_keys=True)).hexdigest()
 

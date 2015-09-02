@@ -62,7 +62,7 @@ class SubHandler(webapp2.RequestHandler):
 
     def get(self):
         subs = []
-        for s in pubsub.Subscription.get_by_topic('updates/forma'):
+        for s in pubsub.Subscription.with_topic('updates/forma'):
             subs.append('%s,%s' % (s.email, json.dumps(s.params)))
         self.response.headers.add_header('charset', 'utf-8')
         self.response.headers['Content-Type'] = 'text/csv'

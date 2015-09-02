@@ -1,7 +1,6 @@
 import os
 import ee
 import json
-import logging
 from oauth2client.appengine import AppAssertionCredentials
 
 

@@ -17,6 +17,12 @@ class ImageTestCase(apitestcase.ApiTestCase):
                       from_constant.func)
     self.assertEquals({'value': 1}, from_constant.args)
 
+    array_constant = ee.Array([1, 2])
+    from_array_constant = ee.Image(array_constant)
+    self.assertEquals(ee.ApiFunction.lookup('Image.constant'),
+                      from_array_constant.func)
+    self.assertEquals({'value': array_constant}, from_array_constant.args)
+
     from_id = ee.Image('abcd')
     self.assertEquals(ee.ApiFunction.lookup('Image.load'), from_id.func)
     self.assertEquals({'id': 'abcd'}, from_id.args)
@@ -44,6 +50,11 @@ class ImageTestCase(apitestcase.ApiTestCase):
     self.assertEquals({'id': 'abcd', 'version': 123},
                       from_id_and_version.args)
 
+    from_variable = ee.Image(ee.CustomFunction.variable(None, 'foo'))
+    self.assertTrue(isinstance(from_variable, ee.Image))
+    self.assertEquals({'type': 'ArgumentRef', 'value': 'foo'},
+                      from_variable.encode(None))
+
   def testImageSignatures(self):
     """Verifies that the API functions are added to ee.Image."""
     self.assertTrue(hasattr(ee.Image(1), 'addBands'))
@@ -61,12 +72,18 @@ class ImageTestCase(apitestcase.ApiTestCase):
     combined = ee.Image.combine_([image1, image2], ['a', 'b', 'c', 'd'])
 
     self.assertEquals(ee.ApiFunction.lookup('Image.select'), combined.func)
-    self.assertEquals(['.*'], combined.args['bandSelectors'])
-    self.assertEquals(['a', 'b', 'c', 'd'], combined.args['newNames'])
+    self.assertEquals(ee.List(['.*']), combined.args['bandSelectors'])
+    self.assertEquals(ee.List(['a', 'b', 'c', 'd']), combined.args['newNames'])
     self.assertEquals(ee.ApiFunction.lookup('Image.addBands'),
                       combined.args['input'].func)
     self.assertEquals({'dstImg': image1, 'srcImg': image2},
                       combined.args['input'].args)
+
+  def testSelect(self):
+    """Verifies regression in the behavior of empty ee.Image.select()."""
+    image = ee.Image([1, 2]).select()
+    self.assertEquals(ee.ApiFunction.lookup('Image.select'), image.func)
+    self.assertEquals(ee.List([]), image.args['bandSelectors'])
 
   def testDownload(self):
     """Verifies Download ID and URL generation."""

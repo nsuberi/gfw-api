@@ -1,0 +1,10 @@
+language: python
+python:
+  - '2.7'
+cache:
+  directories:
+  - $HOME/google_appengine_*
+before_script:
+  - sh setup.sh
+script:
+  - nosetests --with-gae --without-sandbox test

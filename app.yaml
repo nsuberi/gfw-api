@@ -16,7 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 application: gfw-apis
-version: wip
+version: v1-wip
 runtime: python27
 threadsafe: true
 api_version: 1
@@ -35,6 +35,11 @@ libraries:
 - name: pycrypto
   version: "latest"  
 
+## GAE python console:
+# remote_api_shell.py -s dev.gfw-apis.appspot.com
+builtins:
+- remote_api: on
+
 handlers:
 
 ## Earth Engine dep:
@@ -46,11 +51,11 @@ handlers:
   login: admin
 
 # Download handler:
-- url: /datasets/(imazon|forma|modis).(shp|geojson|kml|svg|csv)
+- url: /analysis/(imazon|forma|modis|prodes).(shp|geojson|kml|svg|csv)
   script: download.handlers
 
 # Analysis handler:
-- url: /datasets/(imazon|forma|modis|umd)
+- url: /analysis/(imazon|forma|modis|umd|prodes)
   script: analysis.handlers
 
 # Monitor
@@ -64,7 +69,22 @@ handlers:
   script: admin.handlers
   login: admin
 
-- url: /.*
-  script: gfw.api.handlers
+# Forest change handlers
+- url: /forest-change
+  script: gfw.forestchange.api.handlers
 
+# Country handlers
+- url: /countries.*
+  script: gfw.countries.api.handlers
+
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss).*
+  script: gfw.forestchange.api.handlers
+
+# Stories
+- url: /stories.*
+  script: gfw.stories.handlers
+
+# PubSub
+- url: /.*
+  script: gfw.pubsub.api.handlers
 

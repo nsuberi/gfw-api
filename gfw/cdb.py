@@ -17,7 +17,9 @@
 
 """This module supports executing CartoDB queries."""
 
+import copy
 import urllib
+import logging
 
 from appengine_config import runtime_config
 from google.appengine.api import urlfetch
@@ -45,10 +47,23 @@ def get_format(media_type):
 
 def get_url(query, params, auth=False):
     """Return CartoDB query URL for supplied params."""
+    params = copy.copy(params)
     params['q'] = query
     if auth:
         params['api_key'] = _get_api_key()
-    return '%s?%s' % (ENDPOINT, urllib.urlencode(params))
+    clean_params = {}
+    for key, value in params.iteritems():
+        if key in ['api_key', 'format', 'q', 'version']:
+            clean_params[key] = value
+    url = '%s?%s' % (ENDPOINT, urllib.urlencode(clean_params))
+
+    # TODO: Hack
+    if 'version' in clean_params:
+        url = url.replace('v2', clean_params['version'])
+
+    if runtime_config.get('IS_DEV'):
+        logging.info(url)
+    return str(url)
 
 
 def get_body(query, params, auth=False):
@@ -66,5 +81,8 @@ def execute(query, params={}, auth=False):
     #logging.info(query)
     rpc = urlfetch.create_rpc(deadline=50)
     payload = get_body(query, params, auth=auth)
+    if runtime_config.get('IS_DEV'):
+        logging.info(query)
+        logging.info(payload)
     urlfetch.make_fetch_call(rpc, ENDPOINT, method='POST', payload=payload)
     return rpc.get_result()
