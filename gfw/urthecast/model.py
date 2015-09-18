@@ -10,6 +10,8 @@ class TilesUC(ndb.Model):
 	# A tiles request is possibly a lot of parameters.
 	# A URL generically: https://tile-{s}.urthecast.com/v1/{RENDERER}/{z}/{x}/{y}?{parameters}
 	# where list of parameters are found in urthecast docs...
+    # TODO Extend this model for the full parameter possibilities
+    # Issue might be practical resource query-ability
 
 	memcache_id = ndb.StringProperty()
     renderer = ndb.StringProperty()
