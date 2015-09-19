@@ -13,7 +13,7 @@ class TilesUC(ndb.Model):
     # TODO Extend this model for the full parameter possibilities
     # Issue might be practical resource query-ability
 
-	memcache_id = ndb.StringProperty()
+	memcache_key = ndb.StringProperty()
     renderer = ndb.StringProperty()
 	z = ndb.StringProperty()
 	x = ndb.StringProperty()
@@ -26,11 +26,11 @@ class TilesUC(ndb.Model):
     """ Class Methods """
 
     @classmethod
-    def create(cls,memcache_id,renderer,z,x,y,tiles):
+    def create(cls,memcache_key,renderer,z,x,y,tiles):
         """Create Tiles resource"""
         # TODO Error checking the passed params??
 		tiles_uc = TilesUC(
-			memcache_id = memcache_id,
+			memcache_key = memcache_key,
         	renderer = renderer,
         	z = z,
         	x = x,
@@ -41,9 +41,9 @@ class TilesUC(ndb.Model):
         return tiles_uc
 
     @classmethod
-    def search_for(cls,memcache_id,renderer,z,x,y,tiles):
+    def search_for(cls,memcache_key,renderer,z,x,y,tiles):
     	# Query for (possibly still cached) Tiles resource.
-    	return cls.query(cls.memcache_id=memcache_id,cls.renderer=renderer,cls.z=z,cls.x=x,cls.y=y).fetch(1)
+    	return cls.query(cls.memcache_key=memcache_key,cls.renderer=renderer,cls.z=z,cls.x=x,cls.y=y).fetch(1)
 
     """ Instance methods """
 

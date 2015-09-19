@@ -28,10 +28,12 @@ class UrthecastHandler(webapp2.RequestHandler):
         # https://tile-{s}.urthecast.com/v1
         urthecast_url_part = self.request.path_qs.replace('urthecast/map-tiles/','')
         p = _get_uri_params(urthecast_url_part)
-        
 
-		# if url_part has parameters that match an ndb entry, get memcachce_id, then try to retrieve from memcache
-		# if memcache no longer has record, hit urthecast with params and re-create record in memcache and return results
+        key = "%s-tile-%s-%s-%s" % (p['renderer'],p['z'],p['x'],p['y'])
+
+        uct = TilesUC.search_for(cls,key)
+
+
 
 
         uc.tiles(urthecast_url_part)
