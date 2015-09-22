@@ -6,7 +6,6 @@ import random
 from urllib2 import Request, urlopen, URLError, HTTPError
 from appengine_config import runtime_config
 
-
 class Urthecast:
 
 	def __init__(self, key=None, secret=None):

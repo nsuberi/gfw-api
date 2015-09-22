@@ -30,6 +30,12 @@ class UrthecastHandler(webapp2.RequestHandler):
 		data = self.get_data(urthecast_url_part)
 		self._set_response('image/png',data)
 
+	def archive(self, *args, **kwargs):
+		# https://api.urthecast.com/v1/archive/scenes
+		urthecast_url_part = self.request.path_qs.replace('urthecast/archive/','')
+		uc.scenes(urthecast_url_part)
+		self._set_response('application/json')
+
 	def _set_response(self,content_type,data):
 		if not data:
 			content_type = 'application/json'
@@ -44,6 +50,12 @@ routes = [
 			r'/urthecast/map-tiles/<:.*>', 
 			handler=UrthecastHandler,
 			handler_method='tiles',
+			methods=['GET']
+		),
+		webapp2.Route(
+			r'/urthecast/archive/<:.*>', 
+			handler=UrthecastHandler,
+			handler_method='archive',
 			methods=['GET']
 		)
 	]
