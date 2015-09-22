@@ -14,31 +14,15 @@ uc = Urthecast()
 
 class UrthecastHandler(webapp2.RequestHandler):
 
-	def _build_tiles_key(self,uri_string):
-		uri = {}
-		items = uri_string.split('/')
-		uri['renderer']=items[1]
-		uri['z']=items[2]
-		uri['x']=items[3]
-		uri['y']=items[4]
-		tiles_key = "%s-tile-%s-%s-%s" % (uri['renderer'],uri['z'],uri['x'],uri['y'])
-		return tiles_key
-
 	def get_data(self,urthecast_url_part):
-		tiles_key = self._build_tiles_key(urthecast_url_part)
-		data = memcache.get(tiles_key)
+		data = memcache.get(urthecast_url_part)
 		if data is not None:
-			# print "FOUND within cache with key value: " + tiles_key
 			return data
 		else:
 			uc.tiles(urthecast_url_part)
 			data = uc.data
 			if data:
-				memcache.add(tiles_key, data, 60)
-				# if memcache.add(tiles_key, data, 60):
-				# 	print 'CREATED within memcache'
-				# else:
-				# 	print 'COULD NOT create in memcache'
+				memcache.add(urthecast_url_part, data, 60)
 		return data
 
 	def tiles(self, *args, **kwargs):
