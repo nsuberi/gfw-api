@@ -86,7 +86,7 @@ handlers:
 
 # Urthecast
 - url: /urthecast.*
-  script: gfw.urthecast.handler
+  script: gfw.urthecast.handler.app
 
 # PubSub
 - url: /.*
