@@ -38,11 +38,9 @@ class Urthecast:
 		except HTTPError as e:
 			if hasattr(e, 'reason'):
 				self.error_message = {'Reason':e.reason,'Badness':'We failed to reach a server.'}
-				# print 'urlerror:', self.error_message
 			elif hasattr(e, 'code'):
 				self.error_message = {'Code':e.code,'Badness':'The server could not fulfill the request.'}
-				# print 'httperror:', self.error_message
-			return self.error_message			
+			return self.error_message
 		else:
 			self.data = response.read()
 			return self.data

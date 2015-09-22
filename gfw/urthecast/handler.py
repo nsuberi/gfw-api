@@ -9,54 +9,51 @@ import json
 from google.appengine.api import memcache
 
 from gfw.urthecast.api import Urthecast
-from gfw.urthecast.model import TilesUC
 
 uc = Urthecast()
 
 class UrthecastHandler(webapp2.RequestHandler):
 
-	def _get_uri_params(self,uri_string):
-		# returns uri parameters as a dictionary - only set to work on simple tiles...
-		# TODO extend to work with any uri for urthecast tiles - return uri_dict and params_dict
+	def _build_tiles_key(self,uri_string):
 		uri = {}
 		items = uri_string.split('/')
 		uri['renderer']=items[1]
 		uri['z']=items[2]
 		uri['x']=items[3]
 		uri['y']=items[4]
-		return uri
+		tiles_key = "%s-tile-%s-%s-%s" % (uri['renderer'],uri['z'],uri['x'],uri['y'])
+		return tiles_key
+
+	def get_data(self,urthecast_url_part):
+		tiles_key = self._build_tiles_key(urthecast_url_part)
+		data = memcache.get(tiles_key)
+		if data is not None:
+			# print "FOUND within cache with key value: " + tiles_key
+			return data
+		else:
+			uc.tiles(urthecast_url_part)
+			data = uc.data
+			if data:
+				memcache.add(tiles_key, data, 60)
+				# if memcache.add(tiles_key, data, 60):
+				# 	print 'CREATED within memcache'
+				# else:
+				# 	print 'COULD NOT create in memcache'
+		return data
 
 	def tiles(self, *args, **kwargs):
-		self.response.headers['Content-Type'] = 'text/plain'
-		self.response.write('Hello, World!')
 		urthecast_url_part = self.request.path_qs.replace('urthecast/map-tiles/','')
-		print "**********"
-		print "**********"
-		print "**********"
-		print urthecast_url_part
-		p = self._get_uri_params(urthecast_url_part)
-		print p
-		tiles_key = "%s-tile-%s-%s-%s" % (p['renderer'],p['z'],p['x'],p['y'])
-		print tiles_key
-		print "**********"
-		print "**********"
-		print "**********"
-		# uct = TilesUC.search_for(cls,tiles_key)
-		uc.tiles(urthecast_url_part)
-		self._set_response('image/png')
+		data = self.get_data(urthecast_url_part)
+		self._set_response('image/png',data)
 
-	def _set_response(self,content_type):
-		if uc.error_message:
+	def _set_response(self,content_type,data):
+		if not data:
 			content_type = 'application/json'
 			response = json.dumps(uc.error_message)
 		else:
-			response = uc.data
+			response = data
 		self.response.headers.add('Content-Type', content_type)
 		self.response.write(response)
-
-	# def get_tiles(self, tiles_key):
-	# 	# Expecting strings for a string tiles_key
-	# 	tiles = memcache.get(tiles_key)
 
 routes = [
 		webapp2.Route(
