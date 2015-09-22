@@ -1,6 +1,8 @@
 # gfw proxy to hit internally wrapped urthecast api
 # Methods to search ndb for memcached tiles or to create and remove ndb records of memcached tiles.
 
+# https://tile-{s}.urthecast.com/v1
+
 import webapp2
 import json
 
@@ -22,29 +24,24 @@ class UrthecastHandler(webapp2.RequestHandler):
 		params['y']=items[3]
 		return params
 
+    def tiles(self,*args,**kwargs):
+        print "somethinig"
+        return
 
-    def tiles(self,*args, **kwargs):
-        # a-h = {s} - just a server choice
-        # https://tile-{s}.urthecast.com/v1
-        urthecast_url_part = self.request.path_qs.replace('urthecast/map-tiles/','')
-        p = _get_uri_params(urthecast_url_part)
+        # urthecast_url_part = self.request.path_qs.replace('urthecast/map-tiles/','')
+        # p = _get_uri_params(urthecast_url_part)
+        # key = "%s-tile-%s-%s-%s" % (p['renderer'],p['z'],p['x'],p['y'])
+        # print key
+        # uct = TilesUC.search_for(cls,key)
+        # uc.tiles(urthecast_url_part)
+        # self._set_response('image/png')}}
 
-        key = "%s-tile-%s-%s-%s" % (p['renderer'],p['z'],p['x'],p['y'])
-
-        uct = TilesUC.search_for(cls,key)
-
-
-
-
-        uc.tiles(urthecast_url_part)
-        self._set_response('image/png')
-
-    def archive(self, *args, **kwargs):
+    def archive(self,*args,**kwargs):
         # https://api.urthecast.com/v1/archive/scenes
         urthecast_url_part = self.request.path_qs.replace('urthecast/archive/','')
         uc.scenes(urthecast_url_part)
         self._set_response('application/json')
-    
+        
     def _set_response(self,content_type):
         if uc.error_message:
             content_type = 'application/json'

@@ -84,6 +84,10 @@ handlers:
 - url: /stories.*
   script: gfw.stories.handlers
 
+# Urthecast
+- url: /urthecast.*
+  script: gfw.urthecast.handler
+
 # PubSub
 - url: /.*
   script: gfw.pubsub.api.handlers
