@@ -7,8 +7,9 @@ import webapp2
 import json
 
 from google.appengine.api import memcache
+
 from gfw.urthecast.api import Urthecast
-# from gfw.urthecast.model import TilesUC
+from gfw.urthecast.model import TilesUC
 
 uc = Urthecast()
 
@@ -53,9 +54,9 @@ class UrthecastHandler(webapp2.RequestHandler):
 		self.response.headers.add('Content-Type', content_type)
 		self.response.write(response)
 
-	def get_tiles(self, tiles_key):
-		# Expecting strings for a string tiles_key
-		tiles = memcache.get(tiles_key)
+	# def get_tiles(self, tiles_key):
+	# 	# Expecting strings for a string tiles_key
+	# 	tiles = memcache.get(tiles_key)
 
 routes = [
 		webapp2.Route(
