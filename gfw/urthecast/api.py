@@ -1,9 +1,10 @@
 # Internal gfw wrapper for Urthecast's API for tiles
-
+import logging
 import json
 import random
 
-from urllib2 import Request, urlopen, URLError, HTTPError
+import httplib
+import urllib2
 from appengine_config import runtime_config
 
 class Urthecast:
@@ -31,15 +32,18 @@ class Urthecast:
 		else:
 			authorized_tmpl = "{url}?api_key={key}&api_secret={secret}"
 		authorized_url = authorized_tmpl.format(url=url,key=self.key,secret=self.secret)
-		req = Request(authorized_url)
+		req = urllib2.Request(authorized_url)
 		try:
-			response = urlopen(req)
-		except HTTPError as e:
-			if hasattr(e, 'reason'):
-				self.error_message = {'Reason':e.reason,'Badness':'We failed to reach a server.'}
-			elif hasattr(e, 'code'):
-				self.error_message = {'Code':e.code,'Badness':'The server could not fulfill the request.'}
-			return self.error_message
+			response = urllib2.urlopen(req)
+		except urllib2.HTTPError, e:
+			logging.error('HTTPError = hella' + str(e.code))
+		except urllib2.URLError, e:
+			logging.error('URLError = ' + str(e.reason))
+		except httplib.HTTPException, e:
+			logging.error('HTTPException')
+		except Exception:
+			import traceback
+			logging.error('generic exception: ' + traceback.format_exc())
 		else:
 			self.data = response.read()
 			return self.data
