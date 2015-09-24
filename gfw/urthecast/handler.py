@@ -31,10 +31,11 @@ class UrthecastHandler(webapp2.RequestHandler):
 		self._set_response('image/png',data)
 
 	def archive(self, *args, **kwargs):
+		pass
 		# https://api.urthecast.com/v1/archive/scenes
-		urthecast_url_part = self.request.path_qs.replace('urthecast/archive/','')
-		uc.scenes(urthecast_url_part)
-		self._set_response('application/json')
+		# urthecast_url_part = self.request.path_qs.replace('urthecast/archive/','')
+		# response = json.dumps(uc.scenes(urthecast_url_part))
+		# self._set_response('application/json',response)
 
 	def _set_response(self,content_type,data):
 		if not data:
