@@ -15,6 +15,7 @@ uc = Urthecast()
 class UrthecastHandler(webapp2.RequestHandler):
 
 	def get_data(self,urthecast_url_part):
+		expire = 3600
 		data = memcache.get(urthecast_url_part)
 		if data is not None:
 			return data
@@ -22,7 +23,7 @@ class UrthecastHandler(webapp2.RequestHandler):
 			uc.tiles(urthecast_url_part)
 			data = uc.data
 			if data:
-				memcache.add(urthecast_url_part, data, 60)
+				memcache.add(urthecast_url_part, data, time=expire)
 		return data
 
 	def tiles(self, *args, **kwargs):
