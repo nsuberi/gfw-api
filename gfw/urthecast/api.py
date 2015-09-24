@@ -46,13 +46,14 @@ class Urthecast:
 			try:
 				response = urllib2.urlopen(req)
 			except ValueError, e:
-				logging.error('Invalid URL: '+str(e.args))
+				logging.error('Threw ValueError; Invalid URL?')
+				self.error_message = {'Raised ValueError':'Invalid URL?'}
 			except urllib2.HTTPError, e:
 				logging.error('HTTPError = '+str(e.code))
 				self.error_message = {'HTTPError':e.code}
 			except urllib2.URLError, e:
-				logging.error('URLError = '+str(e.reason)+','+str(e.args))
-				self.error_message = {'URLError':'%s'% str(e.reason)}
+				logging.error('URLError. Reason= '+str(e.reason)+', args= '+str(e.args))
+				self.error_message = {'URLError':'Exception raised'}
 			except httplib.HTTPException, e:
 				retry_count += 1
 				logging.error('HTTPException'+str(e.args))
@@ -62,6 +63,7 @@ class Urthecast:
 					logging.info('Sleeping for '+str(t)+' seconds')
 					time.sleep(t)
 				else:
+					logging.info('Last retry also timed out.')
 					self.error_message = {'reason':'Timeout Error','code':503}
 			except Exception:
 				import traceback
