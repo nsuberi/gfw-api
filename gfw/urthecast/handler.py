@@ -26,6 +26,8 @@ class UrthecastHandler(webapp2.RequestHandler):
 		return data
 
 	def tiles(self, *args, **kwargs):
+		uc.data = None
+		uc.error_message = None
 		urthecast_url_part = self.request.path_qs.replace('urthecast/map-tiles/','')
 		data = self.get_data(urthecast_url_part)
 		self._set_response('image/png',data)
@@ -53,12 +55,12 @@ routes = [
 			handler_method='tiles',
 			methods=['GET']
 		),
-		webapp2.Route(
-			r'/urthecast/archive/<:.*>', 
-			handler=UrthecastHandler,
-			handler_method='archive',
-			methods=['GET']
-		)
+		# webapp2.Route(
+		# 	r'/urthecast/archive/<:.*>', 
+		# 	handler=UrthecastHandler,
+		# 	handler_method='archive',
+		# 	methods=['GET']
+		# )
 	]
 
 	

@@ -45,27 +45,29 @@ class Urthecast:
 			retry = False		
 			try:
 				response = urllib2.urlopen(req)
+			except ValueError, e:
+				logging.error('Invalid URL: '+str(e.args))
 			except urllib2.HTTPError, e:
-				logging.error('HTTPError = ' + str(e.code))
+				logging.error('HTTPError = '+str(e.code))
 				self.error_message = {'HTTPError':e.code}
 			except urllib2.URLError, e:
-				logging.error('URLError = ' + str(e.reason))
+				logging.error('URLError = '+str(e.reason)+','+str(e.args))
 				self.error_message = {'URLError':'%s'% str(e.reason)}
 			except httplib.HTTPException, e:
 				retry_count += 1
-				logging.error('HTTPException' + str(e.args))
+				logging.error('HTTPException'+str(e.args))
 				if retry_count < max_retry:
-					logging.info('Trying again; re-attempt number ' + str(retry_count))
+					logging.info('Trying again; re-attempt number '+str(retry_count))
 					retry = True
-					logging.info('Sleeping for'+str(t)+' seconds')
+					logging.info('Sleeping for '+str(t)+' seconds')
 					time.sleep(t)
 				else:
-					self.error_message = {'HTTPException':'Timeout Error','Code':503}
+					self.error_message = {'reason':'Timeout Error','code':503}
 			except Exception:
 				import traceback
-				logging.error('generic exception: ' + traceback.format_exc())
+				logging.error('generic exception: '+traceback.format_exc())
 				self.error_message = {'Exception':'500'} # Don't know if this is a good code
 			else:
-				logging.info('Status:' + str(response.code))
+				logging.info('Status:'+str(response.code))
 				self.data = response.read()
 				return self.data
