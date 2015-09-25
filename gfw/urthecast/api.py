@@ -24,7 +24,7 @@ class Urthecast:
 		return self._request_url(url)
 
 	def scenes(self,url_part):
-		url = 'https://api.urthecast.com/v1/archive/scenes'.format(url_part=url_part)
+		url = 'https://api.urthecast.com/v1/archive/scenes{url_part}'.format(url_part=url_part)
 		return self._request_url(url)
 
 	def _request_url(self,url):
@@ -46,7 +46,7 @@ class Urthecast:
 			try:
 				response = urllib2.urlopen(req)
 			except ValueError, e:
-				logging.error('Threw ValueError; Invalid URL?')
+				logging.error('Threw ValueError; Invalid URL')
 				self.error_message = {'Raised ValueError':'Invalid URL?'}
 			except urllib2.HTTPError, e:
 				logging.error('HTTPError = '+str(e.code))
@@ -68,7 +68,7 @@ class Urthecast:
 			except Exception:
 				import traceback
 				logging.error('generic exception: '+traceback.format_exc())
-				self.error_message = {'Exception':'500'} # Don't know if this is a good code
+				self.error_message = {'Exception':'500'} # Don't know if this is an informative code
 			else:
 				logging.info('Status:'+str(response.code))
 				self.data = response.read()
