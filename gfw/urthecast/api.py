@@ -4,9 +4,8 @@ import json
 import random
 import time
 
-import httplib
-import urllib2
 from appengine_config import runtime_config
+from google.appengine.api import urlfetch
 
 class Urthecast:
 
@@ -40,36 +39,32 @@ class Urthecast:
 		retry = True
 		t = 5 # Time to wait between raised HTTPException and calling again
 
-		req = urllib2.Request(authorized_url)
 		while retry:
-			retry = False		
+			retry = False
+			e = None
 			try:
-				response = urllib2.urlopen(req)
-			except ValueError, e:
-				logging.error('Threw ValueError; Invalid URL')
-				self.error_message = {'Raised ValueError':'Invalid URL?'}
-			except urllib2.HTTPError, e:
-				logging.error('HTTPError = '+str(e.code))
-				self.error_message = {'HTTPError':e.code}
-			except urllib2.URLError, e:
-				logging.error('URLError. Reason= '+str(e.reason)+', args= '+str(e.args))
-				self.error_message = {'URLError':'Exception raised'}
-			except httplib.HTTPException, e:
+				result = urlfetch.fetch(authorized_url)
+				if result.status_code == 200:
+					self.data = result.content
+				else:
+					self.error_message = {'Code':result.status_code}
+					logging.error('********* THERE IS NO DATA but NO exception is thrown. status code is !=200 **********')
+			except urlfetch.InvalidURLError, e:
+				logging.error('********* Invalid url ***********: %s'%str(e))
+			except urlfetch.DownloadError:
 				retry_count += 1
-				logging.error('HTTPException'+str(e.args))
 				if retry_count < max_retry:
 					logging.info('Trying again; re-attempt number '+str(retry_count))
 					retry = True
 					logging.info('Sleeping for '+str(t)+' seconds')
-					time.sleep(t)
-				else:
+		 			time.sleep(t)
+		 		else:
 					logging.info('Last retry also timed out.')
-					self.error_message = {'reason':'Timeout Error','code':503}
-			except Exception:
-				import traceback
-				logging.error('generic exception: '+traceback.format_exc())
-				self.error_message = {'Exception':'500'} # Don't know if this is an informative code
-			else:
-				logging.info('Status:'+str(response.code))
-				self.data = response.read()
-				return self.data
+		 			e = 'Multiple Timeouts'
+				logging.error('********** Download Error ************: %s'% str(e))
+			except Exception, e:
+				logging.error('********** Generic Exception ************: %s'%str(e))
+			if e:
+				self.error_message = {'Exception string':str(e)}
+		return self.data
+
