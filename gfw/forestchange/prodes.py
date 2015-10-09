@@ -66,7 +66,7 @@ class ProdesSql(Sql):
               AND f.ano <= '{end}'"""
 
     USE = """
-        SELECT Cround(sum(f.areameters)/10000) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
