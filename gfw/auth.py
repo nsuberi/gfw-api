@@ -60,10 +60,19 @@ class UserApi(CORSRequestHandler):
             msg = 'Error: Users API (%s)' % name
             monitor.log(self.request.url, msg, error=e,
                         headers=self.request.headers)
-
-routes = [webapp2.Route(r'/user/session', handler=UserApi,
-          handler_method='get',
-          methods=['GET'])]
+    def setuser(self):
+        user = self._get_params()
+        print user
+routes = [
+        webapp2.Route(r'/user/session',
+            handler=UserApi,
+            handler_method='get',
+            methods=['GET']),
+        webapp2.Route(r'/user/setuser',
+            handler=UserApi,
+            handler_method='setUser',
+            methods=['POST'])
+        ]
 
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
