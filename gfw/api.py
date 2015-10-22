@@ -132,7 +132,7 @@ class StoriesApi(BaseApi):
         subject = 'Your story has been posted to Global Forest Watch'
         to = '%s <%s>' % (story['name'], story['email'])
         body = 'Dear %s' % story['name']
-        body += 'Thank you for sharing your story with Global Forest Watch. You can view your story online here: %s' % story_url
+        body += '\n\nThank you for sharing your story with Global Forest Watch. You can view your story online here: %s' % story_url
         body += '\n\nIf you would like to add updates or make changes, please contact our Website Coordinator at krenschler@wri.org and we can edit your story online.'
         body += '\nRemember to share your story with others! Post it on Twitter and Facebook, or recommend it on Google Plus using the links at the bottom of the story.'
         body += '\nDid you enjoy your experience with Global Forest Watch? If you have any feedback or suggestions, we are always looking to hear from our users to improve the site. You can add your comments here: http://www.globalforestwatch.org/getinvolved/provide-feedback'
