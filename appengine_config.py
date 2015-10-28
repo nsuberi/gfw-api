@@ -83,7 +83,7 @@ else:
 runtime_config = _get_runtime_config(appversion, secret, public)
 
 engineauth = {
-    # The user will be returned here if an error occures (default /login):
+    # The user will be returned here if an error occurs (default /login):
     'login_uri': '/',
     # The user is sent here after successfull authentication:
     'redirect_back': True,
@@ -92,9 +92,18 @@ engineauth = {
     # 'user_model': 'models.CustomUser',
 }
 
+# Twitter Authentication
 engineauth['provider.twitter'] = {
     'client_id': 'jgQR7Lg8gLkl9CqziHUoJE4d6',
     'client_secret': '1pWqfBlPsUyC8Od6kaG0tXcVWaFWaVac7IhU8EhKP0P1U0g73F',
+}
+
+# Facebook Authentication
+# Currently on Dev credentials using Dave P's Account
+engineauth['provider.facebook'] = {
+    'client_id': '1011581985558615',
+    'client_secret': 'd8b03e57d2bbbf56c8bc98bbe9d32ee4',
+    'scope': 'email',
 }
 
 
