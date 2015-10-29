@@ -123,6 +123,13 @@ engineauth['provider.linkedin'] = {
     'client_secret': 'M09xlYP6cHKEHSDj',
 }
 
+# GitHub Authentication
+# Currently using Dave P's Account
+engineauth['provider.github'] = {
+    'client_id': 'ca82b0d062ce107c031d',
+    'client_secret': 'e2d0420f8abd67d5fc4f8bdefd9e8144744bf3e8',
+}
+
 
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""
