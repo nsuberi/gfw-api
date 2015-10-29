@@ -99,11 +99,21 @@ engineauth['provider.twitter'] = {
 }
 
 # Facebook Authentication
-# Currently on Dev credentials using Dave P's Account
+# Currently on dev credentials using Dave P's Account
 engineauth['provider.facebook'] = {
     'client_id': '1011581985558615',
     'client_secret': 'd8b03e57d2bbbf56c8bc98bbe9d32ee4',
     'scope': 'email',
+}
+
+# Google Plus Authentication
+# Currently using Dave P's Account
+engineauth['provider.google'] = {
+    'client_id': '324237003660-j10fbal3v9hie743mvl16mcu'
+    '4hvvi7pl.apps.googleusercontent.com',
+    'client_secret': 'QGvyzZajrfqkg3DIVMfq6BwL',
+    'api_key': 'CHANGE_TO_GOOGLE_API_KEY',
+    'scope': 'https://www.googleapis.com/auth/plus.me',
 }
 
 
