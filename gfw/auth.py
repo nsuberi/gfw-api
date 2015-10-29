@@ -47,11 +47,15 @@ class UserApi(CORSRequestHandler):
                     if self.profile:
                         info = self.profile.user_info['info']
                         name = info['displayName']
+                        if hasattr(info, 'emails'):
+                            email = info['emails'][0]['value']
+                        else:
+                            email = None;
                         if hasattr(info, 'username'):
                             username = info['nickname']
                         else:
                             username = None;
-                        self.complete('respond', {'name': name, 'email': self.user.email, 'username': username,
+                        self.complete('respond', {'name': name, 'email': email, 'username': username,
                             'raw': info})
                     else:
                         self.complete('respond', {'error': 'No user profile for the current session.'})
