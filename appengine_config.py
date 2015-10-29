@@ -116,6 +116,13 @@ engineauth['provider.google'] = {
     'scope': 'https://www.googleapis.com/auth/plus.me',
 }
 
+# LinkedIn Authentication
+# Currently using Dave P's Account
+engineauth['provider.linkedin'] = {
+    'client_id': '75b0lcdhgxqf64',
+    'client_secret': 'M09xlYP6cHKEHSDj',
+}
+
 
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""
