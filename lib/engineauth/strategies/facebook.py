@@ -19,7 +19,7 @@ class FacebookStrategy(OAuth2Strategy):
         url = "https://graph.facebook.com/me?access_token=" + \
               req.credentials.access_token
         res, results = self.http(req).request(url)
-        if res.status is not 200:
+        if res.status != 200:
             return self.raise_error('There was an error contacting Facebook. '
                                     'Please try again.')
         user = json.loads(results)

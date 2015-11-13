@@ -27,7 +27,7 @@ class LinkedInStrategy(OAuthStrategy):
         url = "http://api.linkedin.com/v1/people/~:({0})?format=json".format(
             ','.join(self.fields()))
         res, results = self.http(req).request(url)
-        if res.status is not 200:
+        if res.status != 200:
             return self.raise_error('There was an error contacting LinkedIn. Please try again.')
         user = json.loads(results)
         auth_id = User.generate_auth_id(req.provider, user['id'])
