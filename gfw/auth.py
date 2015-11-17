@@ -18,8 +18,10 @@
 """This module contains request handlers for user authentication."""
 
 import webapp2
+import webbrowser
 import monitor
 import json
+import cgi
 from gfw import common
 from gfw.common import CORSRequestHandler
 from engineauth import models
@@ -88,7 +90,7 @@ class UserApi(CORSRequestHandler):
                         headers=self.request.headers)
     def _get_params(self, body=False):
         if body:
-            params = json.loads(self.request.body)
+            print self.request.get('name')
         else:
             args = self.request.arguments()
             vals = map(self.request.get, args)
@@ -98,8 +100,7 @@ class UserApi(CORSRequestHandler):
     def post(self):
         params = self._get_params(body=True)
         try:
-            print params
-            self._send_response()
+            webbrowser.open('http://localhost:5000')
         except Exception, error:
             name = error.__class__.__name__
             trace = traceback.format_exc()
