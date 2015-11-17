@@ -19,6 +19,7 @@
 
 import webapp2
 import monitor
+import json
 from gfw import common
 from gfw.common import CORSRequestHandler
 from engineauth import models
@@ -34,6 +35,22 @@ config = {
 
 class UserApi(CORSRequestHandler):
     """Handler for user info."""
+    def _send_response(self, data, error=None):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        if error:
+            self.response.set_status(400)
+        if not data:
+            self.response.out.write('')
+        else:
+            self.response.out.write(data)
+        if error:
+            taskqueue.add(url='/log/error', params=error, queue_name="log")
 
     def get(self):
         # Currently Supports Twitter Auth:
@@ -69,9 +86,29 @@ class UserApi(CORSRequestHandler):
             msg = 'Error: Users API (%s)' % name
             monitor.log(self.request.url, msg, error=e,
                         headers=self.request.headers)
-    def setuser(self):
-        user = self._get_params()
-        print user
+    def _get_params(self, body=False):
+        if body:
+            params = json.loads(self.request.body)
+        else:
+            args = self.request.arguments()
+            vals = map(self.request.get, args)
+            params = dict(zip(args, vals))
+        return params
+
+    def post(self):
+        params = self._get_params(body=True)
+        try:
+            print params
+            self._send_response(json.dumps(dict(publish=True)))
+        except Exception, error:
+            name = error.__class__.__name__
+            trace = traceback.format_exc()
+            msg = 'Publish failure: %s: %s' % \
+                (name, error)
+            monitor.log(self.request.url, msg, error=trace,
+                        headers=self.request.headers)
+            self._send_error()
+    
 routes = [
         webapp2.Route(r'/user/session',
             handler=UserApi,
@@ -79,7 +116,7 @@ routes = [
             methods=['GET']),
         webapp2.Route(r'/user/setuser',
             handler=UserApi,
-            handler_method='setUser',
+            handler_method='post',
             methods=['POST'])
         ]
 
