@@ -99,7 +99,7 @@ class UserApi(CORSRequestHandler):
         params = self._get_params(body=True)
         try:
             print params
-            self._send_response(json.dumps(dict(publish=True)))
+            self._send_response()
         except Exception, error:
             name = error.__class__.__name__
             trace = traceback.format_exc()
