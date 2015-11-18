@@ -27,6 +27,7 @@ from gfw.common import CORSRequestHandler
 from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
+from google.appengine.ext import ndb
 
 config = {
     'webapp2_extras.sessions': {
@@ -34,6 +35,15 @@ config = {
     }
 }
 
+class Userdata(ndb.Model):
+    name     = ndb.StringProperty()
+    email    = ndb.StringProperty()
+    job      = ndb.StringProperty()
+    sector   = ndb.StringProperty()
+    country  = ndb.StringProperty()
+    gender   = ndb.StringProperty()
+    use      = ndb.StringProperty()
+    signup   = ndb.StringProperty()
 
 class UserApi(CORSRequestHandler):
     """Handler for user info."""
@@ -92,23 +102,34 @@ class UserApi(CORSRequestHandler):
         if body:
             print self.request.get('name')
         else:
-            args = self.request.arguments()
+            params = self.request.arguments()
+            print params
             vals = map(self.request.get, args)
             params = dict(zip(args, vals))
         return params
 
     def post(self):
-        params = self._get_params(body=True)
         try:
-            webbrowser.open('http://localhost:5000')
+            userdata = Userdata(name=ndb.Key("name",
+                                           self.request.get('name') or "*nonamee*"),
+                                email=ndb.Key("name",
+                                           self.request.get('email') or "*noemaile*"),
+                                job  =ndb.Key("name",
+                                           self.request.get('job') or "*nojobe*"),
+                                sector=ndb.Key("sector",
+                                           self.request.get('sector') or "*nosectore*"),
+                                country=ndb.Key("country",
+                                           self.request.get('country') or "*nocountrye*"),
+                                gender=ndb.Key("gender",
+                                           self.request.get('gender') or "*nogendere*"),
+                                use=ndb.Key("use",
+                                           self.request.get('use') or "*noemaile*"),
+                                signup=ndb.Key("signup",
+                                           self.request.get('signup') or "*nosignupe*"))
+            userdata.put()
+            self.redirect(str(self.request.get('redirect')))
         except Exception, error:
-            name = error.__class__.__name__
-            trace = traceback.format_exc()
-            msg = 'Publish failure: %s: %s' % \
-                (name, error)
-            monitor.log(self.request.url, msg, error=trace,
-                        headers=self.request.headers)
-            self._send_error()
+            self.redirect('http://www.globalforestwatch.com')
     
 routes = [
         webapp2.Route(r'/user/session',
