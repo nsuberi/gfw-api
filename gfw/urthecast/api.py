@@ -33,7 +33,13 @@ class Urthecast:
 			authorized_tmpl = "{url}?api_key={key}&api_secret={secret}"
 
 		authorized_url = authorized_tmpl.format(url=url,key=self.key,secret=self.secret)
-		
+
+		###########testing improvements###########
+		urlfetch.set_default_fetch_deadline(30)
+		result = urlfetch.fetch(authorized_url)
+		self.data = result.content
+		return self.data
+		########### / testing improvements###########
 		max_retry = 2
 		retry_count = 0
 		retry = True
