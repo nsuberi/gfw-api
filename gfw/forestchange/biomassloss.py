@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports accessing UMD data."""
+"""This module supports accessing biomass loss data."""
 
 import json
 import ee
@@ -34,18 +34,13 @@ def _get_coords(geojson):
 def _sum_range(data, begin, end):
     return sum(
         [value for key, value in data.iteritems()
-            if (int(key) >= int(begin)) and (int(key) < int(end))])
-
+            if (key !='carbon') and (int(key) >= int(begin)) and (int(key) < int(end))])
 
 def _get_thresh_image(thresh, asset_id):
     """Renames image bands using supplied threshold and returns image."""
     image = ee.Image(asset_id)
 
-    # Select out the gain band if it exists
-    if 'gain' in asset_id:
-        before = image.select('.*_' + thresh, 'gain').bandNames()
-    else:
-        before = image.select('.*_' + thresh).bandNames()
+    before = image.select('.*_' + thresh).bandNames()
 
     after = before.map(
         lambda x: ee.String(x).replace('_.*', ''))
@@ -65,8 +60,10 @@ def _get_region(geom):
     return region
 
 
-def _ee(geom, thresh, asset_id):
-    image = _get_thresh_image(thresh, asset_id)
+def _ee(geom, thresh, asset_id1, asset_id2):
+    
+    image1 = _get_thresh_image(thresh, asset_id1)
+    image2 = ee.Image(asset_id2)
     region = _get_region(geom)
 
     # Reducer arguments
@@ -78,10 +75,13 @@ def _ee(geom, thresh, asset_id):
     }
 
     # Calculate stats
-    area_stats = image.divide(10000 * 255.0) \
+    area_stats = image2.multiply(image1) \
+        .divide(10000 * 255.0) \
         .multiply(ee.Image.pixelArea()) \
         .reduceRegion(**reduce_args)
-    area_results = area_stats.getInfo()
+    
+    carbon_stats = image2.multiply(ee.Image.pixelArea().divide(10000)).reduceRegion(**reduce_args)
+    area_results = area_stats.combine(carbon_stats).getInfo()
 
     return area_results
 
@@ -96,7 +96,7 @@ def _gain_area(row):
     return row['year'], row['gain']
 
 
-class UmdSql(Sql):
+class BiomasLossSql(Sql):
 
     ISO = """
         SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
@@ -147,37 +147,37 @@ class UmdSql(Sql):
     @classmethod
     def ifl(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).ifl(params, args)
+        return super(BiomasLossSql, cls).ifl(params, args)
 
     @classmethod
     def ifl_id1(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).ifl_id1(params, args)
+        return super(BiomasLossSql, cls).ifl_id1(params, args)
 
     @classmethod
     def iso(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).iso(params, args)
+        return super(BiomasLossSql, cls).iso(params, args)
 
     @classmethod
     def id1(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).id1(params, args)
+        return super(BiomasLossSql, cls).id1(params, args)
 
     @classmethod
     def use(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).use(params, args)
+        return super(BiomasLossSql, cls).use(params, args)
 
     @classmethod
     def wdpa(cls, params, args):
         params['thresh'] = args['thresh']
-        return super(UmdSql, cls).wdpa(params, args)
+        return super(BiomasLossSql, cls).wdpa(params, args)
 
 
 def _executeIso(args):
     """Query national by iso code."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
@@ -189,7 +189,7 @@ def _executeIso(args):
 
 def _executeId1(args):
     """Query subnational by iso code and GADM id."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
@@ -201,7 +201,7 @@ def _executeId1(args):
 
 def _executeIfl(args):
     """Query national by iso code."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
@@ -213,7 +213,7 @@ def _executeIfl(args):
 
 def _executeIflId1(args):
     """Query subnational by iso code and GADM id."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
@@ -234,38 +234,34 @@ def _execute_geojson(args):
     thresh = str(args.get('thresh'))
     geojson = json.loads(args.get('geojson'))
 
-    # hansen_all_thresh
-    hansen_all = _ee(geojson, thresh, config.assets['hansen_all_thresh'])
-    # gain (UMD doesn't permit disaggregation of forest gain by threshold).
-    gain = hansen_all['gain']
-    logging.info('GAIN: %s' % gain)
-    # tree extent in 2000
-    tree_extent = hansen_all['tree']
-    logging.info('TREE_EXTENT: %s' % tree_extent)
+    # Biomass loss by year
+    loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'], config.assets['biomass_2000'])
+    logging.info('BIOMASS_LOSS_RESULTS: %s' % loss_by_year)
 
-    # Loss by year
-    loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
-    logging.info('LOSS_RESULTS: %s' % loss_by_year)
+    # biomass (UMD doesn't permit disaggregation of forest gain by threshold).
+    biomass = loss_by_year['carbon']
+    logging.info('BIOMASS: %s' % biomass)
+
+    
 
     # Reduce loss by year for supplied begin and end year
     begin = args.get('begin').split('-')[0]
     end = args.get('end').split('-')[0]
-    loss = _sum_range(loss_by_year, begin, end)
+    biomass_loss = _sum_range(loss_by_year, begin, end)
 
     # Prepare result object
     result = {}
     result['params'] = args
     result['params']['geojson'] = json.loads(result['params']['geojson'])
-    result['gain'] = gain
-    result['loss'] = loss
-    result['tree-extent'] = tree_extent
+    result['biomass'] = biomass
+    result['biomass_loss'] = biomass_loss
 
     return 'respond', result
 
 
 def _executeWdpa(args):
     """Query GEE using supplied WDPA id."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
@@ -282,7 +278,7 @@ def _executeWdpa(args):
 
 def _executeUse(args):
     """Query GEE using supplied concession id."""
-    action, data = CartoDbExecutor.execute(args, UmdSql)
+    action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
     rows = data['rows']
