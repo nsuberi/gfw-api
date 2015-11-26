@@ -169,17 +169,16 @@ META = {
     },
     'biomass-loss': {
         'meta': {
-            "description": "Identifies areas of tree cover loss and gain.",
+            "description": "Identifies areas of biomass loss",
             "resolution": "30 x 30 meters",
-            "coverage": "Global land area (excluding Antarctica and other \
-                Arctic islands)",
-            "timescale": "January 2000-2012",
+            "coverage": "",
+            "timescale": "January 2000-2014",
             "updates": "Loss: Annual, Gain: 12-year cumulative, updated \
                 annually",
             "source": "Landsat 7 ETM+",
-            "units": "Percents and hectares",
-            "name": "University of Maryland tree cover loss and gain",
-            "id": "umd-loss-gain"
+            "units": "Biomass: Mg, Biomass loss: Mg biomass",
+            "name": "",
+            "id": "biomass-loss"
         },
         'apis': {
             'ifl_national': '%s/admin/ifl/{/iso}{?bust,dev,thresh}' %

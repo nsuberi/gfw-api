@@ -86,34 +86,41 @@ def _ee(geom, thresh, asset_id1, asset_id2):
     return area_results
 
 
-def _loss_area(row):
-    """Return hectares of loss."""
-    return row['year'], row['loss']
+def _biomass_loss_area(row):
+    """Return Tons of biomass loss."""
+    if (row['indicator_id']!=4 and row['year']!=0):
+        return row['year'], row['value']
 
 
-def _gain_area(row):
-    """Return hectares of gain."""
-    return row['year'], row['gain']
+def _biomass_area(row):
+    """Return Tons of biomass loss."""
+    if (row['indicator_id']!=12):
+        return row['year'], row['value']
 
 
 class BiomasLossSql(Sql):
 
     ISO = """
-        SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
-               loss, loss_perc, gain, gain*12 as total_gain, gain_perc
-        FROM umd_nat_final_1
+        SELECT iso,boundary,admin0_name as country,  year, threshold, indicator_id, value
+        FROM indicators_values
         WHERE iso = UPPER('{iso}')
-              AND thresh = {thresh}
+              AND threshold = {thresh}
+              AND iso_and_sub_nat = UPPER('{iso}')
+              AND boundary = 'admin'
+              AND ( indicator_id = 4
+                OR indicator_id= 12)
         ORDER BY year"""
 
     ID1 = """
-        SELECT iso, country, region, year, thresh, extent_2000 as extent,
-               extent_perc, loss, loss_perc, gain, gain*12 as total_gain,
-               gain_perc, id1
-        FROM umd_subnat_final_1
+        SELECT iso, boundary, admin0_name, sub_nat_id as id1,  year, threshold, indicator_id, value
+        FROM indicators_values
         WHERE iso = UPPER('{iso}')
-              AND thresh = {thresh}
-              AND id1 = {id1}
+              AND threshold = {thresh}
+              AND sub_nat_id = {id1}
+              AND boundary = 'admin' 
+              AND ( indicator_id = 4
+                OR indicator_id= 12)
+              
         ORDER BY year"""
 
     IFL = """
@@ -241,7 +248,7 @@ def _execute_geojson(args):
     # biomass (UMD doesn't permit disaggregation of forest gain by threshold).
     biomass = loss_by_year['carbon']
     logging.info('BIOMASS: %s' % biomass)
-
+    loss_by_year.pop("carbon",None)
     
 
     # Reduce loss by year for supplied begin and end year
@@ -255,6 +262,7 @@ def _execute_geojson(args):
     result['params']['geojson'] = json.loads(result['params']['geojson'])
     result['biomass'] = biomass
     result['biomass_loss'] = biomass_loss
+    result['biomass_loss_by_year'] = loss_by_year
 
     return 'respond', result
 
