@@ -77,7 +77,7 @@ handlers:
 - url: /countries.*
   script: gfw.countries.api.handlers
 
-- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss).*
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss|loss-by-type).*
   script: gfw.forestchange.api.handlers
 
 # Stories
