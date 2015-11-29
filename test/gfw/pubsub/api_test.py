@@ -54,27 +54,27 @@ class SubscribeTest(common.BaseTest):
         self.assertEqual(1, len(subs))
         sub = subs[0]
         self.assertEqual(ns, sub.key.namespace())
-        self.assertEqual('asteele@wri.org', sub.email)
+        self.assertEqual('dpetrovics@gmail.com', sub.email)
         self.assertEqual('alerts/forma', sub.topic)
         self.assertEqual(True, sub.new)
         self.assertEqual(False, sub.confirmed)
 
     def testSubscribe(self):
         response = self.api.get(
-            '/pubsub/sub?email=asteele@wri.org&topic=alerts/forma')
+            '/pubsub/sub?email=dpetrovics@gmail.com&topic=alerts/forma')
         self._test_response(response)
         # self._test_confirmation_email_sent()
         self._test_subscription_model()
 
     def testSubscribeTest(self):
         response = self.api.get(
-            '/pubsub/sub?email=asteele@wri.org&topic=alerts/forma&namespace=test')
+            '/pubsub/sub?email=dpetrovics@gmail.com&topic=alerts/forma&namespace=test')
         self._test_response(response)
         # self._test_confirmation_email_sent(ns='test')
         self._test_subscription_model(ns='test')
 
     def testSubscribeJson(self):
-        params = dict(topic='alerts/forma', email='asteele@wri.org')
+        params = dict(topic='alerts/forma', email='dpetrovics@gmail.com')
         response = self.api.post('/pubsub/sub', params)
         self._test_response(response)
         # self._test_confirmation_email_sent()
@@ -92,7 +92,7 @@ class SubscribeConfirmTest(common.BaseTest):
     def testSubcribeConfirm(self):
         ns = 'test'
         sub = api.Subscription(
-            namespace=ns, topic='alerts/forma', email='asteele@wri.org')
+            namespace=ns, topic='alerts/forma', email='dpetrovics@gmail.com')
         sub.put()
         self.assertEqual(False, sub.confirmed)
         url = '/pubsub/sub-confirm?token=%s' % sub.key.urlsafe()
@@ -107,7 +107,7 @@ class SubscribeConfirmTest(common.BaseTest):
     def testSubcribeConfirmTest(self):
         ns = 'test'
         sub = api.Subscription(
-            namespace=ns, topic='alerts/forma', email='asteele@wri.org')
+            namespace=ns, topic='alerts/forma', email='dpetrovics@gmail.com')
         sub.put()
         self.assertEqual(False, sub.confirmed)
         url = '/pubsub/sub-confirm?token=%s' % sub.key.urlsafe()

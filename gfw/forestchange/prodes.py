@@ -15,76 +15,75 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports acessing FORMA data."""
+"""This module supports acessing PRODES data."""
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 
 
-class FormaSql(Sql):
+class ProdesSql(Sql):
 
     WORLD = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM forma_api f
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
+        FROM prodes_wgs84 f
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
         """
 
     ISO = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM forma_api f
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
-              AND f.iso = UPPER('{iso}')
+        FROM prodes_wgs84 f
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
         """
 
     ID1 = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM forma_api f
+        FROM prodes_wgs84 f
         INNER JOIN (
             SELECT *
             FROM gadm2
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date
+        WHERE f.ano >= '{begin}'
+              AND f.ano <= '{end}'
         """
 
     WDPA = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM forma_api f, (SELECT * FROM wdpa_protected_areas WHERE
-            wdpaid={wdpaid}) AS p
+        FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas
+            WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date"""
+              AND f.ano >= '{begin}'
+              AND f.ano <= '{end}'"""
 
     USE = """
-        SELECT COUNT(f.*) AS value
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM {use_table} u, forma_api f
+        FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND f.date >= '{begin}'::date
-              AND f.date <= '{end}'::date"""
+              AND f.ano >= '{begin}'
+              AND f.ano <= '{end}'"""
 
     LATEST = """
-        SELECT DISTINCT date
-        FROM forma_api
-        WHERE date IS NOT NULL
-        ORDER BY date DESC
+        SELECT DISTINCT ano
+        FROM prodes_wgs84
+        WHERE ano IS NOT NULL
+        ORDER BY ano DESC
         LIMIT {limit}"""
 
     @classmethod
     def download(cls, sql):
-        download_sql = sql.replace(FormaSql.MIN_MAX_DATE_SQL, "")
+        download_sql = sql.replace(ProdesSql.MIN_MAX_DATE_SQL, "")
         download_sql = download_sql.replace(
             "SELECT COUNT(f.*) AS value", "SELECT f.*")
         return ' '.join(
@@ -108,9 +107,8 @@ def _processResults(action, data):
 
 
 def execute(args):
-    #TODO: Document what can go in 'args'.
     args['version'] = 'v1'
-    action, data = CartoDbExecutor.execute(args, FormaSql)
+    action, data = CartoDbExecutor.execute(args, ProdesSql)
     if action == 'redirect' or action == 'error':
         return action, data
     return _processResults(action, data)

@@ -23,6 +23,7 @@ import json
 import logging
 import webapp2
 
+
 import mandrill
 
 from google.appengine.api import mail
@@ -34,7 +35,6 @@ from gfw.forestchange import forma
 from appengine_config import runtime_config
 
 mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
-
 
 class Subscription(ndb.Model):
     """Model for subscriptions."""
@@ -199,6 +199,7 @@ def send_mail_notification(action, data):
 
 
 def get_deltas(topic, params):
+    """Params should contain a begin and end date."""
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
     return action, data
@@ -382,6 +383,8 @@ class SubscribeHandler(CORSRequestHandler):
         self.get()
 
     def get(self):
+        # Subscribe to given topic, send confirmation email,
+        # respond with {success: true}
         try:
             params = ArgProcessor.process(self.args())
             s = subscribe(params)
