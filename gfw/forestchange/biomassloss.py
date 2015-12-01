@@ -101,10 +101,10 @@ def _biomass_area(row):
 class BiomasLossSql(Sql):
 
     ISO = """
-        SELECT iso,boundary,admin0_name as country,  year, threshold, indicator_id, value
+        SELECT iso,boundary,admin0_name as country,  year, thresh, indicator_id, value
         FROM indicators_values
         WHERE iso = UPPER('{iso}')
-              AND threshold = {thresh}
+              AND thresh = {thresh}
               AND iso_and_sub_nat = UPPER('{iso}')
               AND boundary = 'admin'
               AND ( indicator_id = 4
@@ -112,10 +112,10 @@ class BiomasLossSql(Sql):
         ORDER BY year"""
 
     ID1 = """
-        SELECT iso, boundary, admin0_name, sub_nat_id as id1,  year, threshold, indicator_id, value
+        SELECT iso, boundary, admin0_name, sub_nat_id as id1,  year, thresh, indicator_id, value
         FROM indicators_values
         WHERE iso = UPPER('{iso}')
-              AND threshold = {thresh}
+              AND thresh = {thresh}
               AND sub_nat_id = {id1}
               AND boundary = 'admin' 
               AND ( indicator_id = 4
