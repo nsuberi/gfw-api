@@ -26,6 +26,7 @@ from google.appengine.api import urlfetch
 
 START_YEAR = 2000
 END_YEAR = 2014
+
 LABELS = ["Agriculture", "Mixed agriculture and forest",
     "Open broadleaved forest", "Closed broadleaved forest",
     "Open needleleaved forest", "Closed needleleaved forest",
@@ -77,7 +78,7 @@ def _execute_geojson(geojson):
 
     values = json.loads(result.content)['histograms'][0]['counts']
 
-    year_range = range(START_YEAR, END_YEAR)
+    year_range = range(START_YEAR, END_YEAR+1)
     offset = len(LABELS)
 
     group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
