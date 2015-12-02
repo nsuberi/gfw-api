@@ -169,14 +169,13 @@ META = {
     },
     'biomass-loss': {
         'meta': {
-            "description": "Identifies areas of biomass loss",
+            "description": "Identifies areas of biomass loss, carbon loss and co2 loss",
             "resolution": "30 x 30 meters",
             "coverage": "",
             "timescale": "January 2000-2014",
-            "updates": "Loss: Annual, Gain: 12-year cumulative, updated \
-                annually",
+            "updates": "Updated annually",
             "source": "Landsat 7 ETM+",
-            "units": "Biomass: Mg, Biomass loss: Mg biomass",
+            "units": "Tree cover loss: hectares, Biomass: Tg, Biomass loss: Tg biomass, carbon loss: Mg C, co2 loss: Mt CO2",
             "name": "",
             "id": "biomass-loss"
         },
