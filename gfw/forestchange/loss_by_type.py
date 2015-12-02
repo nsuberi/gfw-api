@@ -18,14 +18,12 @@
 """This module supports accessing forest loff by type data."""
 
 import json
-import logging
 import config
 
 import urllib
 from google.appengine.api import urlfetch
 
-START_YEAR = 2000
-END_YEAR = 2014
+from dateutil.parser import parse as parseDate
 
 LABELS = ["Agriculture", "Mixed agriculture and forest",
     "Open broadleaved forest", "Closed broadleaved forest",
@@ -34,7 +32,10 @@ LABELS = ["Agriculture", "Mixed agriculture and forest",
     "Grassland / shrub", "Flooded forest", "Wetland", "Settlements",
     "Bare land", "Water bodies", "Snow / ice", "No data"]
 
-def rendering_rule():
+def _generate_rendering_rule(period):
+    start_year = period[0]
+    end_year   = period[1]
+
     return {
         "rasterFunction": "Arithmetic",
         "rasterFunctionArguments": {
@@ -44,7 +45,7 @@ def rendering_rule():
                     "Raster": {
                         "rasterFunction": "Remap",
                         "rasterFunctionArguments": {
-                            "InputRanges": [1, (END_YEAR-START_YEAR+1)],
+                            "InputRanges": [1, (end_year-start_year+1)],
                             "OutputValues": [len(LABELS)],
                             "Raster": "$530",
                             "AllowUnmatched": False
@@ -55,17 +56,40 @@ def rendering_rule():
                 }
             },
             "Raster2": "$525",
-            "Operation":1
+            "Operation": 1
         }
     }
 
-def _execute_geojson(geojson):
-    """Query GEE using supplied args with threshold and geojson."""
+DEFAULT_START_YEAR = 2000
+DEFAULT_END_YEAR = 2014
+
+def _get_period(args):
+    """Parse the date parameters and return the year value"""
+
+    start_year = DEFAULT_START_YEAR
+    end_year = DEFAULT_END_YEAR
+    if args.get('begin') and args.get('end'):
+        start_year = parseDate(args.get('begin')).year
+        end_year = parseDate(args.get('end')).year
+
+    return (start_year, end_year)
+
+def _get_esri_json(args):
+    """Converts GeoJSON in to Esri JSON"""
+
+    geojson = json.loads(args.get('geojson'))
+    geojson['rings'] = geojson.pop('coordinates')
+    geojson['spatialReference'] = { 'wkid': 4326 }
+
+    return geojson
+
+def _get_histogram(period, esri_json):
+    """Retrieve the histogram values from ArcGIS server for the given time and geometry"""
 
     form_fields = {
-        "geometry": geojson,
+        "geometry": esri_json,
         "geometryType": "esriGeometryPolygon",
-        "renderingRule": rendering_rule(),
+        "renderingRule": _generate_rendering_rule(period),
         "pixelSize": 100,
         "f": "pjson"
     }
@@ -76,15 +100,28 @@ def _execute_geojson(geojson):
         method=urlfetch.POST,
         headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-    values = json.loads(result.content)['histograms'][0]['counts']
+    histograms = json.loads(result.content)['histograms']
 
-    year_range = range(START_YEAR, END_YEAR+1)
-    offset = len(LABELS)
+    return histograms[0] if len(histograms) > 0 else None
 
-    group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
-    years = dict([(year, group_by_type(i)) for i, year in enumerate(year_range)])
+def _aggregate_histogram_by_type(period, histogram):
+    """Groups the given histogram value by year and land type"""
+
+    years = {}
+
+    if histogram is not None:
+        values = histogram['counts']
+        year_range = range(period[0], period[1]+1)
+        offset = len(LABELS)
+
+        group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
+        years = dict([(year, group_by_type(i)) for i, year in enumerate(year_range)])
 
     return 'respond', years
 
 def execute(args):
-    return _execute_geojson(args.get('geojson'))
+    period    = _get_period(args)
+    esri_json = _get_esri_json(args)
+    histogram = _get_histogram(period, esri_json)
+
+    return _aggregate_histogram_by_type(period, histogram)
