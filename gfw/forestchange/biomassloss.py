@@ -60,7 +60,7 @@ def _get_region(geom):
     return region
 
 
-def _ee(geom, thresh, asset_id1, asset_id2):
+def _ee_biomass(geom, thresh, asset_id1, asset_id2):
     
     image1 = _get_thresh_image(thresh, asset_id1)
     image2 = ee.Image(asset_id2)
@@ -74,9 +74,9 @@ def _ee(geom, thresh, asset_id1, asset_id2):
         'scale': 90
     }
 
-    # Calculate stats
+    # Calculate stats 10000 ha, 10^6 to transform from Mg (10^6g) to Tg(10^12g) and 255 as is the pixel value when true.
     area_stats = image2.multiply(image1) \
-        .divide(10000 * 255.0) \
+        .divide(10000 * 255.0 * 1000000) \
         .multiply(ee.Image.pixelArea()) \
         .reduceRegion(**reduce_args)
     
@@ -85,17 +85,44 @@ def _ee(geom, thresh, asset_id1, asset_id2):
 
     return area_results
 
+def _ee(geom, thresh, asset_id1):
+    
+    image = _get_thresh_image(thresh, asset_id1)
+    region = _get_region(geom)
 
-def _biomass_loss_area(row):
+    # Reducer arguments
+    reduce_args = {
+        'reducer': ee.Reducer.sum(),
+        'geometry': region,
+        'bestEffort': True,
+        'scale': 90
+    }
+
+    # Calculate stats
+    area_stats = image.divide(10000 * 255.0) \
+        .multiply(ee.Image.pixelArea()) \
+        .reduceRegion(**reduce_args)
+
+    return area_stats.getInfo()
+
+def _dict_unit_transform(data, num):
+    dasy = {}
+    for key, value in data.iteritems():
+        dasy[key] = value*num
+
+    return dasy
+
+def _indicator_selector(row, indicator):
     """Return Tons of biomass loss."""
-    if (row['indicator_id']!=4 and row['year']!=0):
-        return row['year'], row['value']
+    dasy={}
+    if indicator == 4:
+            return row[2]['value']
 
-
-def _biomass_area(row):
-    """Return Tons of biomass loss."""
-    if (row['indicator_id']!=12):
-        return row['year'], row['value']
+    for i in range(len(row)):
+        if (row[i]['indicator_id'] == indicator and row[i]['year'] !=0):
+            dasy[str(row[i]['year'])] = row[i]['value']
+    
+    return dasy
 
 
 class BiomasLossSql(Sql):
@@ -107,9 +134,12 @@ class BiomasLossSql(Sql):
               AND thresh = {thresh}
               AND iso_and_sub_nat = UPPER('{iso}')
               AND boundary = 'admin'
-              AND ( indicator_id = 4
-                OR indicator_id= 12)
-        ORDER BY year"""
+              AND (indicator_id = 1 
+                OR indicator_id = 4
+                OR indicator_id= 12
+                OR indicator_id= 13
+                OR indicator_id= 14)
+        ORDER BY year, indicator_id"""
 
     ID1 = """
         SELECT iso, boundary, admin0_name, sub_nat_id as id1,  year, thresh, indicator_id, value
@@ -118,8 +148,11 @@ class BiomasLossSql(Sql):
               AND thresh = {thresh}
               AND sub_nat_id = {id1}
               AND boundary = 'admin' 
-              AND ( indicator_id = 4
-                OR indicator_id= 12)
+              AND (indicator_id = 1 
+                OR indicator_id = 4
+                OR indicator_id= 12
+                OR indicator_id= 13
+                OR indicator_id= 14)
               
         ORDER BY year"""
 
@@ -187,10 +220,18 @@ def _executeIso(args):
     action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
+    begin = args.get('begin').split('-')[0]
+    end = args.get('end').split('-')[0]
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    data['years'] = rows
+    data['tree_loss_by_year'] = _indicator_selector(rows, 1)
+    data['biomass_loss_by_year'] = _indicator_selector(rows, 12)
+    data['c_loss_by_year'] = _indicator_selector(rows, 13)
+    data['co2_loss_by_year'] = _indicator_selector(rows, 14)
+    data['biomass'] = _indicator_selector(rows, 4)
+    data['biomass_loss'] = _sum_range(data['biomass_loss_by_year'], begin, end)
+    
     return action, data
 
 
@@ -199,10 +240,17 @@ def _executeId1(args):
     action, data = CartoDbExecutor.execute(args, BiomasLossSql)
     if action == 'error':
         return action, data
+    begin = args.get('begin').split('-')[0]
+    end = args.get('end').split('-')[0]
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    data['years'] = rows
+    data['tree_loss_by_year'] = _indicator_selector(rows, 1)
+    data['biomass_loss_by_year'] = _indicator_selector(rows, 12)
+    data['c_loss_by_year'] = _indicator_selector(rows, 13)
+    data['co2_loss_by_year'] = _indicator_selector(rows, 14)
+    data['biomass'] = _indicator_selector(rows, 4)
+    data['biomass_loss'] = _sum_range(data['biomass_loss_by_year'], begin, end)
     return action, data
 
 
@@ -240,15 +288,26 @@ def _execute_geojson(args):
     # The forest cover threshold and polygon
     thresh = str(args.get('thresh'))
     geojson = json.loads(args.get('geojson'))
-
+    # hansen tree cover loss by year
+    hansen_loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
+    logging.info('TREE_LOSS_RESULTS: %s' % hansen_loss_by_year)
     # Biomass loss by year
-    loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'], config.assets['biomass_2000'])
+    loss_by_year = _ee_biomass(geojson, thresh, config.assets['hansen_loss_thresh'], config.assets['biomass_2000'])
     logging.info('BIOMASS_LOSS_RESULTS: %s' % loss_by_year)
-
     # biomass (UMD doesn't permit disaggregation of forest gain by threshold).
     biomass = loss_by_year['carbon']
     logging.info('BIOMASS: %s' % biomass)
     loss_by_year.pop("carbon",None)
+
+    # Carbon (UMD doesn't permit disaggregation of forest gain by threshold).
+    carbon_loss = _dict_unit_transform(loss_by_year, 0.5)
+    logging.info('CARBON: %s' % carbon_loss)
+
+    # CO2 (UMD doesn't permit disaggregation of forest gain by threshold).
+    carbon_dioxide_loss = _dict_unit_transform(carbon_loss, 3.67)
+    logging.info('CO2: %s' % carbon_dioxide_loss)
+    
+
     
 
     # Reduce loss by year for supplied begin and end year
@@ -263,6 +322,9 @@ def _execute_geojson(args):
     result['biomass'] = biomass
     result['biomass_loss'] = biomass_loss
     result['biomass_loss_by_year'] = loss_by_year
+    result['tree_loss_by_year'] = hansen_loss_by_year
+    result['c_loss_by_year'] = carbon_loss
+    result['co2_loss_by_year'] = carbon_dioxide_loss
 
     return 'respond', result
 
