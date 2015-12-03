@@ -29,6 +29,9 @@ from gfw.forestchange import quicc
 from gfw.forestchange import imazon
 from gfw.forestchange import terrai
 from gfw.forestchange import prodes
+from gfw.forestchange import loss_by_type
+from gfw.forestchange import guyra
+
 from gfw.forestchange import args
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
@@ -41,6 +44,9 @@ QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
 PRODES_API = '%s/prodes-loss' % APP_BASE_URL
+LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
+GUYRA_API = '%s/guyra-loss' % APP_BASE_URL
+
 
 META = {
     'forma-alerts': {
@@ -237,7 +243,33 @@ META = {
             'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
             PRODES_API
         }
-    }
+    },
+    'loss-by-type': {
+    },
+    'guyra-loss': {
+        'meta': {
+            "description": "Alerts for the Gran Chaco.",
+            "resolution": "",
+            "coverage": "",
+            "timescale": "",
+            "updates": "",
+            "source": "",
+            "units": "",
+            "name": "",
+            "id": "guyra-loss"
+        },
+        'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % GUYRA_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            GUYRA_API
+        }
+    },
 }
 
 # Maps dataset to accepted query params
@@ -307,6 +339,17 @@ PARAMS = {
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
+    },
+    'loss-by-type': {
+        'all': ['geojson']
+    },
+    'guyra-loss': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust', 'limit']
     }
 }
 
@@ -319,7 +362,9 @@ TARGETS = {
     'quicc-alerts': quicc,
     'imazon-alerts': imazon,
     'terrai-alerts': terrai,
-    'prodes-loss': prodes
+    'prodes-loss': prodes,
+    'loss-by-type': loss_by_type,
+    'guyra-loss': guyra,
 }
 
 
