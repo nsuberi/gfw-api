@@ -29,7 +29,6 @@ from gfw.forestchange import quicc
 from gfw.forestchange import imazon
 from gfw.forestchange import terrai
 from gfw.forestchange import prodes
-from gfw.forestchange import loss_by_type
 from gfw.forestchange import guyra
 
 from gfw.forestchange import args
@@ -44,7 +43,6 @@ QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
 PRODES_API = '%s/prodes-loss' % APP_BASE_URL
-LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
 GUYRA_API = '%s/guyra-loss' % APP_BASE_URL
 
 
@@ -244,8 +242,6 @@ META = {
             PRODES_API
         }
     },
-    'loss-by-type': {
-    },
     'guyra-loss': {
         'meta': {
             "description": "Alerts for the Gran Chaco.",
@@ -340,9 +336,6 @@ PARAMS = {
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
     },
-    'loss-by-type': {
-        'all': ['geojson']
-    },
     'guyra-loss': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
         'iso': ['period', 'download', 'dev', 'bust'],
@@ -363,7 +356,6 @@ TARGETS = {
     'imazon-alerts': imazon,
     'terrai-alerts': terrai,
     'prodes-loss': prodes,
-    'loss-by-type': loss_by_type,
     'guyra-loss': guyra,
 }
 
