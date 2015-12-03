@@ -112,15 +112,24 @@ def _dict_unit_transform(data, num):
 
     return dasy
 
-def _indicator_selector(row, indicator):
+def _indicator_selector(row, indicator,begin,end):
     """Return Tons of biomass loss."""
     dasy={}
     if indicator == 4:
             return row[2]['value']
 
     for i in range(len(row)):
-        if (row[i]['indicator_id'] == indicator and row[i]['year'] !=0):
+        if (row[i]['indicator_id'] == indicator and row[i]['year']>= int(begin) and row[i]['year']<= int(end)):
             dasy[str(row[i]['year'])] = row[i]['value']
+    
+    return dasy
+
+def _dates_selector(data,begin,end):
+    """Return Tons of biomass loss."""
+    dasy = {}
+    for key, value in data.iteritems():
+        if (int(key)>= int(begin) and int(key)<= int(end)):
+            dasy[key] = value
     
     return dasy
 
@@ -225,11 +234,11 @@ def _executeIso(args):
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    data['tree_loss_by_year'] = _indicator_selector(rows, 1)
-    data['biomass_loss_by_year'] = _indicator_selector(rows, 12)
-    data['c_loss_by_year'] = _indicator_selector(rows, 13)
-    data['co2_loss_by_year'] = _indicator_selector(rows, 14)
-    data['biomass'] = _indicator_selector(rows, 4)
+    data['tree_loss_by_year'] = _indicator_selector(rows, 1, begin, end)
+    data['biomass_loss_by_year'] = _indicator_selector(rows, 12, begin, end)
+    data['c_loss_by_year'] = _indicator_selector(rows, 13, begin, end)
+    data['co2_loss_by_year'] = _indicator_selector(rows, 14, begin, end)
+    data['biomass'] = _indicator_selector(rows, 4, begin, end)
     data['biomass_loss'] = _sum_range(data['biomass_loss_by_year'], begin, end)
     
     return action, data
@@ -245,11 +254,11 @@ def _executeId1(args):
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    data['tree_loss_by_year'] = _indicator_selector(rows, 1)
-    data['biomass_loss_by_year'] = _indicator_selector(rows, 12)
-    data['c_loss_by_year'] = _indicator_selector(rows, 13)
-    data['co2_loss_by_year'] = _indicator_selector(rows, 14)
-    data['biomass'] = _indicator_selector(rows, 4)
+    data['tree_loss_by_year'] = _indicator_selector(rows, 1, begin, end)
+    data['biomass_loss_by_year'] = _indicator_selector(rows, 12, begin, end)
+    data['c_loss_by_year'] = _indicator_selector(rows, 13, begin, end)
+    data['co2_loss_by_year'] = _indicator_selector(rows, 14, begin, end)
+    data['biomass'] = _indicator_selector(rows, 4, begin, end)
     data['biomass_loss'] = _sum_range(data['biomass_loss_by_year'], begin, end)
     return action, data
 
@@ -306,9 +315,6 @@ def _execute_geojson(args):
     # CO2 (UMD doesn't permit disaggregation of forest gain by threshold).
     carbon_dioxide_loss = _dict_unit_transform(carbon_loss, 3.67)
     logging.info('CO2: %s' % carbon_dioxide_loss)
-    
-
-    
 
     # Reduce loss by year for supplied begin and end year
     begin = args.get('begin').split('-')[0]
@@ -321,10 +327,10 @@ def _execute_geojson(args):
     result['params']['geojson'] = json.loads(result['params']['geojson'])
     result['biomass'] = biomass
     result['biomass_loss'] = biomass_loss
-    result['biomass_loss_by_year'] = loss_by_year
-    result['tree_loss_by_year'] = hansen_loss_by_year
-    result['c_loss_by_year'] = carbon_loss
-    result['co2_loss_by_year'] = carbon_dioxide_loss
+    result['biomass_loss_by_year'] = _dates_selector(loss_by_year,begin,end)
+    result['tree_loss_by_year'] = _dates_selector(hansen_loss_by_year,begin,end)
+    result['c_loss_by_year'] = _dates_selector(carbon_loss,begin,end)
+    result['co2_loss_by_year'] = _dates_selector(carbon_dioxide_loss,begin,end)
 
     return 'respond', result
 
