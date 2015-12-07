@@ -216,6 +216,9 @@ META = {
         }
     },
     'loss-by-type': {
+        'meta': {
+            "id": "loss-by-type"
+        },
     }
 }
 
@@ -279,7 +282,7 @@ PARAMS = {
         'latest': ['bust', 'limit']
     },
     'loss-by-type': {
-        'all': ['geojson']
+        'all': ['aggregate_by', 'geojson']
     }
 }
 
