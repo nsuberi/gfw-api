@@ -185,6 +185,10 @@ class PathProcessor():
 class ArgProcessor():
 
     @classmethod
+    def aggregate_by(cls, value):
+        return {'aggregate_by': value}
+
+    @classmethod
     def thresh(cls, value):
         try:
             if int(value) in [10, 15, 20, 25, 30, 50, 75]:

@@ -104,7 +104,7 @@ def _get_histogram(period, esri_json):
 
     return histograms[0] if len(histograms) > 0 else None
 
-def _aggregate_histogram_by_type(period, histogram):
+def _aggregate_histogram_by_year(period, histogram):
     """Groups the given histogram value by year and land type"""
 
     years = {}
@@ -119,9 +119,28 @@ def _aggregate_histogram_by_type(period, histogram):
 
     return 'respond', years
 
+def _aggregate_histogram_by_type(period, histogram):
+    """Groups the given histogram value by land type"""
+
+    types = {}
+
+    if histogram is not None:
+        values = histogram['counts']
+        offset = len(LABELS)
+        label_range = enumerate(range(0, len(LABELS)-1))
+
+        group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
+        values_by_type = [group_by_type(i) for i, label in label_range]
+        types = {key: sum(d.get(key, 0) for d in values_by_type) for key in values_by_type[0]}
+
+    return 'respond', types
+
 def execute(args):
     period    = _get_period(args)
     esri_json = _get_esri_json(args)
     histogram = _get_histogram(period, esri_json)
 
-    return _aggregate_histogram_by_type(period, histogram)
+    if args.get('aggregate_by') == 'year':
+        return _aggregate_histogram_by_year(period, histogram)
+    else:
+        return _aggregate_histogram_by_type(period, histogram)
