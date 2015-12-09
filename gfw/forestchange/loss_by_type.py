@@ -117,7 +117,7 @@ def _aggregate_histogram_by_year(period, histogram):
         group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
         years = dict([(year, group_by_type(i)) for i, year in enumerate(year_range)])
 
-    return 'respond', years
+    return years
 
 def _aggregate_histogram_by_type(period, histogram):
     """Groups the given histogram value by land type"""
@@ -133,7 +133,13 @@ def _aggregate_histogram_by_type(period, histogram):
         values_by_type = [group_by_type(i) for i, label in label_range]
         types = {key: sum(d.get(key, 0) for d in values_by_type) for key in values_by_type[0]}
 
-    return 'respond', types
+    return types
+
+def _decorate_with_args(dictionary, args):
+    dictionary['params'] = args
+    dictionary['params']['geojson'] = json.loads(dictionary['params']['geojson'])
+
+    return dictionary
 
 def execute(args):
     period    = _get_period(args)
@@ -141,6 +147,8 @@ def execute(args):
     histogram = _get_histogram(period, esri_json)
 
     if args.get('aggregate_by') == 'year':
-        return _aggregate_histogram_by_year(period, histogram)
+        results = _aggregate_histogram_by_year(period, histogram)
     else:
-        return _aggregate_histogram_by_type(period, histogram)
+        results = _aggregate_histogram_by_type(period, histogram)
+
+    return 'respond', _decorate_with_args(results, args)
