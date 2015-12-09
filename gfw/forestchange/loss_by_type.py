@@ -79,7 +79,7 @@ def _get_esri_json(args):
 
     geojson = json.loads(args.get('geojson'))
     geojson['rings'] = geojson.pop('coordinates')
-    geojson['spatialReference'] = { 'wkid': 4326 }
+    geojson['spatialReference'] = { 'wkid': 3857 }
 
     return geojson
 
