@@ -135,7 +135,6 @@ def list_stories(params):
         and_where = and_where.format(**params)
     result = cdb.execute(
         LIST.format(and_where=and_where, table=TABLE), auth=True)
-    print LIST.format(and_where=and_where, table=TABLE)
     if result:
         data = json.loads(result.content)
         if 'total_rows' in data and data['total_rows'] > 0:
