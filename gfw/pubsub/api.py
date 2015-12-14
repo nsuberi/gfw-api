@@ -212,6 +212,57 @@ def send_mandrill_email(template_content, message):
 
     return result
 
+
+def send_mail_notification(email, action, data):
+    """Sends a notification email for a publication event.
+
+    Args:
+      email: Address to mail to.
+      selected_area:
+      alert_count:
+      alert_type:
+      alert_date:
+      alert_summary:
+      alert_specs:
+    """
+
+    # TODO: Finish these - get info from 'data':
+    template_content = []
+    message = {
+        'global_merge_vars': [
+            {
+                'content': "area", 'name': 'selected_area'
+            },
+            {
+                'content': "count", 'name': 'alert_count'
+            },
+            {
+                'content': "type", 'name': 'alert_type'
+            },
+            {
+                'content': "date", 'name': 'alert_date'
+            },
+            {
+                'content': "summary", 'name': 'alert_summary'
+            },
+            {
+                'content': "specs", 'name': 'alert_specs'
+            }],
+        'to': [
+            {
+                'email': email,
+                'name': 'Recipient Name',
+                'type': 'to'}],
+        'track_clicks': True,
+        'merge_language': 'handlebars',
+        'track_opens': True
+    }
+
+    result = send_mandrill_email(template_content, message)
+
+    logging.info("Send Notification Email Result: %s" % result.content)
+
+
 def get_deltas(topic, params):
     """Params should contain a begin and end date."""
     if topic == 'alerts/forma':
@@ -244,7 +295,7 @@ def notify(params):
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail_notification(action, data)
+        send_mail_notification(sub.email, action, data)
 
 
 def multicast(params):
@@ -262,7 +313,6 @@ def multicast(params):
     for subscription in Subscription.by_topic(event.topic):
         params['subscription'] = subscription.key.urlsafe()
         taskqueue.add(url='/pubsub/pub-event-notification',
-                      name='pubsub-pub-event-notification',
                       queue_name='pubsub-pub-event-notification',
                       params=params)
 
@@ -279,7 +329,6 @@ def publish(params):
     event = Event(namespace=ns, topic=topic)
     event.put()
     taskqueue.add(url='/pubsub/pub-multicast',
-                  name='pubsub-pub-multicast',
                   queue_name='pubsub-pub-multicast',
                   params=dict(event=event.key.urlsafe()))
 
@@ -309,12 +358,7 @@ def send_confirmation_email(email, urlsafe):
     """
     url_base = runtime_config['APP_BASE_URL']
     conf_url = '%s/pubsub/sub-confirm?token=%s' % (url_base, urlsafe)
-    template_content = [
-        {
-            'content': conf_url,
-            'name': 'confirmation_url'
-        }
-    ]
+    template_content = []
     message = {
         'global_merge_vars': [
             {
@@ -364,6 +408,7 @@ class NotificationHandler(CORSRequestHandler):
 
     def get(self):
         try:
+            logging.info("Notification Handler: %s" % self.args())
             params = ArgProcessor.process(self.args())
             notify(params)
             self.response.set_status(201)
@@ -382,6 +427,7 @@ class MulticastHandler(CORSRequestHandler):
 
     def get(self):
         try:
+            logging.info("Multicast Handler: %s" % self.args())
             params = ArgProcessor.process(self.args())
             multicast(params)
             self.response.set_status(201)
@@ -400,6 +446,7 @@ class PublishHandler(CORSRequestHandler):
 
     def get(self):
         try:
+            logging.info("Publish Handler: %s" % self.args())
             params = ArgProcessor.process(self.args())
             publish(params)
             self.response.set_status(201)
