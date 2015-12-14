@@ -15,7 +15,7 @@ include
 *.pyc
 *.sublime-*
 .storage
-spec.txt	
+spec.txt
 cdb.txt
 pubtoken.txt
 dev.json
@@ -23,3 +23,4 @@ prod.json
 privatekey.pem
 ee_asset_ids.json
 storage/
+index.yaml
