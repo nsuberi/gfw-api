@@ -165,7 +165,9 @@ class ArgProcessor():
     @classmethod
     def topic(cls, value):
         try:
-            if value not in ['alerts/forma']:
+            if value not in ['alerts/forma', 'alerts/terra', 'alerts/sad',
+                            'alerts/quicc', 'alerts/treeloss', 'alerts/treegain',
+                            'alerts/prodes', 'alerts/guyra', 'alerts/landsat']:
                 raise
             return dict(topic=value)
         except:
