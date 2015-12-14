@@ -53,7 +53,7 @@ LIST = """SELECT details, email, created_at, name, title, visible, date,
     location, cartodb_id as id, ST_Y(the_geom) AS lat, ST_X(the_geom) AS lng,
     media
 FROM {table}
-WHERE visible = True {and_where} ORDER BY created_at ASC"""
+WHERE visible = True {and_where} ORDER BY date ASC"""
 
 
 GET = """SELECT details, email, name, title, visible, date,

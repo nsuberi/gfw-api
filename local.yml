@@ -1,2 +1,2 @@
-IS_DEV: True
+IS_DEV: false
 GFW_BASE_URL: http://localhost:5000
