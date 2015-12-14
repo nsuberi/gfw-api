@@ -27,7 +27,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from gfw.common import CORSRequestHandler
-from gfw.forestchange import forma
+from gfw.forestchange import forma, terrai, imazon, prodes, quicc, umd, guyra
 from appengine_config import runtime_config
 
 import urllib
@@ -206,6 +206,21 @@ def get_deltas(topic, params):
     """Params should contain a begin and end date."""
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
+    elif topic == 'alerts/terra':
+        action, data = terrai.execute(params)
+    elif topic == 'alerts/sad':
+        action, data = imazon.execute(params)
+    elif topic == 'alerts/quicc':
+        action, data = quicc.execute(params)
+    elif topic == 'alerts/prodes':
+        action, data = prodes.execute(params)
+    elif topic == 'alerts/treeloss':
+        action, data = umd.execute(params)
+    elif topic == 'alerts/treegain':
+        action, data = umd.execute(params)
+    elif topic == 'alerts/guyra':
+        action, data = guyra.execute(params)
+    # TODO: 'alerts/landsat'
     return action, data
 
 
