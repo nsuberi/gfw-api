@@ -33,8 +33,6 @@ from appengine_config import runtime_config
 import urllib
 from google.appengine.api import urlfetch
 
-mandrill_key = runtime_config.get('mandrill_api_key')
-mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
 #import mandrill
 #mandrill_client = mandrill.Mandrill(mandrill_key)
 
@@ -195,12 +193,24 @@ class ArgProcessor():
                 processed.update(getattr(cls, name)(value))
         return processed
 
+mandrill_key = runtime_config.get('mandrill_api_key')
+mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
 
-def send_mail_notification(action, data):
-    """TODO"""
-    assert mandrill_url
-    pass
 
+def send_mandrill_email(template_content, message):
+    "Send Mandrill Email"
+    payload = {"template_content": template_content,
+               "template_name": "subscription-confirmation",
+               "message": message,
+               "key": mandrill_key,
+               "async": "false"}
+
+    result = urlfetch.fetch(mandrill_url,
+        payload=json.dumps(payload),
+        method=urlfetch.POST,
+        headers={'Content-Type': 'application/json'})
+
+    return result
 
 def get_deltas(topic, params):
     """Params should contain a begin and end date."""
@@ -326,17 +336,7 @@ def send_confirmation_email(email, urlsafe):
     #     template_content=template_content,
     #     message=message)
 
-    payload = {"template_content": template_content,
-               "template_name": "subscription-confirmation",
-               "message": message,
-               "key": mandrill_key,
-               "async": "false"}
-
-    data = urllib.urlencode(payload)
-    result = urlfetch.fetch(mandrill_url,
-        payload=json.dumps(payload),
-        method=urlfetch.POST,
-        headers={'Content-Type': 'application/json'})
+    result = send_mandrill_email(template_content, message)
 
     logging.info("Send Confirmation Email Result: %s" % result.content)
 
