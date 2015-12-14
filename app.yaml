@@ -55,7 +55,7 @@ handlers:
   script: download.handlers
 
 # Analysis handler:
-- url: /analysis/(imazon|forma|modis|umd|prodes)
+- url: /analysis/(imazon|forma|modis|umd|prodes|biomassloss|guyra)
   script: analysis.handlers
 
 # Monitor
@@ -77,14 +77,17 @@ handlers:
 - url: /countries.*
   script: gfw.countries.api.handlers
 
-- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss).*
+- url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|prodes-loss|biomass-loss|guyra-loss).*
   script: gfw.forestchange.api.handlers
 
 # Stories
 - url: /stories.*
   script: gfw.stories.handlers
 
+# User Info
+- url: /user/.*
+  script: gfw.auth.handlers
+
 # PubSub
 - url: /.*
   script: gfw.pubsub.api.handlers
-

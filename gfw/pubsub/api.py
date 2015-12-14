@@ -23,9 +23,6 @@ import json
 import logging
 import webapp2
 
-
-import mandrill
-
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
@@ -38,7 +35,8 @@ from google.appengine.api import urlfetch
 
 mandrill_key = runtime_config.get('mandrill_api_key')
 mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
-mandrill_client = mandrill.Mandrill(mandrill_key)
+#import mandrill
+#mandrill_client = mandrill.Mandrill(mandrill_key)
 
 class Subscription(ndb.Model):
     """Model for subscriptions."""
@@ -200,7 +198,7 @@ class ArgProcessor():
 
 def send_mail_notification(action, data):
     """TODO"""
-    assert mandrill_client
+    assert mandrill_url
     pass
 
 

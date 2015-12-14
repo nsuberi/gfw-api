@@ -24,9 +24,13 @@ import webapp2
 from gfw.forestchange import forma
 from gfw.forestchange import fires
 from gfw.forestchange import umd
+from gfw.forestchange import biomassloss
 from gfw.forestchange import quicc
 from gfw.forestchange import imazon
 from gfw.forestchange import terrai
+from gfw.forestchange import prodes
+from gfw.forestchange import guyra
+
 from gfw.forestchange import args
 from gfw.forestchange import prodes
 from gfw.common import CORSRequestHandler
@@ -34,11 +38,13 @@ from gfw.common import APP_BASE_URL
 
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL
 UMD_API = '%s/umd-loss-gain' % APP_BASE_URL
+BIOMASS_LOSS_API = '%s/biomass-loss' % APP_BASE_URL
 FIRES_API = '%s/nasa-active-fires' % APP_BASE_URL
 QUICC_API = '%s/quicc-alerts' % APP_BASE_URL
 IMAZON_API = '%s/imazon-alerts' % APP_BASE_URL
 TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
 PRODES_API = '%s/prodes-loss' % APP_BASE_URL
+GUYRA_API = '%s/guyra-loss' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -165,6 +171,29 @@ META = {
             UMD_API,
         }
     },
+    'biomass-loss': {
+        'meta': {
+            "description": "Identifies areas of biomass loss, carbon loss and co2 loss",
+            "resolution": "30 x 30 meters",
+            "coverage": "",
+            "timescale": "January 2000-2014",
+            "updates": "Updated annually",
+            "source": "Landsat 7 ETM+",
+            "units": "Tree cover loss: hectares, Biomass: Tg, Biomass loss: Tg biomass, carbon loss: Mg C, co2 loss: Mt CO2",
+            "name": "",
+            "id": "biomass-loss"
+        },
+        'apis': {
+            'ifl_national': '%s/admin/ifl/{/iso}{?bust,dev,thresh}' %
+            BIOMASS_LOSS_API,
+            'ifl_subnational': '%s/admin/ifl/{/iso}{/id1}{?bust,dev,thresh}' %
+            BIOMASS_LOSS_API,
+            'national': '%s/admin{/iso}{?bust,dev,thresh}' %
+            BIOMASS_LOSS_API,
+            'subnational': '%s/admin{/iso}{/id1}{?bust,dev,thresh}' %
+            BIOMASS_LOSS_API,
+        }
+    },
     'terrai-alerts': {
         'meta': {
             "description": "Forest decrease alerts.",
@@ -212,7 +241,31 @@ META = {
             'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
             PRODES_API
         }
-    }
+    },
+    'guyra-loss': {
+        'meta': {
+            "description": "Alerts for the Gran Chaco.",
+            "resolution": "",
+            "coverage": "",
+            "timescale": "",
+            "updates": "",
+            "source": "",
+            "units": "",
+            "name": "",
+            "id": "guyra-loss"
+        },
+        'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % GUYRA_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            GUYRA_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            GUYRA_API
+        }
+    },
 }
 
 # Maps dataset to accepted query params
@@ -223,7 +276,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'nasa-active-fires': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -231,7 +284,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'quicc-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -239,7 +292,7 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'imazon-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
@@ -247,9 +300,18 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
     },
     'umd-loss-gain': {
+        'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
+        'iso': ['download', 'dev', 'bust', 'thresh'],
+        'ifl': ['download', 'dev', 'bust', 'thresh'],
+        'ifl_id1': ['download', 'dev', 'bust', 'thresh'],
+        'id1': ['download', 'dev', 'bust', 'thresh'],
+        'wdpa': ['download', 'dev', 'bust', 'thresh'],
+        'use': ['download', 'dev', 'bust', 'thresh']
+    },
+    'biomass-loss': {
         'all': ['thresh', 'geojson', 'period', 'dev', 'bust'],
         'iso': ['download', 'dev', 'bust', 'thresh'],
         'ifl': ['download', 'dev', 'bust', 'thresh'],
@@ -272,7 +334,15 @@ PARAMS = {
         'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
-        'latest': ['bust','limit']
+        'latest': ['bust', 'limit']
+    },
+    'guyra-loss': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust', 'limit']
     }
 }
 
@@ -280,11 +350,13 @@ PARAMS = {
 TARGETS = {
     'forma-alerts': forma,
     'umd-loss-gain': umd,
+    'biomass-loss': biomassloss,
     'nasa-active-fires': fires,
     'quicc-alerts': quicc,
     'imazon-alerts': imazon,
     'terrai-alerts': terrai,
-    'prodes-loss': prodes
+    'prodes-loss': prodes,
+    'guyra-loss': guyra,
 }
 
 
@@ -314,11 +386,11 @@ def _classify_request(path):
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d+$' % dataset, path):
-        rtype = 'ifl_id1'  
+        rtype = 'ifl_id1'
     elif re.match(r'forest-change/%s/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
     elif re.match(r'forest-change/%s/ifl/[A-z]{3,3}/\d+$' % dataset, path):
-        rtype = 'ifl_id1'  
+        rtype = 'ifl_id1'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}$' % dataset, path):
         rtype = 'iso'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path):
@@ -330,7 +402,7 @@ def _classify_request(path):
     elif re.match(r'forest-change/%s/wdpa/\d+$' % dataset, path):
         rtype = 'wdpa'
     elif re.match(r'forest-change/%s/use/[A-z]+/\d+$' % dataset, path):
-        rtype = 'use' 
+        rtype = 'use'
 
     return dataset, rtype
 
