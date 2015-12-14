@@ -26,7 +26,6 @@ import webapp2
 
 import mandrill
 
-from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
@@ -34,7 +33,12 @@ from gfw.common import CORSRequestHandler
 from gfw.forestchange import forma
 from appengine_config import runtime_config
 
-mandrill_client = mandrill.Mandrill(runtime_config.get('mandrill_api_key'))
+import urllib
+from google.appengine.api import urlfetch
+
+mandrill_key = runtime_config.get('mandrill_api_key')
+mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
+mandrill_client = mandrill.Mandrill(mandrill_key)
 
 class Subscription(ndb.Model):
     """Model for subscriptions."""
@@ -302,11 +306,26 @@ def send_confirmation_email(email, urlsafe):
         'merge_language': 'handlebars',
         'track_opens': True
     }
-    result = mandrill_client.messages.send_template(
-        template_name='subscription-confirmation',
-        template_content=template_content,
-        message=message)
-    logging.exception("RESULTS %s" % result)
+
+    # This does not work locally in GAE:
+    # result = mandrill_client.messages.send_template(
+    #     template_name='subscription-confirmation',
+    #     template_content=template_content,
+    #     message=message)
+
+    payload = {"template_content": template_content,
+               "template_name": "subscription-confirmation",
+               "message": message,
+               "key": mandrill_key,
+               "async": "false"}
+
+    data = urllib.urlencode(payload)
+    result = urlfetch.fetch(mandrill_url,
+        payload=json.dumps(payload),
+        method=urlfetch.POST,
+        headers={'Content-Type': 'application/json'})
+
+    logging.info("Send Confirmation Email Result: %s" % result.content)
 
 
 def receive_confirmation_email(urlsafe):
