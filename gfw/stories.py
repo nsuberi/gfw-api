@@ -221,11 +221,11 @@ class StoriesApi(BaseApi):
         config = { 'name': story['name'], 'story_url': story_url }
         txt_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.txt')
         txt_file = open(txt_path)
-        text_body = Template(txt_file.read()).substitute(d)
+        text_body = Template(txt_file.read()).substitute(config)
 
         html_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.html')
         html_file = open(html_path)
-        html_body = Template(html_file.read()).substitute(d)
+        html_body = Template(html_file.read()).substitute(config)
 
         subject = 'Your story has been registered with Global Forest Watch!'
         message = mail.EmailMessage(sender=sender, subject=subject)
