@@ -197,10 +197,10 @@ mandrill_key = runtime_config.get('mandrill_api_key')
 mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
 
 
-def send_mandrill_email(template_content, message):
+def send_mandrill_email(template_name, template_content, message):
     "Send Mandrill Email"
     payload = {"template_content": template_content,
-               "template_name": "subscription-confirmation",
+               "template_name": template_name,
                "message": message,
                "key": mandrill_key,
                "async": "false"}
@@ -225,6 +225,7 @@ def send_mail_notification(email, action, data):
       alert_summary:
       alert_specs:
     """
+    logging.info("Send Notification Email: %s" % email)
 
     # TODO: Finish these - get info from 'data':
     template_content = []
@@ -258,7 +259,7 @@ def send_mail_notification(email, action, data):
         'track_opens': True
     }
 
-    result = send_mandrill_email(template_content, message)
+    result = send_mandrill_email("forest-change-notification", template_content, message)
 
     logging.info("Send Notification Email Result: %s" % result.content)
 
@@ -292,6 +293,7 @@ def notify(params):
     params = copy.copy(sub.params)
     params['begin'] = event.latest_date(event.topic)
     params['end'] = event.date
+    logging.info("Notify. Begin: %s End: %s" % (params['begin'], params['end']))
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
@@ -309,8 +311,10 @@ def multicast(params):
     regular request). Each discrete event notification is added to the
     queue.
     """
+    logging.info("Multicast. Event Key: %s " % params.get('event'))
     event = ndb.Key(urlsafe=params.get('event')).get()
     for subscription in Subscription.by_topic(event.topic):
+        logging.info("Multicast. Subscription Key: %s " % subscription.key.urlsafe())
         params['subscription'] = subscription.key.urlsafe()
         taskqueue.add(url='/pubsub/pub-event-notification',
                       queue_name='pubsub-pub-event-notification',
@@ -326,8 +330,10 @@ def publish(params):
     it.
     """
     topic, ns = map(params.get, ['topic', 'namespace'])
+    logging.info("Publish. topic: %s namespace: %s" % (topic, ns))
     event = Event(namespace=ns, topic=topic)
     event.put()
+    logging.info("Publish. event key: %s" % event.key.urlsafe())
     taskqueue.add(url='/pubsub/pub-multicast',
                   queue_name='pubsub-pub-multicast',
                   params=dict(event=event.key.urlsafe()))
@@ -380,7 +386,7 @@ def send_confirmation_email(email, urlsafe):
     #     template_content=template_content,
     #     message=message)
 
-    result = send_mandrill_email(template_content, message)
+    result = send_mandrill_email("subscription-confirmation", template_content, message)
 
     logging.info("Send Confirmation Email Result: %s" % result.content)
 
