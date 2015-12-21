@@ -27,8 +27,8 @@ class ProdesSql(Sql):
         SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
@@ -38,8 +38,8 @@ class ProdesSql(Sql):
         SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
         """
 
     ID1 = """
@@ -52,8 +52,8 @@ class ProdesSql(Sql):
             WHERE id_1 = {id1}
                   AND iso = UPPER('{iso}')) g
             ON f.gadm2::int = g.objectid
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
         """
 
     WDPA = """
@@ -62,8 +62,9 @@ class ProdesSql(Sql):
         FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas
             WHERE wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND f.ano >= '{begin}'
-              AND f.ano <= '{end}'"""
+              to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        """
 
     USE = """
         SELECT round(sum(f.areameters)/10000) AS value
@@ -71,8 +72,9 @@ class ProdesSql(Sql):
         FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND f.ano >= '{begin}'
-              AND f.ano <= '{end}'"""
+              AND to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        """
 
     LATEST = """
         SELECT DISTINCT ano
