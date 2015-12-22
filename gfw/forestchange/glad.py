@@ -40,7 +40,7 @@ class GladSql(Sql):
         """
 
     WDPA = """
-        WITH p as (SELECT st_simplify (the_geom, 0.0001) as the_geom FROM wdpa_protected_areas
+        WITH p as (SELECT st_simplify (the_geom_webmercator, 0.0001) as the_geom_webmercator FROM wdpa_protected_areas
             WHERE wdpaid={wdpaid} LIMIT 1)
         SELECT ((COUNT(*) * (30*30)) / 10000)::numeric AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM umd_alerts_agg_rast f, p
