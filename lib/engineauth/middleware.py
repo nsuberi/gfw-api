@@ -23,7 +23,7 @@ class EngineAuthResponse(Response):
             if session_id != session.user_id:
                 session = models.Session.upgrade_to_user_session(
                     session_id, session.user_id)
-        self.set_cookie('_eauth', session.serialize())
+        self.set_cookie('_eauth', session.serialize(),domain='.globalforestwatch.org')
         return self
 
     def _save_user(self):
