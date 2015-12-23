@@ -23,6 +23,7 @@ import monitor
 import re
 import traceback
 
+from urlparse import urlparse
 from hashlib import md5
 
 from gfw.pubsub.event import Event
@@ -48,7 +49,7 @@ class Subscriber(InboundMailHandler):
         if Subscription.confirm_by_token(token):
             self.response.write(json.dumps(dict(confirmed=True)))
         else:
-          self.error(404)  
+          self.error(404)
 
 
 class Confirmer(webapp2.RequestHandler):
@@ -57,7 +58,7 @@ class Confirmer(webapp2.RequestHandler):
         if Subscription.confirm_by_token(token):
             self.response.write(json.dumps(dict(confirmed=True)))
         else:
-            self.error(404)        
+            self.error(404)
 
 
 class Publisher(webapp2.RequestHandler):
@@ -89,12 +90,24 @@ class SubscriptionDump(webapp2.RequestHandler):
         self.response.out.write(json.dumps(subs, sort_keys=True))
 
 
+ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
+
 #
 # Pubsub API: TODO needs refactoring
 #
 """ BaseApi """
 class BaseApi(webapp2.RequestHandler):
     """Base request handler for API."""
+
+    def _set_origin_header(self):
+        origin = self.request.headers['Origin']
+        domain = urlparse(origin).netloc
+
+        if domain in ALLOWED_DOMAINS:
+            self.response.headers.add_header("Access-Control-Allow-Origin", origin)
+            self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
+        else:
+            self.response.headers.add_header("Access-Control-Allow-Origin", "*")
 
     def _send_response(self, data, error=None):
         """Sends supplied result dictionnary as JSON response."""
@@ -125,7 +138,7 @@ class BaseApi(webapp2.RequestHandler):
         return params
 
     def _prep_headers(self):
-        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self._set_origin_header()
         self.response.headers.add_header(
             'Access-Control-Allow-Headers',
             'Origin, X-Requested-With, Content-Type, Accept'
@@ -139,7 +152,7 @@ class BaseApi(webapp2.RequestHandler):
 
 """ PubSubApi """
 class PubSubApi(BaseApi):
-    
+
     def subscribe(self):
         try:
             params = self._get_params(body=True)
@@ -149,14 +162,14 @@ class PubSubApi(BaseApi):
                 self.response.set_status(201)
                 self._send_response(json.dumps(dict(subscribe=True,token=token)))
             else:
-                self.error(404)  
+                self.error(404)
 
         except Exception, e:
             name = e.__class__.__name__
             msg = 'Error: PubSub API (%s)' % name
             monitor.log(
-                self.request.url, 
-                msg, 
+                self.request.url,
+                msg,
                 error=e,
                 headers=self.request.headers
             )
@@ -171,15 +184,15 @@ class PubSubApi(BaseApi):
                 self.response.set_status(201)
                 self._send_response(json.dumps(dict(unsubscribe=True)))
             else:
-                self.error(404) 
+                self.error(404)
 
         except Exception, e:
             name = e.__class__.__name__
             msg = 'Error: PubSub API (%s)' % name
             monitor.log(
-                self.request.url, 
-                msg, 
-                error=e,        
+                self.request.url,
+                msg,
+                error=e,
                 headers=self.request.headers
             )
 
@@ -197,8 +210,8 @@ class PubSubApi(BaseApi):
             trace = traceback.format_exc()
             msg = 'Publish failure: %s: %s' % (name, error)
             monitor.log(
-                self.request.url, 
-                msg, 
+                self.request.url,
+                msg,
                 error=trace,
                 headers=self.request.headers
             )

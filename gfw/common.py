@@ -23,12 +23,24 @@ import logging
 import webapp2
 
 from google.appengine.api import memcache
-
-from hashlib import md5
 from appengine_config import runtime_config
 
+from hashlib import md5
+from urlparse import urlparse
+
+ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
 
 class CORSRequestHandler(webapp2.RequestHandler):
+
+    def _set_origin_header(self):
+        origin = self.request.headers['Origin']
+        domain = urlparse(origin).netloc
+
+        if domain in ALLOWED_DOMAINS:
+            self.response.headers.add_header("Access-Control-Allow-Origin", origin)
+            self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
+        else:
+            self.response.headers.add_header("Access-Control-Allow-Origin", "*")
 
     def options(self):
         """Options to support CORS requests."""
@@ -39,7 +51,8 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
     def write(self, data):
         """Sends supplied result dictionnary as JSON response."""
-        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+
+        self._set_origin_header()
         self.response.headers.add_header(
             'Access-Control-Allow-Headers',
             'Origin, X-Requested-With, Content-Type, Accept')
@@ -49,6 +62,8 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
     def write_error(self, status, data):
         """Sends supplied result dictionnary as JSON response."""
+
+        self._set_origin_header()
         self.response.headers.add_header("Access-Control-Allow-Origin", "*")
         self.response.headers.add_header(
             'Access-Control-Allow-Headers',

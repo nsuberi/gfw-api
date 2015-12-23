@@ -22,7 +22,6 @@ import webbrowser
 import monitor
 import json
 import cgi
-from urlparse import urlparse
 
 from gfw import common
 from gfw.common import CORSRequestHandler
@@ -50,37 +49,6 @@ class Userdata(ndb.Model):
 class UserApi(CORSRequestHandler):
     """Handler for user info."""
 
-    def _set_origin_header(self):
-        allowed_domains = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
-
-        origin = self.request.headers['Origin']
-        domain = urlparse(origin).netloc
-
-        if domain in allowed_domains:
-            self.response.headers.add_header("Access-Control-Allow-Origin", origin)
-            self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
-        else:
-            self.response.headers.add_header("Access-Control-Allow-Origin", "*")
-
-    def _send_response(self, data, error=None):
-        """Sends supplied result dictionnary as JSON response."""
-
-        self._set_origin_header()
-        self.response.headers.add_header(
-            'Access-Control-Allow-Headers',
-            'Origin, X-Requested-With, Content-Type, Accept')
-        self.response.headers.add_header('charset', 'utf-8')
-        self.response.headers["Content-Type"] = "application/json"
-
-        if error:
-            self.response.set_status(400)
-            taskqueue.add(url='/log/error', params=error, queue_name="log")
-
-        if not data:
-            self.response.out.write('')
-        else:
-            self.response.out.write(str(json.dumps(data, sort_keys=True)))
-
     def get(self):
         # Currently Supports Twitter Auth:
         try:
@@ -102,13 +70,13 @@ class UserApi(CORSRequestHandler):
                         else:
                             username = None;
 
-                        self._send_response({'name': name, 'email': email, 'username': username, 'raw': info})
+                        self.complete('respond', {'name': name, 'email': email, 'username': username, 'raw': info})
                     else:
-                        self._send_response({'error': 'No user profile for the current session.'}, True)
+                        self.complete('error', {'error': 'No user profile for the current session.'}, True)
                 else:
-                    self._send_response({'error': 'No user info for the current session.'}, True)
+                    self.complete('error', {'error': 'No user info for the current session.'}, True)
             else:
-                self._send_response({'error': 'No authentication cookie provided.'}, True)
+                self.complete('error', {'error': 'No authentication cookie provided.'}, True)
 
         except Exception, e:
             name = e.__class__.__name__
