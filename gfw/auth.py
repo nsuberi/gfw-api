@@ -30,6 +30,8 @@ from engineauth.models import User
 from engineauth.models import UserProfile
 from google.appengine.ext import ndb
 
+from gfw.pubsub.subscription import Subscription
+
 config = {
     'webapp2_extras.sessions': {
         'secret_key': 'wIDjEesObzp5nonpRHDzSp40aba7STuqC6ZRY'
@@ -117,7 +119,23 @@ class UserApi(CORSRequestHandler):
         except Exception, error:
             self.redirect('http://www.globalforestwatch.com')
 
+    def subscriptions(self):
+        value = self.request.cookies.get('_eauth')
+        if value:
+            session = models.Session.get_by_value(value)
+            if session.user_id:
+                subscriptions = Subscription.query(Subscription.user_id==session.user_id).fetch()
+                subscriptions = [s.to_dict() for s in subscriptions]
+                self.complete('respond', subscriptions)
+                return
+
+        self.write_error(401, 'Unauthorised')
+
 routes = [
+    webapp2.Route(r'/user/subscriptions',
+        handler=UserApi,
+        handler_method='subscriptions',
+        methods=['GET']),
     webapp2.Route(r'/user/session',
         handler=UserApi,
         handler_method='get',

@@ -32,6 +32,7 @@ from google.appengine.api import users
 class Subscription(ndb.Model):
     topic = ndb.StringProperty()
     email = ndb.StringProperty()
+    user_id = ndb.StringProperty()
     iso = ndb.StringProperty()
     id1 = ndb.StringProperty()
     has_geom = ndb.BooleanProperty(default=False)
@@ -48,21 +49,20 @@ class Subscription(ndb.Model):
     def create(cls,params):
         """Create subscription if email and, iso or geom is present"""
         subscription = None
-        email = params.get('email')
-        if email:
-            iso = params.get('iso')
-            has_geom = bool(params.get('geom'))
-            if iso or has_geom:
-                id1 = params.get('id1')
-                topic = params.get('topic')        
-                subscription = Subscription(
-                    email=email,
-                    topic=topic, 
-                    iso=iso,
-                    id1=id1,
-                    has_geom=has_geom,
-                    params=params
-                )
+
+        iso = params.get('iso')
+        has_geom = bool(params.get('geom'))
+        if iso or has_geom:
+            subscription = Subscription(
+                email=params.get('email'),
+                topic=params.get('topic'),
+                iso=iso,
+                id1=params.get('id1'),
+                user_id=params.get('user_id'),
+                has_geom=has_geom,
+                params=params
+            )
+
         if subscription:
             subscription.put()
             return subscription
@@ -73,7 +73,7 @@ class Subscription(ndb.Model):
     #   Query Helpers
     #
 
-    @classmethod 
+    @classmethod
     def with_token(cls, token):
         """Return subscription for a given token"""
         token_type = type(token)
@@ -112,7 +112,7 @@ class Subscription(ndb.Model):
 
 
     @classmethod
-    def subscribe(cls, params): 
+    def subscribe(cls, params):
         subscription = Subscription.create(params)
         if subscription:
             subscription.send_mail()
@@ -125,7 +125,7 @@ class Subscription(ndb.Model):
         subscription = cls.with_token(token)
         if subscription:
             return subscription.unsubscribe()
-            
+
     @classmethod
     def unsubscribe_all(cls, topic, email):
         subs = cls.query(cls.topic == topic, cls.email == email)
@@ -159,7 +159,7 @@ class Subscription(ndb.Model):
     # Mailer
     #
 
-    def send_mail(self):  
+    def send_mail(self):
         safe_token = self.key.urlsafe()
         reply_to = 'sub+%s@gfw-apis.appspotmail.com' % safe_token
         conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], safe_token)
