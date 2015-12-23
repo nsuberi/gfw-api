@@ -100,14 +100,16 @@ class BaseApi(webapp2.RequestHandler):
     """Base request handler for API."""
 
     def _set_origin_header(self):
-        origin = self.request.headers['Origin']
-        domain = urlparse(origin).netloc
+        if 'Origin' in self.request.headers:
+            origin = self.request.headers['Origin']
+            domain = urlparse(origin).netloc
 
-        if domain in ALLOWED_DOMAINS:
-            self.response.headers.add_header("Access-Control-Allow-Origin", origin)
-            self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
-        else:
-            self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+            if domain in ALLOWED_DOMAINS:
+                self.response.headers.add_header("Access-Control-Allow-Origin", origin)
+                self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
+                return
+
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
 
     def _send_response(self, data, error=None):
         """Sends supplied result dictionnary as JSON response."""

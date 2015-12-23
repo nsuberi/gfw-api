@@ -33,7 +33,7 @@ ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'lo
 class CORSRequestHandler(webapp2.RequestHandler):
 
     def _set_origin_header(self):
-        if hasattr(self.request.headers, 'Origin'):
+        if 'Origin' in self.request.headers:
             origin = self.request.headers['Origin']
             domain = urlparse(origin).netloc
 
