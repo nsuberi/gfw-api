@@ -22,7 +22,6 @@ import webbrowser
 import monitor
 import json
 import cgi
-
 from gfw import common
 from gfw.common import CORSRequestHandler
 from engineauth import models
@@ -48,6 +47,22 @@ class Userdata(ndb.Model):
 
 class UserApi(CORSRequestHandler):
     """Handler for user info."""
+    def _send_response(self, data, error=None):
+        """Sends supplied result dictionnary as JSON response."""
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+        self.response.headers.add_header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept')
+        self.response.headers.add_header('charset', 'utf-8')
+        self.response.headers["Content-Type"] = "application/json"
+        if error:
+            self.response.set_status(400)
+        if not data:
+            self.response.out.write('')
+        else:
+            self.response.out.write(data)
+        if error:
+            taskqueue.add(url='/log/error', params=error, queue_name="log")
 
     def get(self):
         # Currently Supports Twitter Auth:
@@ -69,21 +84,20 @@ class UserApi(CORSRequestHandler):
                             username = info['nickname']
                         else:
                             username = None;
-
-                        self.complete('respond', {'name': name, 'email': email, 'username': username, 'raw': info})
+                        self.complete('respond', {'name': name, 'email': email, 'username': username,
+                            'raw': info})
                     else:
-                        self.complete('error', {'error': 'No user profile for the current session.'}, True)
+                        self.complete('respond', {'error': 'No user profile for the current session.'})
                 else:
-                    self.complete('error', {'error': 'No user info for the current session.'}, True)
+                    self.complete('respond', {'error': 'No user info for the current session.'})
             else:
-                self.complete('error', {'error': 'No authentication cookie provided.'}, True)
+                self.complete('respond', {'error': 'No cookie assigned yet.'})
 
         except Exception, e:
             name = e.__class__.__name__
             msg = 'Error: Users API (%s)' % name
             monitor.log(self.request.url, msg, error=e,
                         headers=self.request.headers)
-
     def _get_params(self, body=False):
         if body:
             print self.request.get('name')
@@ -116,16 +130,17 @@ class UserApi(CORSRequestHandler):
             self.redirect(str(self.request.get('redirect')))
         except Exception, error:
             self.redirect('http://www.globalforestwatch.com')
-
+    
 routes = [
-    webapp2.Route(r'/user/session',
-        handler=UserApi,
-        handler_method='get',
-        methods=['GET']),
-    webapp2.Route(r'/user/setuser',
-        handler=UserApi,
-        handler_method='post',
-        methods=['POST'])
-]
+        webapp2.Route(r'/user/session',
+            handler=UserApi,
+            handler_method='get',
+            methods=['GET']),
+        webapp2.Route(r'/user/setuser',
+            handler=UserApi,
+            handler_method='post',
+            methods=['POST'])
+        ]
+
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
