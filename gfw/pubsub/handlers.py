@@ -30,6 +30,8 @@ from gfw.pubsub.event import Event
 from gfw.pubsub.notification import Notification
 from gfw.pubsub.subscription import Subscription
 
+from engineauth import models
+
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import mail
@@ -158,6 +160,13 @@ class PubSubApi(BaseApi):
     def subscribe(self):
         try:
             params = self._get_params(body=True)
+
+            session_id = self.request.cookies.get('_eauth')
+            if session_id:
+                session = models.Session.get_by_value(session_id)
+                if session.user_id:
+                    params['user_id'] = session.user_id
+
             subscription = Subscription.subscribe(params)
             if subscription:
                 token = subscription.key.urlsafe()

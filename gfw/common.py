@@ -21,6 +21,7 @@ import json
 import re
 import logging
 import webapp2
+import datetime;
 
 from google.appengine.api import memcache
 from appengine_config import runtime_config
@@ -110,9 +111,17 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
         return result
 
+    def json_serial(self, obj):
+        """JSON serializer for objects not serializable by default json code"""
+
+        if isinstance(obj, datetime.datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError ("Type not serializable")
+
     def complete(self, action, data):
         if action == 'respond':
-            self.write(json.dumps(data, sort_keys=True))
+            self.write(json.dumps(data, sort_keys=True, default=self.json_serial))
         elif action == 'redirect':
             self.redirect(data)
         elif action == 'error':

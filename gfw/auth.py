@@ -22,12 +22,15 @@ import webbrowser
 import monitor
 import json
 import cgi
+
 from gfw import common
 from gfw.common import CORSRequestHandler
 from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
 from google.appengine.ext import ndb
+
+from gfw.pubsub.subscription import Subscription
 
 config = {
     'webapp2_extras.sessions': {
@@ -44,25 +47,10 @@ class Userdata(ndb.Model):
     gender   = ndb.StringProperty()
     use      = ndb.StringProperty()
     signup   = ndb.StringProperty()
+    user_id  = ndb.StringProperty()
 
 class UserApi(CORSRequestHandler):
     """Handler for user info."""
-    def _send_response(self, data, error=None):
-        """Sends supplied result dictionnary as JSON response."""
-        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
-        self.response.headers.add_header(
-            'Access-Control-Allow-Headers',
-            'Origin, X-Requested-With, Content-Type, Accept')
-        self.response.headers.add_header('charset', 'utf-8')
-        self.response.headers["Content-Type"] = "application/json"
-        if error:
-            self.response.set_status(400)
-        if not data:
-            self.response.out.write('')
-        else:
-            self.response.out.write(data)
-        if error:
-            taskqueue.add(url='/log/error', params=error, queue_name="log")
 
     def get(self):
         # Currently Supports Twitter Auth:
@@ -84,63 +72,84 @@ class UserApi(CORSRequestHandler):
                             username = info['nickname']
                         else:
                             username = None;
-                        self.complete('respond', {'name': name, 'email': email, 'username': username,
-                            'raw': info})
+
+                        self.complete('respond', {'name': name, 'email': email, 'username': username, 'raw': info})
                     else:
-                        self.complete('respond', {'error': 'No user profile for the current session.'})
+                        self.complete('error', {'error': 'No user profile for the current session.'}, True)
                 else:
-                    self.complete('respond', {'error': 'No user info for the current session.'})
+                    self.complete('error', {'error': 'No user info for the current session.'}, True)
             else:
-                self.complete('respond', {'error': 'No cookie assigned yet.'})
+                self.complete('error', {'error': 'No authentication cookie provided.'}, True)
 
         except Exception, e:
             name = e.__class__.__name__
             msg = 'Error: Users API (%s)' % name
             monitor.log(self.request.url, msg, error=e,
                         headers=self.request.headers)
-    def _get_params(self, body=False):
-        if body:
-            print self.request.get('name')
-        else:
-            params = self.request.arguments()
-            print params
-            vals = map(self.request.get, args)
-            params = dict(zip(args, vals))
-        return params
 
     def post(self):
         try:
-            userdata = Userdata(name=ndb.Key("name",
-                                           self.request.get('name') or "*nonamee*"),
-                                email=ndb.Key("name",
-                                           self.request.get('email') or "*noemaile*"),
-                                job  =ndb.Key("name",
-                                           self.request.get('job') or "*nojobe*"),
-                                sector=ndb.Key("sector",
-                                           self.request.get('sector') or "*nosectore*"),
-                                country=ndb.Key("country",
-                                           self.request.get('country') or "*nocountrye*"),
-                                gender=ndb.Key("gender",
-                                           self.request.get('gender') or "*nogendere*"),
-                                use=ndb.Key("use",
-                                           self.request.get('use') or "*noemaile*"),
-                                signup=ndb.Key("signup",
-                                           self.request.get('signup') or "*nosignupe*"))
-            userdata.put()
-            self.redirect(str(self.request.get('redirect')))
+            value = self.request.cookies.get('_eauth')
+            if value:
+                session = models.Session.get_by_value(value)
+                if session.user_id:
+                    userdata = Userdata(
+                                    name    = self.request.get('name')      or "*nonamee*",
+                                    email   = self.request.get('email')     or "*noemaile*",
+                                    job     = self.request.get('job')       or "*nojobe*",
+                                    sector  = self.request.get('sector')    or "*nosectore*",
+                                    country = self.request.get('country')   or "*nocountrye*",
+                                    gender  = self.request.get('gender')    or "*nogendere*",
+                                    use     = self.request.get('use')       or "*noemaile*",
+                                    signup  = self.request.get('signup')    or "*nosignupe*",
+                                    user_id = session.user_id)
+                userdata.put()
+                self.redirect(str(self.request.get('redirect')))
         except Exception, error:
             self.redirect('http://www.globalforestwatch.com')
-    
-routes = [
-        webapp2.Route(r'/user/session',
-            handler=UserApi,
-            handler_method='get',
-            methods=['GET']),
-        webapp2.Route(r'/user/setuser',
-            handler=UserApi,
-            handler_method='post',
-            methods=['POST'])
-        ]
 
+    def subscriptions(self):
+        value = self.request.cookies.get('_eauth')
+        if value:
+            session = models.Session.get_by_value(value)
+            if session.user_id:
+                subscriptions = Subscription.query(Subscription.user_id==session.user_id).fetch()
+                subscriptions = [s.to_dict() for s in subscriptions]
+                self.complete('respond', subscriptions)
+                return
+
+        self.write_error(401, 'Unauthorised')
+
+    def getuser(self):
+        print 'hola'
+        value = self.request.cookies.get('_eauth')
+        if value:
+            session = models.Session.get_by_value(value)
+            if session.user_id:
+                user = json.dumps([p.to_dict() for p in  Userdata.query(Userdata.user_id==session.user_id).fetch() ])
+                self.complete('respond', user)
+                return
+
+        self.write_error(401, 'Unauthorised')
+
+
+routes = [
+    webapp2.Route(r'/user/subscriptions',
+        handler=UserApi,
+        handler_method='subscriptions',
+        methods=['GET']),
+    webapp2.Route(r'/user/session',
+        handler=UserApi,
+        handler_method='get',
+        methods=['GET']),
+    webapp2.Route(r'/user/setuser',
+        handler=UserApi,
+        handler_method='post',
+        methods=['POST']),
+    webapp2.Route(r'/user/getuser',
+        handler=UserApi,
+        handler_method='getuser',
+        methods=['GET'])
+]
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
