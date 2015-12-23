@@ -33,14 +33,16 @@ ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'lo
 class CORSRequestHandler(webapp2.RequestHandler):
 
     def _set_origin_header(self):
-        origin = self.request.headers['Origin']
-        domain = urlparse(origin).netloc
+        if hasattr(self.request.headers, 'Origin'):
+            origin = self.request.headers['Origin']
+            domain = urlparse(origin).netloc
 
-        if domain in ALLOWED_DOMAINS:
-            self.response.headers.add_header("Access-Control-Allow-Origin", origin)
-            self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
-        else:
-            self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+            if domain in ALLOWED_DOMAINS:
+                self.response.headers.add_header("Access-Control-Allow-Origin", origin)
+                self.response.headers.add_header("Access-Control-Allow-Credentials", "true")
+                return
+
+        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
 
     def options(self):
         """Options to support CORS requests."""
