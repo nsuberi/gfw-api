@@ -121,7 +121,6 @@ class UserApi(CORSRequestHandler):
         self.write_error(401, 'Unauthorised')
 
     def getuser(self):
-        print 'hola'
         value = self.request.cookies.get('_eauth')
         if value:
             session = models.Session.get_by_value(value)
