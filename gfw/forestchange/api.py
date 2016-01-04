@@ -31,8 +31,9 @@ from gfw.forestchange import terrai
 from gfw.forestchange import prodes
 from gfw.forestchange import guyra
 from gfw.forestchange import glad
-
+from gfw.forestchange import loss_by_type
 from gfw.forestchange import args
+
 from gfw.common import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
@@ -46,7 +47,7 @@ TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
 GLAD_API = '%s/glad-alerts' % APP_BASE_URL
 PRODES_API = '%s/prodes-loss' % APP_BASE_URL
 GUYRA_API = '%s/guyra-loss' % APP_BASE_URL
-
+LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
 
 META = {
     'forma-alerts': {
@@ -288,6 +289,11 @@ META = {
             GLAD_API
         }
     },
+    'loss-by-type': {
+        'meta': {
+            "id": "loss-by-type"
+        },
+    }
 }
 
 # Maps dataset to accepted query params
@@ -371,6 +377,9 @@ PARAMS = {
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
+    },
+    'loss-by-type': {
+        'all': ['aggregate_by', 'geojson']
     }
 }
 
@@ -385,7 +394,8 @@ TARGETS = {
     'terrai-alerts': terrai,
     'glad-alerts': glad,
     'prodes-loss': prodes,
-    'guyra-loss': guyra
+    'guyra-loss': guyra,
+    'loss-by-type': loss_by_type
 }
 
 
