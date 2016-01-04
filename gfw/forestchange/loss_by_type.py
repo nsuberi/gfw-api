@@ -79,7 +79,7 @@ def _get_esri_json(args):
 
     geojson = json.loads(args.get('geojson'))
     geojson['rings'] = geojson.pop('coordinates')
-    geojson['spatialReference'] = { 'wkid': 3857 }
+    geojson['spatialReference'] = { 'wkid': 4326 }
 
     return geojson
 
@@ -90,7 +90,7 @@ def _get_histogram(period, esri_json):
         "geometry": esri_json,
         "geometryType": "esriGeometryPolygon",
         "renderingRule": _generate_rendering_rule(period),
-        "pixelSize": 100,
+        "pixelSize": {"m":"meter", "spatialReference":{"wkid":54012}},
         "f": "pjson"
     }
 
