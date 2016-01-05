@@ -32,7 +32,7 @@ from google.appengine.api import users
 class Subscription(ndb.Model):
     topic = ndb.StringProperty()
     email = ndb.StringProperty()
-    user_id = ndb.StringProperty()
+    user_id = ndb.KeyProperty()
     iso = ndb.StringProperty()
     id1 = ndb.StringProperty()
     has_geom = ndb.BooleanProperty(default=False)
@@ -58,7 +58,7 @@ class Subscription(ndb.Model):
                 topic=params.get('topic'),
                 iso=iso,
                 id1=params.get('id1'),
-                user_id=params.get('user_id'),
+                user_id=ndb.Key('User', int(params.get('user_id'))),
                 has_geom=has_geom,
                 params=params
             )

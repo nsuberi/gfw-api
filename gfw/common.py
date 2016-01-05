@@ -24,6 +24,7 @@ import webapp2
 import datetime;
 
 from google.appengine.api import memcache
+from google.appengine.ext import ndb
 from appengine_config import runtime_config
 
 from hashlib import md5
@@ -115,9 +116,10 @@ class CORSRequestHandler(webapp2.RequestHandler):
         """JSON serializer for objects not serializable by default json code"""
 
         if isinstance(obj, datetime.datetime):
-            serial = obj.isoformat()
-            return serial
-        raise TypeError ("Type not serializable")
+            return obj.isoformat()
+
+        if isinstance(obj, ndb.Key):
+            return obj.id()
 
     def complete(self, action, data):
         if action == 'respond':
