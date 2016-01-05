@@ -53,7 +53,7 @@ class UrthecastHandler(webapp2.RequestHandler):
                 else:
                         response = data
 
-                self.response.headers.add('Content-Type', content_type)
+                self.response.headers['Content-Type'] = content_type
                 self.response.headers['Access-Control-Allow-Origin'] = '*'
                 self.response.headers['Access-Control-Allow-Headers'] = \
                     'Origin, X-Requested-With, Content-Type, Accept'
