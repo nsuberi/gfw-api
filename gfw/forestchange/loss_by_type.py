@@ -98,6 +98,7 @@ def _get_histogram(period, esri_json):
     result = urlfetch.fetch(url="http://gis-gfw.wri.org/arcgis/rest/services/GFW/analysis/ImageServer/computeHistograms",
         payload=form_data,
         method=urlfetch.POST,
+        deadline=60,
         headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
     histograms = json.loads(result.content)['histograms']
