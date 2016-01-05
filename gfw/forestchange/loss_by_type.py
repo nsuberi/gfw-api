@@ -90,7 +90,7 @@ def _get_histogram(period, esri_json):
         "geometry": esri_json,
         "geometryType": "esriGeometryPolygon",
         "renderingRule": _generate_rendering_rule(period),
-        "pixelSize": {"m":"meter", "spatialReference":{"wkid":54012}},
+        "pixelSize": {"x": 100, "y": 100, "m":"meter", "spatialReference":{"wkid":54012}},
         "f": "pjson"
     }
 
