@@ -132,7 +132,7 @@ def _aggregate_histogram_by_type(period, histogram):
 
         group_by_type = lambda i: dict(zip(LABELS, values[offset*i:offset*i+offset]))
         values_by_type = [group_by_type(i) for i, label in label_range]
-        types = {key: sum(d.get(key, 0) for d in values_by_type) for key in values_by_type[0]}
+        types = {key: sum(d.get(key, 0) for d in values_by_type[1:]) for key in values_by_type[0]}
 
     return types
 
