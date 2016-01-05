@@ -86,7 +86,7 @@ handlers:
   script: gfw.stories.handlers
 
 # User Info
-- url: /user/.*
+- url: /user.*
   script: gfw.auth.handlers
 
 # PubSub
