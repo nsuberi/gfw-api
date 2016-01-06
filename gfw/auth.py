@@ -30,8 +30,6 @@ from engineauth.models import User
 from engineauth.models import UserProfile
 from google.appengine.ext import ndb
 
-from gfw.pubsub.subscription import Subscription
-
 config = {
     'webapp2_extras.sessions': {
         'secret_key': 'wIDjEesObzp5nonpRHDzSp40aba7STuqC6ZRY'
@@ -78,11 +76,6 @@ class UserApi(CORSRequestHandler):
 
         self.redirect(str(self.request.get('redirect')))
 
-    def subscriptions(self):
-        subscriptions = Subscription.query(Subscription.user_id==self.user.key).fetch()
-        subscriptions = [s.to_dict() for s in subscriptions]
-        self.complete('respond', subscriptions)
-
 routes = [
     webapp2.Route(r'/user/session',
         handler=UserApi,
@@ -97,13 +90,7 @@ routes = [
     webapp2.Route(r'/user',
         handler=UserApi,
         handler_method='get',
-        methods=['GET']),
-
-    webapp2.Route(r'/user/subscriptions',
-        handler=UserApi,
-        handler_method='subscriptions',
-        methods=['GET']),
-
+        methods=['GET'])
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)

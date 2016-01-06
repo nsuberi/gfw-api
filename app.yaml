@@ -89,6 +89,13 @@ handlers:
 - url: /user.*
   script: gfw.auth.handlers
 
+
+## Version 2
+
+# Subscriptions
+- url: /v2/subscriptions.*
+  script: gfw.v2.subscriptions.api.handlers
+
 # PubSub
 - url: /.*
   script: gfw.pubsub.api.handlers
