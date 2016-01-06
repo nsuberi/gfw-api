@@ -136,6 +136,14 @@ class CORSRequestHandler(webapp2.RequestHandler):
         params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
+class UserAuthMiddleware(CORSRequestHandler):
+    def dispatch(self):
+        self.user = self.request.user if self.request.user else None
+        if self.user is None:
+            return self.write_error(401, 'Unauthorised')
+        else:
+            webapp2.RequestHandler.dispatch(self)
+
 #
 # SHARED CONSTANTS/TEMPLATES
 #

@@ -24,10 +24,12 @@ import json
 import cgi
 
 from gfw import common
-from gfw.common import CORSRequestHandler
+from gfw.common import UserAuthMiddleware
+
 from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
+
 from google.appengine.ext import ndb
 
 config = {
@@ -36,61 +38,38 @@ config = {
     }
 }
 
-class UserApi(CORSRequestHandler):
+class UserApi(UserAuthMiddleware):
     """Handler for user info."""
 
-    def dispatch(self):
-        self.user = self.request.user if self.request.user else None
-        if self.user is None:
-            return self.write_error(401, 'Unauthorised')
-        else:
-            webapp2.RequestHandler.dispatch(self)
-
-    def get_session(self):
+    def get(self):
         profile = UserProfile.get_by_id(self.user.auth_ids[0])
 
         info = profile.user_info['info']
-        email = info.get('emails')[0]['value'] if info.get('emails') else None
-        user_details = {
-            'name': info.get('displayName'),
-            'email': email,
-            'username': info.get('nickname'),
-            'raw': info
-        }
+        if not hasattr(profile, 'email'):
+            provider_email = info.get('emails')[0]['value'] if info.get('emails') else None
+            profile.email = provider_email
 
-        self.complete('respond', user_details)
-
-    def get(self):
-        self.complete('respond', self.user.to_dict())
+        self.complete('respond', profile.to_dict())
 
     def post(self):
-        self.user.name    = self.request.get('name')
-        self.user.email   = self.request.get('email')
-        self.user.job     = self.request.get('job')
-        self.user.sector  = self.request.get('sector')
-        self.user.country = self.request.get('country')
-        self.user.gender  = self.request.get('gender')
-        self.user.use     = self.request.get('use')
-        self.user.signup  = self.request.get('signup')
-        self.user.put()
+        profile = UserProfile.get_by_id(self.user.auth_ids[0])
+
+        profile.name    = self.request.get('name')
+        profile.email   = self.request.get('email')
+        profile.job     = self.request.get('job')
+        profile.sector  = self.request.get('sector')
+        profile.country = self.request.get('country')
+        profile.gender  = self.request.get('gender')
+        profile.use     = self.request.get('use')
+        profile.signup  = self.request.get('signup')
+        profile.put()
 
         self.redirect(str(self.request.get('redirect')))
 
 routes = [
-    webapp2.Route(r'/user/session',
-        handler=UserApi,
-        handler_method='get_session',
-        methods=['GET']),
-
     webapp2.Route(r'/user',
         handler=UserApi,
-        handler_method='post',
-        methods=['POST']),
-
-    webapp2.Route(r'/user',
-        handler=UserApi,
-        handler_method='get',
-        methods=['GET'])
+        methods=['POST', 'GET'])
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)

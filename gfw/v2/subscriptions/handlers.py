@@ -18,17 +18,9 @@
 import json
 import webapp2
 
-from gfw.common import CORSRequestHandler
+from gfw.common import UserAuthMiddleware
 
 from gfw.pubsub.subscription import Subscription
-
-class UserAuthMiddleware(CORSRequestHandler):
-    def dispatch(self):
-        self.user = self.request.user if self.request.user else None
-        if self.user is None:
-            return self.write_error(401, 'Unauthorised')
-        else:
-            webapp2.RequestHandler.dispatch(self)
 
 class SubscriptionsApi(UserAuthMiddleware):
     def index(self):
