@@ -33,7 +33,6 @@ from urlparse import urlparse
 ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
 
 class CORSRequestHandler(webapp2.RequestHandler):
-
     def _set_origin_header(self):
         if 'Origin' in self.request.headers:
             origin = self.request.headers['Origin']
@@ -137,9 +136,13 @@ class CORSRequestHandler(webapp2.RequestHandler):
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
 class UserAuthMiddleware(CORSRequestHandler):
+    def options(self):
+        self.complete('respond', {})
+
     def dispatch(self):
+        options_request = self.request.method = "OPTIONS"
         self.user = self.request.user if self.request.user else None
-        if self.user is None:
+        if not options_request and self.user is None:
             return self.write_error(401, 'Unauthorised')
         else:
             webapp2.RequestHandler.dispatch(self)

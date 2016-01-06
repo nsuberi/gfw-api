@@ -42,6 +42,17 @@ class UserApi(UserAuthMiddleware):
     """Handler for user info."""
 
     def get(self):
+        self.complete('respond', self.__get_profile().to_dict())
+
+    def put(self):
+        profile = self.__get_profile()
+
+        profile.populate(**self.__get_params())
+        profile.put()
+
+        self.complete('respond', profile.to_dict())
+
+    def __get_profile(self):
         profile = UserProfile.get_by_id(self.user.auth_ids[0])
 
         info = profile.user_info['info']
@@ -49,27 +60,30 @@ class UserApi(UserAuthMiddleware):
             provider_email = info.get('emails')[0]['value'] if info.get('emails') else None
             profile.email = provider_email
 
-        self.complete('respond', profile.to_dict())
+        return profile
 
-    def post(self):
-        profile = UserProfile.get_by_id(self.user.auth_ids[0])
+    def __get_params(self):
+        accepted_params = ["name", "email", 'job', 'sector', 'country',
+            'gender', 'use', 'signup']
+        params = json.loads(self.request.body)
+        return {k: v for k, v in params.items() if k in accepted_params}
 
-        profile.name    = self.request.get('name')
-        profile.email   = self.request.get('email')
-        profile.job     = self.request.get('job')
-        profile.sector  = self.request.get('sector')
-        profile.country = self.request.get('country')
-        profile.gender  = self.request.get('gender')
-        profile.use     = self.request.get('use')
-        profile.signup  = self.request.get('signup')
-        profile.put()
-
-        self.redirect(str(self.request.get('redirect')))
 
 routes = [
     webapp2.Route(r'/user',
         handler=UserApi,
-        methods=['POST', 'GET'])
+        handler_method='get',
+        methods=['GET']),
+
+    webapp2.Route(r'/user',
+        handler=UserApi,
+        handler_method='put',
+        methods=['PUT', 'POST']),
+
+    webapp2.Route(r'/user',
+        handler=UserApi,
+        handler_method='options',
+        methods=['OPTIONS'])
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
