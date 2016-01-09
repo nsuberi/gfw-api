@@ -18,10 +18,7 @@
 """This module contains request handlers for user authentication."""
 
 import webapp2
-import webbrowser
-import monitor
 import json
-import cgi
 
 from gfw import common
 from gfw.common import UserAuthMiddleware

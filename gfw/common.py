@@ -45,12 +45,13 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
         self.response.headers.add_header("Access-Control-Allow-Origin", "*")
 
-    def options(self):
+    def options(self, *args, **kwargs):
         """Options to support CORS requests."""
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
+
+        self._set_origin_header()
         self.response.headers['Access-Control-Allow-Headers'] = \
             'Origin, X-Requested-With, Content-Type, Accept'
-        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
 
     def write(self, data):
         """Sends supplied result dictionnary as JSON response."""
@@ -67,7 +68,6 @@ class CORSRequestHandler(webapp2.RequestHandler):
         """Sends supplied result dictionnary as JSON response."""
 
         self._set_origin_header()
-        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
         self.response.headers.add_header(
             'Access-Control-Allow-Headers',
             'Origin, X-Requested-With, Content-Type, Accept')
@@ -136,11 +136,8 @@ class CORSRequestHandler(webapp2.RequestHandler):
         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
 class UserAuthMiddleware(CORSRequestHandler):
-    def options(self):
-        self.complete('respond', {})
-
     def dispatch(self):
-        options_request = self.request.method = "OPTIONS"
+        options_request = (self.request.method == "OPTIONS")
         self.user = self.request.user if self.request.user else None
         if not options_request and self.user is None:
             return self.write_error(401, 'Unauthorised')

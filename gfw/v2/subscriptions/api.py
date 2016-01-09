@@ -37,7 +37,21 @@ routes = [
   webapp2.Route(
     r'/v2/subscriptions/<subscription_id>',
     handler=SubscriptionsApi,
-    methods=['PUT', 'DELETE']
+    handler_method='put',
+    methods=['PUT']
+  ),
+
+  webapp2.Route(
+    r'/v2/subscriptions/<subscription_id>',
+    handler=SubscriptionsApi,
+    handler_method='delete',
+    methods=['DELETE']
+  ),
+
+  webapp2.Route(
+    r'/v2/subscriptions/<:.*>',
+    handler=SubscriptionsApi,
+    methods=['OPTIONS']
   )
 ]
 
