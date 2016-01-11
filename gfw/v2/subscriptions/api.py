@@ -49,7 +49,7 @@ routes = [
   ),
 
   webapp2.Route(
-    r'/v2/subscriptions/<:.*>',
+    r'/v2/subscriptions<:/?.*>',
     handler=SubscriptionsApi,
     methods=['OPTIONS']
   )

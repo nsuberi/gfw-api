@@ -49,6 +49,10 @@ class UserApi(UserAuthMiddleware):
 
         self.complete('respond', profile.to_dict())
 
+    def sign_out(self):
+        self.request.session.key.delete()
+        self.redirect(self.request.referer)
+
     def __get_profile(self):
         profile = UserProfile.get_by_id(self.user.auth_ids[0])
 
@@ -70,6 +74,11 @@ routes = [
     webapp2.Route(r'/user',
         handler=UserApi,
         handler_method='get',
+        methods=['GET']),
+
+    webapp2.Route(r'/user/sign_out',
+        handler=UserApi,
+        handler_method='sign_out',
         methods=['GET']),
 
     webapp2.Route(r'/user',
