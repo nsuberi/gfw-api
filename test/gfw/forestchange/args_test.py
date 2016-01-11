@@ -94,6 +94,16 @@ class ArgsTest(common.BaseTest):
         f = args.ArgProcessor.bust
         self.assertTrue(f('bust')['bust'])
 
+    def test_iso_returns_empty(self):
+        f = args.ArgProcessor.process
+        self.assertEqual(f({'iso':'bra'}),{})
+        self.assertFalse(hasattr(args.ArgProcessor,'iso'))
+
+    def test_id1_returns_empty(self):
+        f = args.ArgProcessor.process
+        self.assertEqual(f({'id1':3}),{})
+        self.assertFalse(hasattr(args.ArgProcessor,'id1'))
+
     def test_dev(self):
         f = args.ArgProcessor.dev
         self.assertTrue(f('dev')['dev'])

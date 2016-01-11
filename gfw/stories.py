@@ -21,6 +21,8 @@ import json
 from appengine_config import runtime_config
 from gfw import cdb
 import datetime
+import os
+from string import Template
 
 # API
 import webapp2
@@ -216,10 +218,21 @@ class StoriesApi(BaseApi):
         mail.send_mail(sender=sender, to=to, subject=subject, body=body)
 
         # Email user:
+        config = { 'name': story['name'], 'story_url': story_url }
+        txt_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.txt')
+        txt_file = open(txt_path)
+        text_body = Template(txt_file.read()).substitute(config)
+
+        html_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.html')
+        html_file = open(html_path)
+        html_body = Template(html_file.read()).substitute(config)
+
         subject = 'Your story has been registered with Global Forest Watch!'
-        to = '%s <%s>' % (story['name'], story['email'])
-        body = 'Here is your story: %s' % story_url
-        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+        message = mail.EmailMessage(sender=sender, subject=subject)
+        message.to = '%s <%s>' % (story['name'], story['email'])
+        message.body = text_body
+        message.html = html_body
+        message.send()
 
     def _gen_token(self):
         return base64.b64encode(

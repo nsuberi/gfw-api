@@ -185,6 +185,10 @@ class PathProcessor():
 class ArgProcessor():
 
     @classmethod
+    def aggregate_by(cls, value):
+        return {'aggregate_by': value}
+
+    @classmethod
     def thresh(cls, value):
         try:
             if int(value) in [10, 15, 20, 25, 30, 50, 75]:
@@ -203,23 +207,6 @@ class ArgProcessor():
             if b > e:
                 raise
             return dict(begin=begin, end=end)
-        except:
-            raise PeriodArgError()
-
-    @classmethod
-    def iso(cls, value):
-        try:
-            if len(value) != 3:
-                raise
-            return dict(iso=value)
-        except:
-            raise PeriodArgError()
-
-    @classmethod
-    def id1(cls, value):
-        try:
-            int(value)
-            return dict(id1=value)
         except:
             raise PeriodArgError()
 
