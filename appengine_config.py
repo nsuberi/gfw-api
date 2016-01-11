@@ -130,7 +130,6 @@ engineauth['provider.github'] = {
     'client_secret': 'e2d0420f8abd67d5fc4f8bdefd9e8144744bf3e8',
 }
 
-
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""
     from gfw.middlewares import oauth

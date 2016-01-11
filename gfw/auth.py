@@ -21,7 +21,7 @@ import webapp2
 import json
 
 from gfw import common
-from gfw.common import UserAuthMiddleware
+from gfw.middlewares.user import UserAuthMiddleware
 
 from engineauth import models
 from engineauth.models import User

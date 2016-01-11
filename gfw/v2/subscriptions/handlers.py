@@ -18,7 +18,7 @@
 import json
 import webapp2
 
-from gfw.common import UserAuthMiddleware
+from gfw.middlewares.user import UserAuthMiddleware
 
 from gfw.pubsub.subscription import Subscription
 

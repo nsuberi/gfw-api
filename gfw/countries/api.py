@@ -24,7 +24,7 @@ import webapp2
 
 from gfw.countries import countries
 from gfw.countries import args
-from gfw.common import CORSRequestHandler
+from gfw.middlewares.cors import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL
