@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+    /* -------------------------------------
+        GLOBAL
+    ------------------------------------- */
+    * {
+      margin:0;
+      padding:0;
+      font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+      font-size: 100%;
+      line-height: 1.4;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    body {
+      /*-webkit-font-smoothing:antialiased; */
+      -webkit-text-size-adjust:none;
+      width: 100%!important;
+      height: 100%;
+    }
+
+
+    /* -------------------------------------
+        ELEMENTS
+    ------------------------------------- */
+    a {
+      color: #9BBF19;
+      text-decoration: underline;
+    }
+
+    .btn-primary, .btn-secondary {
+      text-decoration:none;
+      color: #FFF;
+      background-color: #9BBF19;
+      padding:10px 20px;
+      font-weight:bold;
+      margin: 20px 10px 20px 0;
+      text-align:center;
+      cursor:pointer;
+      display: inline-block;
+      border-radius: 25px;
+    }
+
+    .btn-secondary{
+      background: #aaa;
+    }
+
+    .last {
+      margin-bottom: 0;
+    }
+
+    .first{
+      margin-top: 0;
+    }
+
+    .centered {
+      text-align: center;
+    }
+
+    /* -------------------------------------
+        HEADER
+    ------------------------------------- */
+    table.header-wrap {
+      width: 100%;
+      padding: 0 20px 0;
+    }
+
+    /* -------------------------------------
+        BODY
+    ------------------------------------- */
+    table.body-wrap {
+      width: 100%;
+      padding: 0 20px 20px;
+      border-spacing: 0;
+    }
+
+    table.body-wrap .container{
+      border-bottom: 2px solid #E7E7E7;
+      border-spacing: 0;
+    }
+
+
+    /* -------------------------------------
+        FOOTER
+    ------------------------------------- */
+    table.footer-wrap {
+      width: 100%;
+      clear:both!important;
+    }
+    table.footer-wrap .content {
+      padding: 0;
+    }
+
+
+    .footer-wrap .container p {
+      font-size:14px;
+      color:#555;
+
+    }
+
+    table.footer-wrap a{
+      color: #999;
+      text-decoration: none;
+    }
+
+
+    /* -------------------------------------
+        TYPOGRAPHY
+    ------------------------------------- */
+    h1,h2,h3{
+      font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; line-height: 1.1; margin-bottom:15px; color:#000;
+      margin: 40px 0 10px;
+      line-height: 1.2;
+      font-weight:200;
+      color: #555555;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 600;
+    }
+    h2 {
+      font-size: 28px;
+    }
+    h3 {
+      font-size: 22px;
+    }
+
+    p, ul {
+      margin-bottom: 20px;
+      font-weight: normal;
+      font-size:16px;
+      color: #555555;
+    }
+
+    ul li {
+      margin-left:5px;
+      list-style-position: inside;
+    }
+
+    /* ---------------------------------------------------
+        RESPONSIVENESS
+        Nuke it from orbit. It's the only way to be sure.
+    ------------------------------------------------------ */
+
+    /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
+    .container {
+      display:block!important;
+      max-width:600px!important;
+      margin:0 auto!important; /* makes it centered */
+      clear:both!important;
+    }
+
+    /* This should also be a block element, so that it will fill 100% of the .container */
+    .content {
+      padding:35px;
+      max-width:600px;
+      margin:0 auto;
+      display:block;
+    }
+
+    /* Let's make sure tables in the content area are 100% wide */
+    .content table {
+      width: 100%;
+    }
+    .header-wrap .content {
+      padding: 0;
+    }
+    .header-wrap .content table {
+      padding: 0;
+      border-spacing: 0;
+    }
+
+    </style>
+  </head>
+
+  <body bgcolor="#F2F2F2">
+
+    <table class="header-wrap" cellpadding="0" cellspacing="0">
+      <tr>
+        <td></td>
+        <td class="container">
+          <div class="content">
+          <table>
+            <tr>
+              <td height="30" cellspacing="0" cellpadding="0" colspan="3" class="unsubscribe"></td>
+            </tr>
+            <tr>
+              <td bgcolor="333333" height="60" width="35"></td>
+              <td width="90" height="90" rowspan="2"><img src="http://www.globalforestwatch.org/assets/logo-new-b989ed109810f4bc3ddfe0fb21d204bd.png"></td>
+              <td bgcolor="#333333"></td>
+            </tr>
+            <tr>
+              <td height="30" width="35" bgcolor="#ffffff"></td>
+              <td bgcolor="#ffffff"></td>
+            </tr>
+          </table>
+          </div>
+        </td>
+        <td></td>
+      </tr>
+    </table>
+
+    <!-- body -->
+    <table class="body-wrap">
+      <tr>
+        <td></td>
+        <td class="container" bgcolor="#FFFFFF">
+
+          <!-- content -->
+          <div class="content">
+          <table>
+            <tr>
+              <td>
+                <h1 class="first">Hello $name!</h1>
+                <p>
+                  Thank you for sharing your story with Global Forest Watch. You can view
+                  your story online now.
+                </p>
+
+                <p class="centered"><a class="btn-primary" href="$story_url">View on Global Forest Watch</a></p>
+
+                <p>
+                  If you would like to add updates or make changes,
+                  please <a href="mailto:krenschler@wri.org">contact our
+                    Website Coordinator</a> and we can edit your story
+                  online.
+                </p>
+
+                <p>
+                  <strong>Remember to share your story with others!</strong> Post it
+                  on Twitter and Facebook, or recommend it on Google Plus using the
+                  links at the bottom of the story.
+                </p>
+
+                <p>
+                  Did you enjoy your experience with Global Forest
+                  Watch? If you have any feedback or suggestions, we are
+                  always looking to hear from our users to improve the
+                  site. You can <a href="http://www.globalforestwatch.org/getinvolved/provide-feedback">add your comments on Global Forest Watch</a>.
+                </p>
+
+                <p>
+                  Thank you for contributing to Global Forest Watch!
+                </p>
+
+                <p>
+                  Sincerely,<br>
+                  The Global Forest Watch Team
+                </p>
+              </td>
+            </tr>
+          </table>
+          </div>
+          <!-- /content -->
+
+        </td>
+        <td></td>
+      </tr>
+    </table>
+    <!-- /body -->
+
+    <!-- footer -->
+    <table class="footer-wrap">
+      <tr>
+        <td></td>
+        <td class="container">
+
+          <!-- content -->
+          <div class="content">
+            <table>
+              <tr>
+                <td align="center">
+                  <p><a href="#">Terms of service</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </div><!-- /content -->
+
+        </td>
+        <td></td>
+      </tr>
+    </table>
+    <!-- /footer -->
+
+  </body>
+</html>

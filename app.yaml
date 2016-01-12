@@ -51,6 +51,9 @@ handlers:
   script: gfw.pubsub.handlers
   login: admin
 
+- url: /_info
+  script: gfw.info.handlers
+
 # Download handler:
 - url: /analysis/(imazon|forma|modis|prodes).(shp|geojson|kml|svg|csv)
   script: download.handlers
