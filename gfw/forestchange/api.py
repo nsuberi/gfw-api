@@ -34,7 +34,7 @@ from gfw.forestchange import glad
 from gfw.forestchange import loss_by_type
 from gfw.forestchange import args
 
-from gfw.common import CORSRequestHandler
+from gfw.middlewares.cors import CORSRequestHandler
 from gfw.common import APP_BASE_URL
 
 FORMA_API = '%s/forma-alerts' % APP_BASE_URL

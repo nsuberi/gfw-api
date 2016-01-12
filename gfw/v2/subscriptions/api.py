@@ -15,54 +15,44 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module contains request handlers for the Global Forest Watch API."""
 import webapp2
 
-from gfw.pubsub import handlers
-from gfw.pubsub import notifiers
+from gfw.v2.subscriptions.handlers import SubscriptionsApi
 
-""" ROUTES """
 routes = [
-
   webapp2.Route(
-    r'/subscribe', 
-    handler=handlers.PubSubApi,
-    handler_method='subscribe',
-    methods=['POST']
-  ),
-  webapp2.Route(
-    r'/unsubscribe', 
-    handler=handlers.PubSubApi,
-    handler_method='unsubscribe',
-    methods=['POST']
-  ),
-
-  # pubsub queue 
-  webapp2.Route(
-    r'/pubsub/publish', 
-    handler=handlers.Publisher,
-    handler_method='post',
-    methods=['POST']
-  ),
-  webapp2.Route(
-    r'/pubsub/confirm',
-    handler=handlers.Confirmer,
-    handler_method='get',
+    r'/v2/subscriptions',
+    handler=SubscriptionsApi,
+    handler_method='index',
     methods=['GET']
   ),
+
   webapp2.Route(
-    r'/pubsub/notify',
-    handler=notifiers.DigestNotifer,
-    handler_method='post',
+    r'/v2/subscriptions',
+    handler=SubscriptionsApi,
+    handler_method='create',
     methods=['POST']
   ),
+
   webapp2.Route(
-    r'/pubsub/dump',
-    handler=handlers.SubscriptionDump,
-    handler_method='get',
-    methods=['GET']
+    r'/v2/subscriptions/<subscription_id>',
+    handler=SubscriptionsApi,
+    handler_method='put',
+    methods=['PUT']
+  ),
+
+  webapp2.Route(
+    r'/v2/subscriptions/<subscription_id>',
+    handler=SubscriptionsApi,
+    handler_method='delete',
+    methods=['DELETE']
+  ),
+
+  webapp2.Route(
+    r'/v2/subscriptions<:/?.*>',
+    handler=SubscriptionsApi,
+    methods=['OPTIONS']
   )
-
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=True)

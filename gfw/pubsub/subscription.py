@@ -30,40 +30,38 @@ from google.appengine.api import users
 # Model
 #
 class Subscription(ndb.Model):
-    topic = ndb.StringProperty()
-    email = ndb.StringProperty()
-    user_id = ndb.StringProperty()
-    iso = ndb.StringProperty()
-    id1 = ndb.StringProperty()
-    has_geom = ndb.BooleanProperty(default=False)
+    name      = ndb.StringProperty()
+    topic     = ndb.StringProperty()
+    email     = ndb.StringProperty()
+    user_id   = ndb.KeyProperty()
+    iso       = ndb.StringProperty()
+    id1       = ndb.StringProperty()
+    has_geom  = ndb.BooleanProperty(default=False)
     confirmed = ndb.BooleanProperty(default=False)
-    params = ndb.JsonProperty()
-    updates = ndb.JsonProperty()
-    created = ndb.DateTimeProperty(auto_now_add=True)
+    geom      = ndb.JsonProperty()
+    params    = ndb.JsonProperty()
+    updates   = ndb.JsonProperty()
+    created   = ndb.DateTimeProperty(auto_now_add=True)
 
     kind = 'Subscription'
 
     """ Class Methods """
 
     @classmethod
-    def create(cls,params):
+    def create(cls, params, user=None):
         """Create subscription if email and, iso or geom is present"""
-        subscription = None
 
         iso = params.get('iso')
         has_geom = bool(params.get('geom'))
         if iso or has_geom:
-            subscription = Subscription(
-                email=params.get('email'),
-                topic=params.get('topic'),
-                iso=iso,
-                id1=params.get('id1'),
-                user_id=params.get('user_id'),
-                has_geom=has_geom,
-                params=params
-            )
+            subscription = Subscription()
+            subscription.populate(**params)
+            subscription.params = params
+            subscription.has_geom = has_geom
 
-        if subscription:
+            user_id = user.key if user is not None else ndb.Key('User', None)
+            subscription.user_id = user_id
+
             subscription.put()
             return subscription
         else:
@@ -112,8 +110,8 @@ class Subscription(ndb.Model):
 
 
     @classmethod
-    def subscribe(cls, params):
-        subscription = Subscription.create(params)
+    def subscribe(cls, params, user):
+        subscription = Subscription.create(params, user)
         if subscription:
             subscription.send_mail()
             return subscription
@@ -143,6 +141,10 @@ class Subscription(ndb.Model):
 
     """ Instance Methods """
 
+    def to_dict(self):
+        result = super(Subscription,self).to_dict()
+        result['key'] = self.key.id()
+        return result
     #
     # Subscriptions
     #
@@ -171,9 +173,3 @@ class Subscription(ndb.Model):
             subject=subscribe_mailer.subject,
             body=subscribe_mailer.body % conf_url
         )
-
-
-
-
-
-
