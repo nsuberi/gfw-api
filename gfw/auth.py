@@ -51,6 +51,7 @@ class UserApi(UserAuthMiddleware):
 
     def sign_out(self):
         self.request.session.key.delete()
+        self.response.set_cookie('_eauth', '')
         self.redirect(self.request.referer)
 
     def __get_profile(self):
