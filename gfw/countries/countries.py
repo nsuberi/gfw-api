@@ -21,7 +21,6 @@ import json
 
 from gfw import cdb
 from gfw.forestchange import umd
-from gfw import stories
 
 
 class CountrySql(object):
@@ -215,7 +214,7 @@ def _getForestCertification(args):
     return dict(forest_certification=_handler(cdb.execute(query)))
 
 def _getLossOutsidePlantations(args):
-    if 'thresh' not in args:
+    if 'thresh' not in args
         args['thresh'] = 30
     query = CountrySql.LOSS_OUTSIDE_PLANTATION.format(**args)
 
@@ -226,22 +225,12 @@ def _getBounds(args):
 
     return dict(bounds=json.loads(_handler(cdb.execute(query))[0]['bounds']))
 
-def _getstory(args):
-
-    return dict(story=stories.get_country_story(args))
-
 
 def _getUmd(args):
     action, data = umd.execute(args)
 
     return dict(umd=data['years'])
 
-def _getIfl(args):
-    args['ifl'] = True
-    ifl = umd.execute(args)
-    args['ifl'] = False
-        
-    return dict(ifl=ifl)
 
 def execute(args):
     result = dict(params=args)
@@ -262,7 +251,5 @@ def execute(args):
         result.update(_getLossOutsidePlantations(args))
         result.update(_getBounds(args))
         result.update(_getUmd(args))
-        result.update(_getIfl(args))
-        result.update(_getstory(args))
 
     return 'respond', result
