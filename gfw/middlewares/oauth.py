@@ -35,7 +35,7 @@ def setup():
             credentials=req.credentials)
         req.load_user_by_profile(profile)
 
-        if not profile.email:
+        if not hasattr(profile, 'email') or not profile.email:
             from urlparse import urlparse
             redirect_uri = req.get_redirect_uri()
             parsed_uri = urlparse(redirect_uri)
