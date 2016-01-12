@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports accessing countries data."""
+"""This module supports accessing countries data. todo- add loss outside plantations to umd"""
 
 import json
 
@@ -107,6 +107,33 @@ class CountrySql(object):
         FROM country_mask
         WHERE code = UPPER('{iso}')"""
 
+    BURNED_FOREST = """
+        SELECT area_burned_forest, year
+        FROM burned_forest
+        WHERE iso = UPPER('{iso}')
+        ORDER BY year asc"""
+
+    REFORESTATION = """
+        SELECT reforestation_rate
+        FROM gfw2_countries
+        WHERE iso = UPPER('{iso}')"""
+
+    FOREST_CERTIFICATION = """
+        SELECT unnest(array['total_area_certified', 'percent_fsc',
+               'percent_pef','percent_other']) AS type, unnest(array[COALESCE(
+               total_area_certified, 0), COALESCE(percent_fsc, 0), COALESCE(
+               percent_pef, 0), COALESCE(percent_other, 0)]) AS value
+        FROM gfw2_countries
+        WHERE iso = UPPER('{iso}')"""
+
+    LOSS_OUTSIDE_PLANTATION = """
+        select loss_outside,perc_loss_outside,iso, threshold, year 
+        FROM loss_outside_plantations
+        WHERE iso = UPPER('{iso}')
+        AND threshold = {thresh}
+        AND year > 2012
+        ORDER BY year asc"""
+
 
 def _handler(response):
     if response.status_code == 200:
@@ -171,6 +198,26 @@ def _getTenure(args):
     return dict(tenure=_handler(cdb.execute(query)))
 
 
+def _getBurnedForests(args):
+    query = CountrySql.BURNED_FOREST.format(**args)
+
+    return dict(burned_forests=_handler(cdb.execute(query)))
+
+def _getReforestation(args):
+    query = CountrySql.REFORESTATION.format(**args)
+
+    return dict(reforestation=_handler(cdb.execute(query)))
+
+def _getForestCertification(args):
+    query = CountrySql.FOREST_CERTIFICATION.format(**args)
+
+    return dict(forest_certification=_handler(cdb.execute(query)))
+
+def _getLossOutsidePlantations(args):
+    query = CountrySql.LOSS_OUTSIDE_PLANTATION.format(**args)
+
+    return dict(loss_outside_plantations=_handler(cdb.execute(query)))
+
 def _getBounds(args):
     query = CountrySql.BOUNDS.format(**args)
 
@@ -196,6 +243,10 @@ def execute(args):
         result.update(_getForma(args))
         result.update(_getForests(args))
         result.update(_getTenure(args))
+        result.update(_getBurnedForests(args))
+        result.update(_getReforestation(args))
+        result.update(_getForestCertification(args))
+        result.update(_getLossOutsidePlantations(args))
         result.update(_getBounds(args))
         result.update(_getUmd(args))
 
