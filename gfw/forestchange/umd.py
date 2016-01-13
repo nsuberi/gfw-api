@@ -117,17 +117,18 @@ class UmdSql(Sql):
         ORDER BY year"""
 
     IFL = """
-        SELECT ST_AsGeoJson(the_geom) AS geojson, type
-        FROM gadm_countries_ifl
+        SELECT iso, country, ifl_loss, ifl_loss_perc, ifl_treecover_2000, threshold, year
+        FROM loss_analysis_ifl
         WHERE iso = UPPER('{iso}')
-        AND type='intact'"""
+            AND id1 is null
+            AND threshold = {thresh}"""
 
     IFL_ID1 = """
-        SELECT ST_AsGeoJson(the_geom) AS geojson, type
-        FROM gadm_countries_ifl
+        SELECT iso, country, ifl_loss, ifl_loss_perc, ifl_treecover_2000, threshold, year, id1
+        FROM loss_analysis_ifl
         WHERE iso = UPPER('{iso}')
-              AND id1 = {id1}
-        AND type='intact'"""
+            AND id1 = {id1}
+            AND threshold = {thresh}"""
 
     USE = """
         SELECT ST_AsGeoJson(the_geom) AS geojson
