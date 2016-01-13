@@ -182,6 +182,11 @@ def _getUmd(args):
 
     return dict(umd=data['years'])
 
+def _getIfl(args):
+    args['ifl'] = True
+    action, data = umd.execute(args)
+    args['ifl'] = False
+    return dict(ifl=data['years'])
 
 def execute(args):
     result = dict(params=args)
@@ -198,5 +203,6 @@ def execute(args):
         result.update(_getTenure(args))
         result.update(_getBounds(args))
         result.update(_getUmd(args))
+        result.update(_getIfl(args))
 
     return 'respond', result
