@@ -25,7 +25,7 @@ from gfw.forestchange.common import Sql
 class GladSql(Sql):
 
     WORLD = """
-        SELECT ((COUNT(*) * (30*30)) / 10000)::numeric AS value
+        SELECT COUNT(iso) AS value
           {additional_select}
         FROM  umd_alerts_agg_rast f
         WHERE date >= '{begin}'::date
@@ -39,10 +39,29 @@ class GladSql(Sql):
               f.the_geom_webmercator)
         """
 
+    ISO = """
+        SELECT count(iso) AS value, MIN(date) as min_date, MAX(date) as max_date   
+        FROM umd_alerts_agg_rast
+        WHERE iso = UPPER('{iso}')
+            AND date >= '{begin}'::date
+            AND date <= '{end}'::date
+        """
+
+    ID1 = """
+        WITH f as (SELECT name_1,iso, id_1, the_geom_webmercator 
+                   FROM gadm2_provinces_simple 
+                   WHERE iso = UPPER('{iso}') 
+                   AND id_1 = {id1} )
+        SELECT count(r.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
+        FROM umd_alerts_agg_rast r INNER JOIN  f ON st_intersects(f.the_geom_webmercator,r.the_geom_webmercator) 
+        WHERE date >= '{begin}'::date 
+        AND date <= '{end}'::date
+        """
+
     WDPA = """
         WITH p as (SELECT st_simplify (the_geom_webmercator, 0.0001) as the_geom_webmercator FROM wdpa_protected_areas
             WHERE wdpaid={wdpaid} LIMIT 1)
-        SELECT ((COUNT(*) * (30*30)) / 10000)::numeric AS value, MIN(date) as min_date, MAX(date) as max_date
+        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM umd_alerts_agg_rast f, p
         WHERE ST_Intersects(f.the_geom_webmercator, p.the_geom_webmercator)
               AND date >= '{begin}'::date
@@ -50,7 +69,7 @@ class GladSql(Sql):
         """
 
     USE = """
-        SELECT ((COUNT(*) * (30*30)) / 10000)::numeric AS value, MIN(date) as min_date, MAX(date) as max_date
+        SELECT COUNT(*) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM {use_table} u, umd_alerts_agg_rast f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom_webmercator, u.the_geom_webmercator)
@@ -66,7 +85,7 @@ class GladSql(Sql):
 
     @classmethod
     def download(cls, sql):
-        return sql.replace("((COUNT(*) * (30*30)) / 10000)::numeric AS value, MIN(date) as min_date, MAX(date) as max_date", "SELECT f.*")
+        return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", "SELECT f.*")
 
 def _processResults(action, data):
     if 'rows' in data:
