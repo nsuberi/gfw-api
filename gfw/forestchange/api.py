@@ -283,6 +283,10 @@ META = {
         },
         'apis': {
             'world': '%s{?period,geojson,download,bust,dev}' % GLAD_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            GLAD_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            GLAD_API,
             'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
             GLAD_API,
             'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
@@ -374,6 +378,8 @@ PARAMS = {
     },
     'glad-alerts': {
         'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
         'wdpa': ['period', 'download', 'dev', 'bust'],
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
