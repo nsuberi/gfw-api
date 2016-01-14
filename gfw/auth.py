@@ -66,7 +66,7 @@ class UserApi(UserAuthMiddleware):
 
     def __get_params(self):
         accepted_params = ["name", "email", 'job', 'sector', 'country',
-            'gender', 'use', 'signup']
+            'state', 'city', 'use', 'sign_up']
         params = json.loads(self.request.body)
         return {k: v for k, v in params.items() if k in accepted_params}
 
