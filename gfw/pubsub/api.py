@@ -26,17 +26,12 @@ import webapp2
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from gfw.common import CORSRequestHandler
+from gfw.middlewares.cors import CORSRequestHandler
 from gfw.forestchange import forma, terrai, imazon, prodes, quicc, umd, guyra
 from appengine_config import runtime_config
 
+from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
 from gfw.pubsub.subscription import Subscription
-
-import urllib
-from google.appengine.api import urlfetch
-
-#import mandrill
-#mandrill_client = mandrill.Mandrill(mandrill_key)
 
 class Event(ndb.Model):
     """Model for publication events."""
@@ -180,77 +175,6 @@ class ArgProcessor():
                 processed.update(getattr(cls, name)(value))
         return processed
 
-mandrill_key = runtime_config.get('mandrill_api_key')
-mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
-
-
-def send_mandrill_email(template_name, template_content, message):
-    "Send Mandrill Email"
-    payload = {"template_content": template_content,
-               "template_name": template_name,
-               "message": message,
-               "key": mandrill_key,
-               "async": "false"}
-
-    result = urlfetch.fetch(mandrill_url,
-        payload=json.dumps(payload),
-        method=urlfetch.POST,
-        headers={'Content-Type': 'application/json'})
-
-    return result
-
-
-def send_mail_notification(email, action, data):
-    """Sends a notification email for a publication event.
-
-    Args:
-      email: Address to mail to.
-      selected_area:
-      alert_count:
-      alert_type:
-      alert_date:
-      alert_summary:
-      alert_specs:
-    """
-    logging.info("Send Notification Email: %s" % email)
-
-    # TODO: Finish these - get info from 'data':
-    template_content = []
-    message = {
-        'global_merge_vars': [
-            {
-                'content': "area", 'name': 'selected_area'
-            },
-            {
-                'content': "count", 'name': 'alert_count'
-            },
-            {
-                'content': "type", 'name': 'alert_type'
-            },
-            {
-                'content': "date", 'name': 'alert_date'
-            },
-            {
-                'content': "summary", 'name': 'alert_summary'
-            },
-            {
-                'content': "specs", 'name': 'alert_specs'
-            }],
-        'to': [
-            {
-                'email': email,
-                'name': 'Recipient Name',
-                'type': 'to'}],
-        'track_clicks': True,
-        'merge_language': 'handlebars',
-        'track_opens': True
-    }
-
-    result = send_mandrill_email("forest-change-notification", template_content, message)
-
-    logging.info("Send Notification Email Result: %s" % result.content)
-
-
 def get_deltas(topic, params):
     """Params should contain a begin and end date."""
     if topic == 'alerts/forma':
@@ -341,57 +265,6 @@ def subscribe(params):
         s.put()
         return s
 
-
-def send_confirmation_email(email, urlsafe):
-    """Sends a confirmation email for a subscription request.
-
-    Args:
-      email: Address to mail to.
-      urlsafe: Subscription model urlsafe key.
-    """
-    url_base = runtime_config['APP_BASE_URL']
-    conf_url = '%s/pubsub/sub-confirm?token=%s' % (url_base, urlsafe)
-    template_content = []
-    message = {
-        'global_merge_vars': [
-            {
-                'content': conf_url, 'name': 'confirmation_url'
-            }],
-        'to': [
-            {
-                'email': email,
-                'name': 'Recipient Name',
-                'type': 'to'}],
-        'track_clicks': True,
-        'merge_language': 'handlebars',
-        'track_opens': True
-    }
-
-    # This does not work locally in GAE:
-    # result = mandrill_client.messages.send_template(
-    #     template_name='subscription-confirmation',
-    #     template_content=template_content,
-    #     message=message)
-
-    result = send_mandrill_email("subscription-confirmation", template_content, message)
-
-    logging.info("Send Confirmation Email Result: %s" % result.content)
-
-
-def receive_confirmation_email(urlsafe):
-    """Set Subscription.confirmed to True for supplied urlsafe key.
-
-    Args:
-      urlsafe: A urlsafe string for a Subscription entity.
-
-    Raises:
-      Exception: If Subscription entity doesn't exist.
-    """
-    s = ndb.Key(urlsafe=urlsafe).get()
-    s.confirmed = True
-    s.put()
-
-
 class NotificationHandler(CORSRequestHandler):
 
     """Handler for /pubsub/pub-event-notification requests."""
@@ -449,27 +322,6 @@ class PublishHandler(CORSRequestHandler):
             self.write_error(400, e.message)
 
 
-class SubscribeHandler(CORSRequestHandler):
-
-    """Handler for /subscribe requests."""
-
-    def post(self):
-        self.get()
-
-    def get(self):
-        # Subscribe to given topic, send confirmation email,
-        # respond with {success: true}
-        try:
-            params = ArgProcessor.process(self.args())
-            s = subscribe(params)
-            send_confirmation_email(s.email, s.key.urlsafe())
-            self.response.set_status(201)
-            self.complete('respond', json.dumps(dict(success=True)))
-        except (Exception), e:
-            logging.exception(e)
-            self.write_error(400, e.message)
-
-
 class SubscribeConfirmHandler(CORSRequestHandler):
 
     """Handler for /sub-confirm requests."""
@@ -489,7 +341,6 @@ class SubscribeConfirmHandler(CORSRequestHandler):
 
 
 handlers = webapp2.WSGIApplication([
-    (r'/pubsub/sub', SubscribeHandler),
     (r'/pubsub/pub', PublishHandler),
     (r'/pubsub/pub-multicast', MulticastHandler),
     (r'/pubsub/sub-confirm', SubscribeConfirmHandler),

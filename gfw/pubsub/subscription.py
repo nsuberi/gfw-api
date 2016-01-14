@@ -24,7 +24,7 @@ from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import users
 
-from gfw.pubsub.api import send_confirmation_email
+from gfw.pubsub.mail_handlers import send_confirmation_email
 
 #
 # Model
@@ -118,8 +118,7 @@ class Subscription(ndb.Model):
     def subscribe(cls, params, user):
         subscription = Subscription.create(params, user)
         if subscription:
-            import pdb; pdb.set_trace()
-            send_confirmation_email(self.email, self.key.urlsafe())
+            send_confirmation_email(subscription.email, subscription.key.urlsafe())
             return subscription
         else:
             return False
