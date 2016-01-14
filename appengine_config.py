@@ -26,8 +26,9 @@ import yaml
 def fix_path():
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/python-gflags'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/mandrill'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/docopt'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/requests/requests'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
     sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 

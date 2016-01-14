@@ -430,12 +430,19 @@ def _classify_request(path):
         rtype = 'latest'
     elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}$' % dataset, path):
         rtype = 'ifl'
-    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d$' % dataset,
-                  path):
+    elif re.match(r'forest-change/%s/admin/ifl/[A-z]{3,3}/\d+$' % dataset, path):
+        rtype = 'ifl_id1'
+    elif re.match(r'forest-change/%s/ifl/[A-z]{3,3}$' % dataset, path):
+        rtype = 'ifl'
+    elif re.match(r'forest-change/%s/ifl/[A-z]{3,3}/\d+$' % dataset, path):
         rtype = 'ifl_id1'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}$' % dataset, path):
         rtype = 'iso'
     elif re.match(r'forest-change/%s/admin/[A-z]{3,3}/\d+$' % dataset, path):
+        rtype = 'id1'
+    elif re.match(r'forest-change/%s/iso/[A-z]{3,3}$' % dataset, path):
+        rtype = 'iso'
+    elif re.match(r'forest-change/%s/iso/[A-z]{3,3}/\d+$' % dataset, path):
         rtype = 'id1'
     elif re.match(r'forest-change/%s/wdpa/\d+$' % dataset, path):
         rtype = 'wdpa'

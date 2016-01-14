@@ -22,9 +22,9 @@ from gfw.mailers import subscribe_mailer
 
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
-from google.appengine.api import mail
-from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 from google.appengine.api import users
+
+from gfw.pubsub.api import send_confirmation_email
 
 #
 # Model
@@ -42,6 +42,7 @@ class Subscription(ndb.Model):
     params    = ndb.JsonProperty()
     updates   = ndb.JsonProperty()
     created   = ndb.DateTimeProperty(auto_now_add=True)
+    new       = ndb.BooleanProperty(default=True)
 
     kind = 'Subscription'
 
@@ -70,6 +71,11 @@ class Subscription(ndb.Model):
     #
     #   Query Helpers
     #
+
+    @classmethod
+    def by_topic(cls, topic):
+        """Return all confirmed Subscription entities for supplied topic."""
+        return cls.query(cls.topic == topic, cls.confirmed == True).iter()
 
     @classmethod
     def with_token(cls, token):
@@ -108,12 +114,12 @@ class Subscription(ndb.Model):
     # Subscriptions
     #
 
-
     @classmethod
     def subscribe(cls, params, user):
         subscription = Subscription.create(params, user)
         if subscription:
-            subscription.send_mail()
+            import pdb; pdb.set_trace()
+            send_confirmation_email(self.email, self.key.urlsafe())
             return subscription
         else:
             return False
@@ -156,20 +162,3 @@ class Subscription(ndb.Model):
 
     def unsubscribe(self):
         return self.key.delete()
-
-    #
-    # Mailer
-    #
-
-    def send_mail(self):
-        safe_token = self.key.urlsafe()
-        reply_to = 'sub+%s@gfw-apis.appspotmail.com' % safe_token
-        conf_url = '%s/pubsub/confirm?token=%s' % (runtime_config['APP_BASE_URL'], safe_token)
-        logging.info("sending confirmation email: %s" % safe_token)
-        mail.send_mail(
-            sender=reply_to,
-            to=self.email,
-            reply_to=reply_to,
-            subject=subscribe_mailer.subject,
-            body=subscribe_mailer.body % conf_url
-        )

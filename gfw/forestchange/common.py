@@ -1,15 +1,34 @@
+# Global Forest Watch API
+# Copyright (C) 2015 World Resource Institute
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""Module with common stuff for forestchange."""
 
 import copy
 import json
 
 from gfw import cdb
 
+
 def classify_query(args):
     if 'ifl' in args:
         return 'ifl'
     elif 'ifl_id1' in args:
         return 'ifl_id1'
-    elif 'iso' in args and not 'id1' in args:
+    elif 'iso' in args and 'id1' not in args:
         return 'iso'
     elif 'iso' in args and 'id1' in args:
         return 'id1'
@@ -24,7 +43,8 @@ def classify_query(args):
     else:
         return 'world'
 
-def args_params(params,args,min_max_sql):
+
+def args_params(params, args, min_max_sql):
     if args.get('alert_query'):
         params['additional_select'] = min_max_sql
     else:
@@ -38,6 +58,7 @@ def args_params(params,args,min_max_sql):
     if args.get('wdpaid'):
         params['wdpaid'] = args['wdpaid']
     return params
+
 
 class SqlError(ValueError):
     def __init__(self, msg):
@@ -66,9 +87,9 @@ class Sql(object):
         """Remove specified sql for alerts if exists"""
         if (args.get('alert_query') and hasattr(cls, "ALERT_SQL_REMOVALS")):
             for removal_sql in cls.ALERT_SQL_REMOVALS:
-                query = query.replace(removal_sql,"")
+                query = query.replace(removal_sql, "")
             query = ' '.join(query.split())
-            query = query.replace(', ,',',')
+            query = query.replace(', ,', ',')
         return query
 
     @classmethod
@@ -88,55 +109,55 @@ class Sql(object):
 
     @classmethod
     def world(cls, params, args):
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.WORLD.format(**params)
-        query = cls.cleanAlert(args,query)         
+        query = cls.cleanAlert(args, query)
         download_query = cls.download(query)
         return query, download_query
 
     @classmethod
     def ifl(cls, params, args):
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL.format(**params)
-        query = cls.cleanAlert(args,query)         
-        download_query = cls.download(cls.IFL.format(**params)) 
+        query = cls.cleanAlert(args, query)
+        download_query = cls.download(cls.IFL.format(**params))
         return query, download_query
 
     @classmethod
     def ifl_id1(cls, params, args):
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.IFL_ID1.format(**params)
-        query = cls.cleanAlert(args,query)         
+        query = cls.cleanAlert(args, query)
         download_query = cls.download(cls.IFL_ID1.format(**params))
         return query, download_query
 
     @classmethod
     def iso(cls, params, args):
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ISO.format(**params)
-        query = cls.cleanAlert(args,query)         
+        query = cls.cleanAlert(args, query)
         download_query = cls.download(cls.ISO.format(**params))
         return query, download_query
 
     @classmethod
-    def id1(cls, params, args): 
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+    def id1(cls, params, args):
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.ID1.format(**params)
-        query = cls.cleanAlert(args,query)         
+        query = cls.cleanAlert(args, query)
         download_query = cls.download(cls.ID1.format(**params))
         return query, download_query
 
     @classmethod
     def wdpa(cls, params, args):
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.WDPA.format(**params)
-        query = cls.cleanAlert(args,query)         
+        query = cls.cleanAlert(args, query)
         download_query = cls.download(cls.WDPA.format(**params))
         return query, download_query
 
@@ -150,7 +171,7 @@ class Sql(object):
         }
         params['use_table'] = concessions.get(args['use']) or args['use']
         params['pid'] = args['useid']
-        params = args_params(params,args,cls.MIN_MAX_DATE_SQL)
+        params = args_params(params, args, cls.MIN_MAX_DATE_SQL)
         query_type, params = cls.get_query_type(params, args)
         query = cls.USE.format(**params)
         download_query = cls.download(cls.USE.format(**params))
@@ -161,6 +182,7 @@ class Sql(object):
         params['limit'] = args.get('limit') or 3
         query = cls.LATEST.format(**params)
         return query, None
+
 
 def get_download_urls(query, params):
     urls = {}

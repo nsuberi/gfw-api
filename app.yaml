@@ -34,7 +34,7 @@ libraries:
 - name: ssl
   version: "latest"
 - name: pycrypto
-  version: "latest"  
+  version: "latest"
 
 ## GAE python console:
 # remote_api_shell.py -s dev.gfw-apis.appspot.com
