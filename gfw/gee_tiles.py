@@ -206,8 +206,8 @@ class KeysGFW(webapp2.RequestHandler):
 
 
 api = webapp2.WSGIApplication([ 
-    ('gee/([^/]+)/([^/]+)/([^/]+)/([^/]+).png', TilesGFW), 
-    ('gee/([^/]+)', KeysGFW)
+    ('/gee/([^/]+)/([^/]+)/([^/]+)/([^/]+).png', TilesGFW), 
+    ('/gee/([^/]+)', KeysGFW)
 
   ], debug=True)
 
