@@ -72,9 +72,7 @@ if not http_host:
     appversion, secret, public = ('unittest', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
     appversion, secret, public = ('local', 'dev.json', 'local.yml')
-elif 'dev' in http_host:
-    appversion, secret, public = ('dev', 'dev.json', 'dev.yml')
-elif 'stage' in http_host:
+elif 'staging' in http_host:
     appversion, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
     appversion, secret, public = ('production', 'prod.json', 'prod.yml')
