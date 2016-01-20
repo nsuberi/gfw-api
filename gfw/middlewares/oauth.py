@@ -22,6 +22,7 @@ an email address on their profile.
 """
 
 from appengine_config import runtime_config
+from urlparse import urlparse
 
 def setup():
     def callback(self, req):
@@ -38,11 +39,10 @@ def setup():
         req.load_user_by_profile(profile)
 
         if not hasattr(profile, 'email') or not profile.email:
-            from urlparse import urlparse
             redirect_uri = req.get_redirect_uri()
             parsed_uri = urlparse(redirect_uri)
             return '{gfw_url}/my_gfw/?redirect={redirect}'.format(
-                gfw_url=runtime_config['GFW_BASE_URL'], redirect=redirect_uri)
+                gfw_url=runtime_config['GFW_BASE_URL'], redirect=parsed_uri.path)
         else:
             return req.get_redirect_uri()
 
