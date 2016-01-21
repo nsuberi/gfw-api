@@ -297,7 +297,7 @@ class StoriesApi(BaseApi):
             params['token'] = token
             result = create_story(params)
             if result:
-                story = json.loads(result.content)
+                story = json.loads(result.content)['rows'][0]
                 story['media'] = json.loads(story['media'])
                 data = copy.copy(story)
                 data['token'] = token
