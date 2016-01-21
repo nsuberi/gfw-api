@@ -63,20 +63,26 @@ def send_mail_notification(email, topic, name, data, summary):
       alert_type: - provided as param.
       alert_date: - in data.params.begin and data.params.end
       alert_summary: - metadata - ex: http://api.globalforestwatch.org//forest-change/forma-alerts/admin/ESP?thresh=30&begin=2006-01-01&end=2009-01-01
-      alert_specs: - the user's name for the subscription - provided as param 'name'
+      alert_name: - the user's name for the subscription - provided as param 'name'
       alert_link: - to view/download the data. In data.download_urls.csv
     """
     logging.info("Send Notification Email: %s" % email)
 
-    begin = data.get('params').get('begin')
-    end = data.get('params').get('begin')
+    params = data.get('params')
+    begin = params.get('begin')
+    end = params.get('begin')
     csv = data.get('download_urls').get('csv')
+
+    if 'iso' in params.keys():
+        area = "Country ISO Code: " + params.get('iso')
+    else:
+        area = "Custom area."
 
     template_content = []
     message = {
         'global_merge_vars': [
             {
-                'content': "area", 'name': 'selected_area'
+                'content': area, 'name': 'selected_area'
             },
             {
                 'content': data.get('value'), 'name': 'alert_count'
@@ -91,7 +97,7 @@ def send_mail_notification(email, topic, name, data, summary):
                 'content': summary, 'name': 'alert_summary'
             },
             {
-                'content': name, 'name': 'alert_specs'
+                'content': name, 'name': 'alert_name'
             },
             {
                 'content': csv, 'name': 'alert_link'
