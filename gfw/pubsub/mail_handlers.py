@@ -44,8 +44,25 @@ def send_mandrill_email(template_name, template_content, message):
 
     return result
 
+def display_counts(topic, data):
+    """ Returns a string suitable for display in the 'Alert Counts'
+    portion of the Mandrill Email template. """
 
-def send_mail_notification(email, topic, name, data, summary):
+    if ( topic == 'alerts/forma' ) | ( topic == 'alerts/terrai' ):
+        count = data.get('value')
+    elif topic=='alerts/sad':
+        a = data.get('rows')[0]
+        b = data.get('rows')[1]
+        if a.get('data_type') == 'degrad':
+            count = "Degradation: " + str(a.get('value')) + \
+                    ". Deforestation: " + str(b.get('value'))
+        else:
+            count = "Degradation: " + str(b.get('value')) + \
+                    ". Deforestation: " + str(a.get('value'))
+
+    return count
+
+def send_mail_notification(email, topic, alert_name, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -58,7 +75,7 @@ def send_mail_notification(email, topic, name, data, summary):
 
     Variables for Mandrill Template:
       email: Address to mail to. - provided as param
-      selected_area: - TODO
+      selected_area: - right now works for ISO codes in data.params.
       alert_count: - in data.value.
       alert_type: - provided as param.
       alert_date: - in data.params.begin and data.params.end
@@ -85,7 +102,7 @@ def send_mail_notification(email, topic, name, data, summary):
                 'content': area, 'name': 'selected_area'
             },
             {
-                'content': data.get('value'), 'name': 'alert_count'
+                'content': display_counts(topic, data), 'name': 'alert_count'
             },
             {
                 'content': topic, 'name': 'alert_type'
@@ -97,7 +114,7 @@ def send_mail_notification(email, topic, name, data, summary):
                 'content': summary, 'name': 'alert_summary'
             },
             {
-                'content': name, 'name': 'alert_name'
+                'content': alert_name, 'name': 'alert_name'
             },
             {
                 'content': csv, 'name': 'alert_link'

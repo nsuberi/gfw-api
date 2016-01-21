@@ -147,7 +147,7 @@ class ArgProcessor():
     @classmethod
     def topic(cls, value):
         try:
-            if value not in ['alerts/forma', 'alerts/terra', 'alerts/sad',
+            if value not in ['alerts/forma', 'alerts/terrai', 'alerts/sad',
                             'alerts/quicc', 'alerts/treeloss', 'alerts/treegain',
                             'alerts/prodes', 'alerts/guyra', 'alerts/landsat']:
                 raise
@@ -180,7 +180,7 @@ def get_deltas(topic, params):
 
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
-    elif topic == 'alerts/terra':
+    elif topic == 'alerts/terrai':
         action, data = terrai.execute(params)
     elif topic == 'alerts/sad':
         action, data = imazon.execute(params)
@@ -218,7 +218,7 @@ def get_meta(topic):
 
     if topic == 'alerts/forma':
         meta = api.META['forma-alerts']['meta']
-    elif topic == 'alerts/terra':
+    elif topic == 'alerts/terrai':
         meta = api.META['terrai-alerts']['meta']
     elif topic == 'alerts/quicc':
         meta = api.META['quicc-alerts']['meta']
