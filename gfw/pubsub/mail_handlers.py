@@ -17,17 +17,14 @@
 
 import json
 import logging
-import webapp2
 
 from google.appengine.ext import ndb
-
 from appengine_config import runtime_config
-
-import urllib
 from google.appengine.api import urlfetch
 
 mandrill_key = runtime_config.get('mandrill_api_key')
 mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
+
 
 def send_mandrill_email(template_name, template_content, message):
     "Send Mandrill Email"
@@ -38,19 +35,21 @@ def send_mandrill_email(template_name, template_content, message):
                "async": "false"}
 
     result = urlfetch.fetch(mandrill_url,
-        payload=json.dumps(payload),
-        method=urlfetch.POST,
-        headers={'Content-Type': 'application/json'})
+                            payload=json.dumps(payload),
+                            method=urlfetch.POST,
+                            headers={'Content-Type': 'application/json'})
 
     return result
+
 
 def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
     portion of the Mandrill Email template. """
 
-    if ( topic == 'alerts/forma' ) | ( topic == 'alerts/terrai' ):
+    if (topic == 'alerts/forma') | (topic == 'alerts/terrai') \
+       | (topic == 'alerts/quicc'):
         count = data.get('value')
-    elif topic=='alerts/sad':
+    elif topic == 'alerts/sad':
         a = data.get('rows')[0]
         b = data.get('rows')[1]
         if a.get('data_type') == 'degrad':
@@ -61,6 +60,7 @@ def display_counts(topic, data):
                     ". Deforestation: " + str(a.get('value'))
 
     return count
+
 
 def send_mail_notification(email, topic, alert_name, data, summary):
     """Sends a notification email for a publication event.
@@ -87,7 +87,7 @@ def send_mail_notification(email, topic, alert_name, data, summary):
 
     params = data.get('params')
     begin = params.get('begin')
-    end = params.get('begin')
+    end = params.get('end')
     csv = data.get('download_urls').get('csv')
 
     if 'iso' in params.keys():
