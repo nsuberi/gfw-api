@@ -54,7 +54,10 @@ class MetadataApi(CORSRequestHandler):
             if adjusted_key not in IGNORE_HEADERS:
                 self.response.headers.add_header(adjusted_key, value)
 
-        self.complete('respond', json.loads(response.content))
+        try:
+            self.complete('respond', json.loads(response.content))
+        except Exception as e:
+            self.complete('respond', {})
 
 
 routes = [
