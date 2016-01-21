@@ -203,8 +203,9 @@ def _executeId1(args):
 def _executeIfl(args):
     """Query national by iso code."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
-    if action == 'error':
+    if action == 'error' or data.get('rows', 'empty')=='empty':
         return action, data
+
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
@@ -215,7 +216,7 @@ def _executeIfl(args):
 def _executeIflId1(args):
     """Query subnational by iso code and GADM id."""
     action, data = CartoDbExecutor.execute(args, UmdSql)
-    if action == 'error':
+    if action == 'error' or data.get('rows', 'empty')=='empty':
         return action, data
     rows = data['rows']
     data.pop('rows')
@@ -308,7 +309,7 @@ def execute(args):
 
     # Set default threshold
     if 'thresh' not in args:
-        args['thresh'] = 10
+        args['thresh'] = 30
 
     if query_type == 'iso':
         return _executeIso(args)
