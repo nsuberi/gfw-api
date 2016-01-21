@@ -57,7 +57,7 @@ class MetadataApi(CORSRequestHandler):
         try:
             self.complete('respond', json.loads(response.content))
         except Exception as e:
-            self.complete('respond', {})
+            self.write_error(404, 'Not Found')
 
 
 routes = [
