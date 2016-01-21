@@ -52,165 +52,165 @@ COUNTRY_ROUTE = r'/countries'
 WDPA = r'/wdpa/sites'
 
 # Stories API routes
-LIST_STORIES = r'/stories'
-CREATE_STORY = r'/stories/new'
-CREATE_STORY_EMAILS = r'/stories/email'
-GET_STORY = r'/stories/<id:\d+>'
+# LIST_STORIES = r'/stories'
+# CREATE_STORY = r'/stories/new'
+# CREATE_STORY_EMAILS = r'/stories/email'
+# GET_STORY = r'/stories/<id:\d+>'
 
 
-class SubHandler(webapp2.RequestHandler):
+# class SubHandler(webapp2.RequestHandler):
 
-    def get(self):
-        subs = []
-        for s in pubsub.Subscription.with_topic('updates/forma'):
-            subs.append('%s,%s' % (s.email, json.dumps(s.params)))
-        self.response.headers.add_header('charset', 'utf-8')
-        self.response.headers['Content-Type'] = 'text/csv'
-        self.response.out.write('\n'.join(subs))
-
-
-class BaseApi(webapp2.RequestHandler):
-    """Base request handler for API."""
-
-    def _send_response(self, data, error=None):
-        """Sends supplied result dictionnary as JSON response."""
-        self.response.headers.add_header("Access-Control-Allow-Origin", "*")
-        self.response.headers.add_header(
-            'Access-Control-Allow-Headers',
-            'Origin, X-Requested-With, Content-Type, Accept')
-        self.response.headers.add_header('charset', 'utf-8')
-        self.response.headers["Content-Type"] = "application/json"
-        if error:
-            self.response.set_status(400)
-        if not data:
-            self.response.out.write('')
-        else:
-            self.response.out.write(data)
-        if error:
-            taskqueue.add(url='/log/error', params=error, queue_name="log")
-
-    def _get_id(self, params):
-        whitespace = re.compile(r'\s+')
-        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
-        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
-
-    def _get_params(self, body=False):
-        if body:
-            params = json.loads(self.request.body)
-        else:
-            args = self.request.arguments()
-            vals = map(self.request.get, args)
-            params = dict(zip(args, vals))
-        return params
-
-    def options(self):
-        """Options to support CORS requests."""
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-        self.response.headers['Access-Control-Allow-Headers'] = \
-            'Origin, X-Requested-With, Content-Type, Accept'
-        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
+#     def get(self):
+#         subs = []
+#         for s in pubsub.Subscription.with_topic('updates/forma'):
+#             subs.append('%s,%s' % (s.email, json.dumps(s.params)))
+#         self.response.headers.add_header('charset', 'utf-8')
+#         self.response.headers['Content-Type'] = 'text/csv'
+#         self.response.out.write('\n'.join(subs))
 
 
-class StoriesApi(BaseApi):
+# class BaseApi(webapp2.RequestHandler):
+#     """Base request handler for API."""
 
-    def _send_new_story_emails(self):
-        story = self._get_params()
+#     def _send_response(self, data, error=None):
+#         """Sends supplied result dictionnary as JSON response."""
+#         self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+#         self.response.headers.add_header(
+#             'Access-Control-Allow-Headers',
+#             'Origin, X-Requested-With, Content-Type, Accept')
+#         self.response.headers.add_header('charset', 'utf-8')
+#         self.response.headers["Content-Type"] = "application/json"
+#         if error:
+#             self.response.set_status(400)
+#         if not data:
+#             self.response.out.write('')
+#         else:
+#             self.response.out.write(data)
+#         if error:
+#             taskqueue.add(url='/log/error', params=error, queue_name="log")
 
-        # Email WRI:
-        subject = 'A new story has been registered with Global Forest Watch'
-        sender = \
-            'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
-        to = runtime_config.get('wri_emails_stories')
-        story_url = 'http://globalforestwatch.org/stories/%s' % story['id']
-        api_url = '%s/stories/%s' % (common.APP_BASE_URL, story['id'])
-        token = story['token']
-        body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \
-            (story_url, api_url, token)
-        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+#     def _get_id(self, params):
+#         whitespace = re.compile(r'\s+')
+#         params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
+#         return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
 
-        # Email user:
-        subject = 'Your story has been posted to Global Forest Watch'
-        to = '%s <%s>' % (story['name'], story['email'])
-        body = 'Dear %s' % story['name']
-        body += '\n\nThank you for sharing your story with Global Forest Watch. You can view your story online here: %s' % story_url
-        body += '\n\nIf you would like to add updates or make changes, please contact our Website Coordinator at krenschler@wri.org and we can edit your story online.'
-        body += '\nRemember to share your story with others! Post it on Twitter and Facebook, or recommend it on Google Plus using the links at the bottom of the story.'
-        body += '\nDid you enjoy your experience with Global Forest Watch? If you have any feedback or suggestions, we are always looking to hear from our users to improve the site. You can add your comments here: http://www.globalforestwatch.org/getinvolved/provide-feedback'
-        body += '\nThank you for contributing to Global Forest Watch!'
-        body += '\n\nSincerely,\nThe Global Forest Watch Team'
-        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+#     def _get_params(self, body=False):
+#         if body:
+#             params = json.loads(self.request.body)
+#         else:
+#             args = self.request.arguments()
+#             vals = map(self.request.get, args)
+#             params = dict(zip(args, vals))
+#         return params
 
-    def _gen_token(self):
-        return base64.b64encode(
-            hashlib.sha256(str(random.getrandbits(256))).digest(),
-            random.choice(
-                ['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+#     def options(self):
+#         """Options to support CORS requests."""
+#         self.response.headers['Access-Control-Allow-Origin'] = '*'
+#         self.response.headers['Access-Control-Allow-Headers'] = \
+#             'Origin, X-Requested-With, Content-Type, Accept'
+#         self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET'
 
-    def list(self):
-        try:
-            params = self._get_params()
-            result = stories.list(params)
-            if not result:
-                result = []
-            self._send_response(json.dumps(result))
-        except Exception, e:
-            name = e.__class__.__name__
-            msg = 'Error: Story API (%s)' % name
-            monitor.log(self.request.url, msg, error=e,
-                        headers=self.request.headers)
 
-    def create(self):
-        # host = os.environ['HTTP_HOST']
-        # logging.info(os.environ)
-        # if 'globalforestwatch' not in host and 'localhost' not in host:
-        #     self.error(404)
-        #     return
-        params = self._get_params(body=True)
-        required = ['title', 'email', 'geom']
-        if not all(x in params and params.get(x) for x in required):
-            self.response.set_status(400)
-            self._send_response(json.dumps(dict(required=required)))
-            return
-        token = self._gen_token()
-        try:
-            params['token'] = token
-            result = stories.create(params)
-            if result:
-                story = json.loads(result.content)['rows'][0]
-                story['media'] = json.loads(story['media'])
-                data = copy.copy(story)
-                data['token'] = token
-                self.response.set_status(201)
-                taskqueue.add(url='/stories/email', params=data,
-                              queue_name="story-new-emails")
-                self._send_response(json.dumps(story))
-            else:
-                story = None
-                self.response.set_status(400)
-                return
-        except Exception, e:
-                error = e
-                name = error.__class__.__name__
-                trace = traceback.format_exc()
-                payload = self.request.headers
-                payload.update(params)
-                msg = 'Story submit failure: %s: %s' % (name, error)
-                monitor.log(self.request.url, msg, error=trace,
-                            headers=payload)
-                self.error(400)
+# class StoriesApi(BaseApi):
 
-    def get(self, id):
-        try:
-            params = dict(id=id)
-            result = stories.get(params)
-            if not result:
-                self.response.set_status(404)
-            self._send_response(json.dumps(result))
-        except Exception, e:
-            name = e.__class__.__name__
-            msg = 'Error: Story API (%s)' % name
-            monitor.log(self.request.url, msg, error=e,
-                        headers=self.request.headers)
+#     def _send_new_story_emails(self):
+#         story = self._get_params()
+
+#         # Email WRI:
+#         subject = 'A new story has been registered with Global Forest Watch'
+#         sender = \
+#             'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
+#         to = runtime_config.get('wri_emails_stories')
+#         story_url = 'http://globalforestwatch.org/stories/%s' % story['id']
+#         api_url = '%s/stories/%s' % (common.APP_BASE_URL, story['id'])
+#         token = story['token']
+#         body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \
+#             (story_url, api_url, token)
+#         mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+
+#         # Email user:
+#         subject = 'Your story has been posted to Global Forest Watch'
+#         to = '%s <%s>' % (story['name'], story['email'])
+#         body = 'Dear %s' % story['name']
+#         body += '\n\nThank you for sharing your story with Global Forest Watch. You can view your story online here: %s' % story_url
+#         body += '\n\nIf you would like to add updates or make changes, please contact our Website Coordinator at krenschler@wri.org and we can edit your story online.'
+#         body += '\nRemember to share your story with others! Post it on Twitter and Facebook, or recommend it on Google Plus using the links at the bottom of the story.'
+#         body += '\nDid you enjoy your experience with Global Forest Watch? If you have any feedback or suggestions, we are always looking to hear from our users to improve the site. You can add your comments here: http://www.globalforestwatch.org/getinvolved/provide-feedback'
+#         body += '\nThank you for contributing to Global Forest Watch!'
+#         body += '\n\nSincerely,\nThe Global Forest Watch Team'
+#         mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+
+#     def _gen_token(self):
+#         return base64.b64encode(
+#             hashlib.sha256(str(random.getrandbits(256))).digest(),
+#             random.choice(
+#                 ['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+#     def list(self):
+#         try:
+#             params = self._get_params()
+#             result = stories.list(params)
+#             if not result:
+#                 result = []
+#             self._send_response(json.dumps(result))
+#         except Exception, e:
+#             name = e.__class__.__name__
+#             msg = 'Error: Story API (%s)' % name
+#             monitor.log(self.request.url, msg, error=e,
+#                         headers=self.request.headers)
+
+#     def create(self):
+#         # host = os.environ['HTTP_HOST']
+#         # logging.info(os.environ)
+#         # if 'globalforestwatch' not in host and 'localhost' not in host:
+#         #     self.error(404)
+#         #     return
+#         params = self._get_params(body=True)
+#         required = ['title', 'email', 'geom']
+#         if not all(x in params and params.get(x) for x in required):
+#             self.response.set_status(400)
+#             self._send_response(json.dumps(dict(required=required)))
+#             return
+#         token = self._gen_token()
+#         try:
+#             params['token'] = token
+#             result = stories.create(params)
+#             if result:
+#                 story = json.loads(result.content)['rows'][0]
+#                 story['media'] = json.loads(story['media'])
+#                 data = copy.copy(story)
+#                 data['token'] = token
+#                 self.response.set_status(201)
+#                 taskqueue.add(url='/stories/email', params=data,
+#                               queue_name="story-new-emails")
+#                 self._send_response(json.dumps(story))
+#             else:
+#                 story = None
+#                 self.response.set_status(400)
+#                 return
+#         except Exception, e:
+#                 error = e
+#                 name = error.__class__.__name__
+#                 trace = traceback.format_exc()
+#                 payload = self.request.headers
+#                 payload.update(params)
+#                 msg = 'Story submit failure: %s: %s' % (name, error)
+#                 monitor.log(self.request.url, msg, error=trace,
+#                             headers=payload)
+#                 self.error(400)
+
+#     def get(self, id):
+#         try:
+#             params = dict(id=id)
+#             result = stories.get(params)
+#             if not result:
+#                 self.response.set_status(404)
+#             self._send_response(json.dumps(result))
+#         except Exception, e:
+#             name = e.__class__.__name__
+#             msg = 'Error: Story API (%s)' % name
+#             monitor.log(self.request.url, msg, error=e,
+#                         headers=self.request.headers)
 
 
 class WdpaApi(BaseApi):
@@ -300,19 +300,19 @@ class PubSubApi(BaseApi):
 routes = [
     webapp2.Route(COUNTRY_ROUTE, handler=CountryApi,
                   handler_method='get'),
-    webapp2.Route(CREATE_STORY, handler=StoriesApi,
-                  handler_method='create', methods=['POST']),
-    webapp2.Route(LIST_STORIES, handler=StoriesApi,
-                  handler_method='list'),
-    webapp2.Route(GET_STORY, handler=StoriesApi,
-                  handler_method='get'),
+    # webapp2.Route(CREATE_STORY, handler=StoriesApi,
+    #               handler_method='create', methods=['POST']),
+    # webapp2.Route(LIST_STORIES, handler=StoriesApi,
+    #               handler_method='list'),
+    # webapp2.Route(GET_STORY, handler=StoriesApi,
+    #               handler_method='get'),
     webapp2.Route(r'/subout', handler=SubHandler,
                   handler_method='get'),
     webapp2.Route(WDPA, handler=WdpaApi,
                   handler_method='site'),
-    webapp2.Route(CREATE_STORY_EMAILS, handler=StoriesApi,
-                  handler_method='_send_new_story_emails',
-                  methods=['POST']),
+    # webapp2.Route(CREATE_STORY_EMAILS, handler=StoriesApi,
+    #               handler_method='_send_new_story_emails',
+    #               methods=['POST']),
     webapp2.Route(r'/pubsub/publish', handler=pubsub.Publisher,
                   handler_method='post',
                   methods=['POST']),
