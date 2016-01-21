@@ -177,6 +177,7 @@ class ArgProcessor():
 
 def get_deltas(topic, params):
     """Params should contain a begin and end date."""
+
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
     elif topic == 'alerts/terra':
@@ -193,7 +194,7 @@ def get_deltas(topic, params):
         action, data = umd.execute(params)
     elif topic == 'alerts/guyra':
         action, data = guyra.execute(params)
-    # TODO: 'alerts/landsat'
+
     return action, data
 
 
@@ -224,6 +225,7 @@ def multicast(params):
     """
     logging.info("Multicast. Event Key: %s " % params.get('event'))
     event = ndb.Key(urlsafe=params.get('event')).get()
+
     for subscription in Subscription.by_topic(event.topic):
         logging.info("Multicast. Subscription Key: %s " % subscription.key.urlsafe())
         params['subscription'] = subscription.key.urlsafe()
@@ -341,6 +343,7 @@ class SubscribeConfirmHandler(CORSRequestHandler):
 
 
 handlers = webapp2.WSGIApplication([
+
     (r'/pubsub/pub', PublishHandler),
     (r'/pubsub/pub-multicast', MulticastHandler),
     (r'/pubsub/sub-confirm', SubscribeConfirmHandler),

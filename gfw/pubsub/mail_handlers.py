@@ -45,21 +45,33 @@ def send_mandrill_email(template_name, template_content, message):
     return result
 
 
-def send_mail_notification(email, action, data):
+def send_mail_notification(email, topic, name, data):
     """Sends a notification email for a publication event.
 
-    Args:
-      email: Address to mail to.
-      selected_area:
-      alert_count:
-      alert_type:
-      alert_date:
-      alert_summary:
-      alert_specs:
+    Data contains:
+    - params' that were part of the cartodb query.
+      EX for forma:
+       'params': {'version': 'v1', 'begin': '10-10-2008', 'iso': 'IND', 'end': '12-10-2008'}
+
+     - 'value'
+        the alert count
+
+    Variables for Mandrill Template:
+      email: Address to mail to. - provided as param
+      selected_area: - TODO
+      alert_count: - in data.value.
+      alert_type: - provided as param.
+      alert_date: - in data.params.begin and data.params.end
+      alert_summary: - metadata - ex: http://api.globalforestwatch.org//forest-change/forma-alerts/admin/ESP?thresh=30&begin=2006-01-01&end=2009-01-01
+      alert_specs: - the user's name for the subscription - provided as param 'name'
+      alert_link: - to view/download the data. In data.download_urls.csv
     """
     logging.info("Send Notification Email: %s" % email)
 
-    # TODO: Finish these - get info from 'data':
+    begin = data.get('params').get('begin')
+    end = data.get('params').get('begin')
+    csv = data.get('download_urls').get('csv')
+
     template_content = []
     message = {
         'global_merge_vars': [
@@ -67,19 +79,22 @@ def send_mail_notification(email, action, data):
                 'content': "area", 'name': 'selected_area'
             },
             {
-                'content': "count", 'name': 'alert_count'
+                'content': data.get('value'), 'name': 'alert_count'
             },
             {
-                'content': "type", 'name': 'alert_type'
+                'content': topic, 'name': 'alert_type'
             },
             {
-                'content': "date", 'name': 'alert_date'
+                'content': begin + " to " + end, 'name': 'alert_date'
             },
             {
                 'content': "summary", 'name': 'alert_summary'
             },
             {
-                'content': "specs", 'name': 'alert_specs'
+                'content': name, 'name': 'alert_specs'
+            },
+            {
+                'content': csv, 'name': 'alert_link'
             }],
         'to': [
             {
