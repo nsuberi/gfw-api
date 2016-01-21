@@ -64,6 +64,21 @@ GET = """SELECT details, email, name, title, visible, date,
 FROM {table}
 WHERE cartodb_id = {id}"""
 
+COUTRY_STORY="""
+with iso as (
+  SELECT the_geom_webmercator 
+  FROM gadm2_provinces_simple 
+  WHERE iso = UPPER('{iso}'))
+ 
+    SELECT   cartodb_id as id, date 
+    FROM {table} t, iso 
+    WHERE visible = True 
+    and ST_Intersects(t.the_geom_webmercator, iso.the_geom_webmercator) 
+    order by date desc 
+    limit 1
+
+"""
+
 COUNT_ISO = """
 SELECT COUNT(t.*) AS value
 FROM {table} t, 
@@ -147,12 +162,24 @@ def get_story(params):
     params['table'] = TABLE
     result = cdb.execute(GET.format(**params), auth=True)
     if result.status_code != 200:
-        raise Exception('CaroDB error getting story (%s)' % result.content)
+        raise Exception('CartoDB error getting story (%s)' % result.content)
     if result:
         data = json.loads(result.content)
         if 'total_rows' in data and data['total_rows'] == 1:
             story = data['rows'][0]
             return _prep_story(story)
+
+def get_country_story(params):
+    params['table'] = TABLE
+    result = cdb.execute(COUTRY_STORY.format(**params), auth=True)
+    story_id = json.loads(result.content)
+    if story_id['total_rows'] == 1:
+        params['id'] = story_id['rows'][0]['id']
+        return get_story(params)
+    else: 
+        return
+
+
 
 
 
@@ -270,7 +297,7 @@ class StoriesApi(BaseApi):
             params['token'] = token
             result = create_story(params)
             if result:
-                story = json.loads(result.content)['rows'][0]
+                story = json.loads(result.content)
                 story['media'] = json.loads(story['media'])
                 data = copy.copy(story)
                 data['token'] = token
