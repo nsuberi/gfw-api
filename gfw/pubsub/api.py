@@ -27,7 +27,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from gfw.middlewares.cors import CORSRequestHandler
-from gfw.forestchange import forma, terrai, imazon, prodes, quicc, umd, guyra
+from gfw.forestchange import api, forma, terrai, imazon, prodes, quicc, umd, guyra
 from appengine_config import runtime_config
 
 from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
@@ -197,6 +197,51 @@ def get_deltas(topic, params):
 
     return action, data
 
+def get_meta(topic):
+    """
+    Returns metadata from gfw.forestchange.api
+
+    TODO: guyra is missing
+
+    The returned dictionary has the following format:
+
+        "description": "Forest decrease alerts.",
+        "resolution": "250 x 250 meters",
+        "coverage": "Latin America",
+        "timescale": "January 2004 to present",
+        "updates": "16 day",
+        "source": "MODIS",
+        "units": "Alerts",
+        "name": "Terra-i Alerts",
+        "id": "terrai-alerts"
+    """
+
+    if topic == 'alerts/forma':
+        meta = api.META['forma-alerts']['meta']
+    elif topic == 'alerts/terra':
+        meta = api.META['terrai-alerts']['meta']
+    elif topic == 'alerts/quicc':
+        meta = api.META['quicc-alerts']['meta']
+    elif topic == 'alerts/prodes':
+        meta = api.META['prodes-loss']['meta']
+    elif (topic == 'alerts/treeloss') | (topic == 'alerts/treegain'):
+        meta = api.META['umd-loss-gain']['meta']
+    elif topic == 'alerts/sad':
+        meta = api.META['imazon-alerts']['meta']
+
+    return meta
+
+def meta_str(meta):
+    """Returns a string of the important metadata values suitable for
+    display or use in an email."""
+
+    s = meta['description'] + " Coverage of " + meta['coverage'] + \
+    ". Source is " + meta['source'] + " at resolution of " + meta['resolution'] + \
+    ". Available data from " + meta['timescale'] + ", updated " + \
+    meta['updates'].lower()
+
+    return s
+
 
 def notify(params):
     """Send notification to subscriber."""
@@ -209,7 +254,7 @@ def notify(params):
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail_notification(sub.email, action, data)
+        send_mail_notification(sub.email, action, data, meta_str(get_meta(event.topic)))
 
 
 def multicast(params):

@@ -45,7 +45,7 @@ def send_mandrill_email(template_name, template_content, message):
     return result
 
 
-def send_mail_notification(email, topic, name, data):
+def send_mail_notification(email, topic, name, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -88,7 +88,7 @@ def send_mail_notification(email, topic, name, data):
                 'content': begin + " to " + end, 'name': 'alert_date'
             },
             {
-                'content': "summary", 'name': 'alert_summary'
+                'content': summary, 'name': 'alert_summary'
             },
             {
                 'content': name, 'name': 'alert_specs'
