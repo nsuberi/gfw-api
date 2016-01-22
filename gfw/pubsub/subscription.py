@@ -33,6 +33,7 @@ class Subscription(ndb.Model):
     name      = ndb.StringProperty()
     topic     = ndb.StringProperty()
     email     = ndb.StringProperty()
+    url       = ndb.StringProperty()
     user_id   = ndb.KeyProperty()
     iso       = ndb.StringProperty()
     id1       = ndb.StringProperty()
