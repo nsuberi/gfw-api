@@ -36,6 +36,7 @@ class Subscription(ndb.Model):
     user_id   = ndb.KeyProperty()
     pa        = ndb.StringProperty()
     use       = ndb.StringProperty()
+    useid     = ndb.IntegerProperty()
     iso       = ndb.StringProperty()
     id1       = ndb.StringProperty()
     ifl       = ndb.StringProperty()
