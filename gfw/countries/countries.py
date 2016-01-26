@@ -21,7 +21,7 @@ import json
 
 from gfw import cdb
 from gfw.forestchange import umd
-
+from gfw import stories
 
 class CountrySql(object):
 
@@ -225,6 +225,8 @@ def _getBounds(args):
 
     return dict(bounds=json.loads(_handler(cdb.execute(query))[0]['bounds']))
 
+def _getstory(args):
+    return dict(story=stories.get_country_story(args))
 
 def _getUmd(args):
     action, data = umd.execute(args)
@@ -251,5 +253,6 @@ def execute(args):
         result.update(_getLossOutsidePlantations(args))
         result.update(_getBounds(args))
         result.update(_getUmd(args))
+        result.update(_getstory(args))
 
     return 'respond', result
