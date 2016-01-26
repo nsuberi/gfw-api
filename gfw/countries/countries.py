@@ -214,7 +214,7 @@ def _getForestCertification(args):
     return dict(forest_certification=_handler(cdb.execute(query)))
 
 def _getLossOutsidePlantations(args):
-    if 'thresh' not in args
+    if 'thresh' not in args:
         args['thresh'] = 30
     query = CountrySql.LOSS_OUTSIDE_PLANTATION.format(**args)
 
