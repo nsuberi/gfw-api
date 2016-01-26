@@ -41,17 +41,6 @@ def send_mandrill_email(template_name, template_content, message):
 
     return result
 
-def get_umd_year(years, begin):
-    """ Takes in a list of years and a date str like '12-01-2007'.
-    Returns the item in year that has the same year as in the begin
-    date. """
-    year = begin[-4:] #last four chars of the 'begin' str is the year
-    # find the element in the years varray that has the correct year
-    for element in years:
-        if str(element.get('year')) == year:
-            return element
-
-
 def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
     portion of the Mandrill Email template. """
@@ -69,14 +58,12 @@ def display_counts(topic, data):
             count = "Degradation: " + str(b.get('value')) + \
                     ". Deforestation: " + str(a.get('value'))
     elif (topic == 'alerts/treeloss') | (topic == 'alerts/treegain'):
-        year = get_umd_year(data.get('years'), data.get('params').get('begin'))
-        count = "Gain: " + str(year.get('gain')) + \
-                " Loss: " + str(year.get('loss'))
+        count = "Gain: " + str(data.get('gain')) + \
+                " Loss: " + str(data.get('loss'))
 
     return count
 
-
-def send_mail_notification(email, topic, alert_name, data, summary):
+def send_mail_notification(email, topic, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -102,6 +89,7 @@ def send_mail_notification(email, topic, alert_name, data, summary):
     params = data.get('params')
     begin = params.get('begin')
     end = params.get('end')
+    alert_name = params.get('name')
 
     if (topic == "alerts/treeloss") | (topic == "alerts/treegain"):
         csv = "#"  # TODO: Why is this missing?
@@ -113,7 +101,7 @@ def send_mail_notification(email, topic, alert_name, data, summary):
     elif 'iso' in params.keys():
         area = "ISO Code: " + params.get('iso')
     elif 'wdpaid' in params.keys():
-        area = "WDPA ID: " + params.get('wdpaid')
+        area = "WDPA ID: " + str(params.get('wdpaid'))
     else:
         area = "Custom area."
 

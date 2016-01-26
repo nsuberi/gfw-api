@@ -250,11 +250,18 @@ def notify(params):
     params = copy.copy(sub.params)
     params['begin'] = event.latest_date(event.topic)
     params['end'] = event.date
+
+    # The APIs expect geojson params as stringified JSON, not dicts
+    geom = params['geom']
+    if 'geometry' in geom:
+        geom = geom['geometry']
+    params['geojson'] = json.dumps(geom)
+
     logging.info("Notify. Begin: %s End: %s" % (params['begin'], params['end']))
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail_notification(sub.email, action, data, meta_str(get_meta(event.topic)))
+        send_mail_notification(sub.email, event.topic, data, meta_str(get_meta(event.topic)))
 
 
 def multicast(params):
@@ -363,7 +370,7 @@ class PublishHandler(CORSRequestHandler):
             params = ArgProcessor.process(self.args())
             publish(params)
             self.response.set_status(201)
-            self.complete('respond', json.dumps(dict(success=True)))
+            self.complete('respond', {'success': True})
         except (Exception), e:
             logging.exception(e)
             self.write_error(400, e.message)
