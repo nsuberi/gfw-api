@@ -57,7 +57,7 @@ def display_counts(topic, data):
     portion of the Mandrill Email template. """
 
     if (topic == 'alerts/forma') | (topic == 'alerts/terrai') \
-       | (topic == 'alerts/quicc'):
+       | (topic == 'alerts/quicc') | (topic == 'alerts/prodes'):
         count = data.get('value')
     elif topic == 'alerts/sad':
         a = data.get('rows')[0]
