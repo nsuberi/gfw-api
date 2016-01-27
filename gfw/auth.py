@@ -23,6 +23,8 @@ import json
 from gfw import common
 from gfw.middlewares.user import UserAuthMiddleware
 
+from appengine_config import runtime_config
+
 from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
@@ -52,7 +54,11 @@ class UserApi(UserAuthMiddleware):
     def sign_out(self):
         self.request.session.key.delete()
         self.response.set_cookie('_eauth', '')
-        self.redirect(self.request.referer)
+
+        if 'my_gfw' not in self.request.referer:
+            self.redirect(self.request.referer)
+        else:
+            self.redirect(runtime_config['GFW_BASE_URL'])
 
     def __get_profile(self):
         profile = UserProfile.get_by_id(self.user.auth_ids[0])
