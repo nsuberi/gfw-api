@@ -252,10 +252,11 @@ def notify(params):
     params['end'] = event.date
 
     # The APIs expect geojson params as stringified JSON, not dicts
-    geom = params['geom']
-    if 'geometry' in geom:
-        geom = geom['geometry']
-    params['geojson'] = json.dumps(geom)
+    if 'geom' in params:
+        geom = params['geom']
+        if 'geometry' in geom:
+            geom = geom['geometry']
+        params['geojson'] = json.dumps(geom)
 
     logging.info("Notify. Begin: %s End: %s" % (params['begin'], params['end']))
     # If we're running unit tests locally or via travis, skip this:

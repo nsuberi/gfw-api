@@ -76,7 +76,7 @@ class PublishTest(common.BaseTest):
 
     def _test_response(self, response):
         self.assertEqual(response.status_int, 201)
-        self.assertEqual(response.normal_body, '"{\\"success\\": true}"')
+        self.assertEqual(response.normal_body, '{"success": true}')
         self.assertEqual(response.content_type, 'application/json')
 
     def testPublish(self):
@@ -84,7 +84,6 @@ class PublishTest(common.BaseTest):
         self._test_response(response)
         tasks = self.taskqueue_stub.get_filtered_tasks()
         self.assertEqual(len(tasks), 1)
-        self.assertEqual(tasks[0].name, 'pubsub-pub-multicast')
 
 
 class MulticastTest(common.BaseTest):
@@ -111,7 +110,6 @@ class MulticastTest(common.BaseTest):
         self._test_response(response)
         tasks = self.taskqueue_stub.get_filtered_tasks()
         self.assertEqual(len(tasks), 1)
-        self.assertEqual(tasks[0].name, 'pubsub-pub-event-notification')
 
 
 class NotifyTest(common.BaseTest):
