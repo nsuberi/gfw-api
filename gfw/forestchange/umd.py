@@ -234,7 +234,11 @@ def _execute_geojson(args):
 
     # The forest cover threshold and polygon
     thresh = str(args.get('thresh'))
-    geojson = json.loads(args.get('geojson'))
+
+    try:
+        geojson = json.loads(args.get('geojson'))
+    except Exception:
+        geojson = args.get('geojson')
 
     # hansen_all_thresh
     hansen_all = _ee(geojson, thresh, config.assets['hansen_all_thresh'])

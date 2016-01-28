@@ -260,10 +260,28 @@ class FunctionTest(unittest.TestCase):
         path = '/forest-change/forma-alerts'
         self.assertEqual(('forma-alerts', 'all'), api._classify_request(path))
 
+        path = '/forest-change/forma-alerts/admin/ifl/bra'
+        self.assertEqual(('forma-alerts', 'ifl'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/admin/ifl/bra/123'
+        self.assertEqual(('forma-alerts', 'ifl_id1'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/ifl/bra'
+        self.assertEqual(('forma-alerts', 'ifl'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/ifl/bra/123'
+        self.assertEqual(('forma-alerts', 'ifl_id1'), api._classify_request(path))
+
         path = '/forest-change/forma-alerts/admin/bra'
         self.assertEqual(('forma-alerts', 'iso'), api._classify_request(path))
 
         path = '/forest-change/forma-alerts/admin/bra/123'
+        self.assertEqual(('forma-alerts', 'id1'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/iso/bra'
+        self.assertEqual(('forma-alerts', 'iso'), api._classify_request(path))
+
+        path = '/forest-change/forma-alerts/iso/bra/123'
         self.assertEqual(('forma-alerts', 'id1'), api._classify_request(path))
 
         path = '/forest-change/forma-alerts/wdpa/123'

@@ -60,7 +60,8 @@ class FormaSql(Sql):
     WDPA = """
         SELECT COUNT(f.*) AS value
             {additional_select}
-        FROM forma_api f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
+        FROM forma_api f, (SELECT * FROM wdpa_protected_areas WHERE
+            wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.date >= '{begin}'::date
               AND f.date <= '{end}'::date"""
@@ -75,7 +76,7 @@ class FormaSql(Sql):
               AND f.date <= '{end}'::date"""
 
     LATEST = """
-        SELECT DISTINCT date 
+        SELECT DISTINCT date
         FROM forma_api
         WHERE date IS NOT NULL
         ORDER BY date DESC
@@ -84,7 +85,8 @@ class FormaSql(Sql):
     @classmethod
     def download(cls, sql):
         download_sql = sql.replace(FormaSql.MIN_MAX_DATE_SQL, "")
-        download_sql = download_sql.replace("SELECT COUNT(f.*) AS value", "SELECT f.*")
+        download_sql = download_sql.replace(
+            "SELECT COUNT(f.*) AS value", "SELECT f.*")
         return ' '.join(
             download_sql.split())
 
@@ -96,7 +98,7 @@ def _processResults(action, data):
         if not result.get('value'):
             data['results'] = results
     else:
-        result = dict(value=None,min_date=None,max_date=None)
+        result = dict(value=None, min_date=None, max_date=None)
 
     data['value'] = result.get('value')
     data['min_date'] = result.get('min_date')
@@ -106,8 +108,10 @@ def _processResults(action, data):
 
 
 def execute(args):
+    #TODO: Document what can go in 'args'.
     args['version'] = 'v1'
     action, data = CartoDbExecutor.execute(args, FormaSql)
+    #To get the count: data.get('rows')[0].get('value')
     if action == 'redirect' or action == 'error':
         return action, data
     return _processResults(action, data)

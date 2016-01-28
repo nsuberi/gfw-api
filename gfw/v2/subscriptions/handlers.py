@@ -58,6 +58,8 @@ class SubscriptionsApi(UserAuthMiddleware):
             self.write_error(404, 'Not found')
 
     def __get_params(self):
-        accepted_params = ["name", "topic", "email", "iso", "id1", "geom", "url"]
+        accepted_params = ['name', 'topic', 'email', 'iso', 'id1',
+                'ifl', 'ifl_id1', 'use', 'useid', 'pa', 'wdpaid',
+                'latest', 'geom', 'url', 'namespace']
         params = json.loads(self.request.body)
         return {k: v for k, v in params.items() if k in accepted_params}
