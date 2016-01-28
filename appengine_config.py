@@ -84,7 +84,7 @@ engineauth = {
     # The user will be returned here if an error occurs (default /login):
     'login_uri': '/',
     'redirect_back': True,
-    'secret_key': 'SHHHHHH',
+    'secret_key': 'SHHHHHH'
 }
 
 authentication_keys = runtime_config.get("authentication_keys") or {}
@@ -108,8 +108,5 @@ engineauth['provider.google'] = authentication_keys.get('google')
 
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""
-    from gfw.middlewares import oauth
-    oauth.setup()
-
     from engineauth import middleware
     return middleware.AuthMiddleware(app)

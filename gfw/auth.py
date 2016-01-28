@@ -41,7 +41,13 @@ class UserApi(UserAuthMiddleware):
     """Handler for user info."""
 
     def get(self):
-        self.complete('respond', self.__get_profile().to_dict())
+        profile = self.__get_profile()
+
+        if not hasattr(profile, 'is_new'):
+            profile.is_new = True
+            profile.put()
+
+        self.complete('respond', profile.to_dict())
 
     def put(self):
         profile = self.__get_profile()
@@ -72,10 +78,9 @@ class UserApi(UserAuthMiddleware):
 
     def __get_params(self):
         accepted_params = ["name", "email", 'job', 'sector', 'country',
-            'state', 'city', 'use', 'sign_up']
+            'state', 'city', 'use', 'sign_up', 'is_new']
         params = json.loads(self.request.body)
         return {k: v for k, v in params.items() if k in accepted_params}
-
 
 routes = [
     webapp2.Route(r'/user',
