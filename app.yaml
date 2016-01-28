@@ -92,6 +92,8 @@ handlers:
 - url: /user.*
   script: gfw.auth.handlers
 
+- url: /metadata.*
+  script: gfw.metadata.handlers
 
 ## Version 2
 

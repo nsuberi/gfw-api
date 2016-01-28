@@ -64,6 +64,21 @@ GET = """SELECT details, email, name, title, visible, date,
 FROM {table}
 WHERE cartodb_id = {id}"""
 
+COUTRY_STORY="""
+with iso as (
+  SELECT the_geom_webmercator 
+  FROM gadm2_provinces_simple 
+  WHERE iso = UPPER('{iso}'))
+ 
+    SELECT   cartodb_id as id, date 
+    FROM {table} t, iso 
+    WHERE visible = True 
+    and ST_Intersects(t.the_geom_webmercator, iso.the_geom_webmercator) 
+    order by date desc 
+    limit 1
+
+"""
+
 COUNT_ISO = """
 SELECT COUNT(t.*) AS value
 FROM {table} t, 
@@ -147,12 +162,24 @@ def get_story(params):
     params['table'] = TABLE
     result = cdb.execute(GET.format(**params), auth=True)
     if result.status_code != 200:
-        raise Exception('CaroDB error getting story (%s)' % result.content)
+        raise Exception('CartoDB error getting story (%s)' % result.content)
     if result:
         data = json.loads(result.content)
         if 'total_rows' in data and data['total_rows'] == 1:
             story = data['rows'][0]
             return _prep_story(story)
+
+def get_country_story(params):
+    params['table'] = TABLE
+    result = cdb.execute(COUTRY_STORY.format(**params), auth=True)
+    story_id = json.loads(result.content)
+    if story_id['total_rows'] == 1:
+        params['id'] = story_id['rows'][0]['id']
+        return get_story(params)
+    else: 
+        return
+
+
 
 
 
@@ -179,9 +206,12 @@ class BaseApi(webapp2.RequestHandler):
             taskqueue.add(url='/log/error', params=error, queue_name="log")
 
     def _get_id(self, params):
-        whitespace = re.compile(r'\s+')
-        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
-        return '/'.join([self.request.path.lower(), hashlib.md5(params).hexdigest()])
+        normalized_params = copy.copy(params)
+        if 'bust' in normalized_params: normalized_params.pop('bust')
+        normalized_params = json.dumps(normalized_params, sort_keys=True)
+        normalized_params = re.sub(re.compile(r'\s+'), '', normalized_params)
+
+        return md5(self.request.host + self.request.path + normalized_params).hexdigest()
 
     def _get_params(self, body=False):
         if body:

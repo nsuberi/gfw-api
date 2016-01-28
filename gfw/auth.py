@@ -23,6 +23,8 @@ import json
 from gfw import common
 from gfw.middlewares.user import UserAuthMiddleware
 
+from appengine_config import runtime_config
+
 from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
@@ -39,7 +41,13 @@ class UserApi(UserAuthMiddleware):
     """Handler for user info."""
 
     def get(self):
-        self.complete('respond', self.__get_profile().to_dict())
+        profile = self.__get_profile()
+
+        if not hasattr(profile, 'is_new'):
+            profile.is_new = True
+            profile.put()
+
+        self.complete('respond', profile.to_dict())
 
     def put(self):
         profile = self.__get_profile()
@@ -52,7 +60,11 @@ class UserApi(UserAuthMiddleware):
     def sign_out(self):
         self.request.session.key.delete()
         self.response.set_cookie('_eauth', '')
-        self.redirect(self.request.referer)
+
+        if 'my_gfw' not in self.request.referer:
+            self.redirect(self.request.referer)
+        else:
+            self.redirect(runtime_config['GFW_BASE_URL'])
 
     def __get_profile(self):
         profile = UserProfile.get_by_id(self.user.auth_ids[0])
@@ -66,10 +78,9 @@ class UserApi(UserAuthMiddleware):
 
     def __get_params(self):
         accepted_params = ["name", "email", 'job', 'sector', 'country',
-            'state', 'city', 'use', 'sign_up']
+            'state', 'city', 'use', 'sign_up', 'is_new']
         params = json.loads(self.request.body)
         return {k: v for k, v in params.items() if k in accepted_params}
-
 
 routes = [
     webapp2.Route(r'/user',

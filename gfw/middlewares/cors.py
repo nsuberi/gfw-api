@@ -16,6 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import json
+import copy
 import re
 import logging
 import webapp2
@@ -127,7 +128,10 @@ class CORSRequestHandler(webapp2.RequestHandler):
             self.write_error(400, 'Unknown action %s' % action)
 
     def get_id(self, params):
-        whitespace = re.compile(r'\s+')
-        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
-        return '/'.join([self.request.path.lower(), md5(params).hexdigest()])
+        normalized_params = copy.copy(params)
+        if 'bust' in normalized_params: normalized_params.pop('bust')
+        normalized_params = json.dumps(normalized_params, sort_keys=True)
+        normalized_params = re.sub(re.compile(r'\s+'), '', normalized_params)
+
+        return md5(self.request.host + self.request.path + normalized_params).hexdigest()
 

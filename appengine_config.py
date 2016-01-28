@@ -73,9 +73,7 @@ if not http_host:
     appversion, secret, public = ('unittest', 'dev.json', 'local.yml')
 elif 'localhost' in http_host:
     appversion, secret, public = ('local', 'dev.json', 'local.yml')
-elif 'dev' in http_host:
-    appversion, secret, public = ('dev', 'dev.json', 'dev.yml')
-elif 'stage' in http_host:
+elif 'staging' in http_host:
     appversion, secret, public = ('stage', 'dev.json', 'stage.yml')
 else:
     appversion, secret, public = ('production', 'prod.json', 'prod.yml')
@@ -87,7 +85,7 @@ engineauth = {
     # The user will be returned here if an error occurs (default /login):
     'login_uri': '/',
     'redirect_back': True,
-    'secret_key': 'SHHHHHH',
+    'secret_key': 'SHHHHHH'
 }
 
 authentication_keys = runtime_config.get("authentication_keys") or {}
@@ -111,8 +109,5 @@ engineauth['provider.google'] = authentication_keys.get('google')
 
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""
-    from gfw.middlewares import oauth
-    oauth.setup()
-
     from engineauth import middleware
     return middleware.AuthMiddleware(app)

@@ -21,6 +21,9 @@ so that they redirect to the GFW profile page if the user doesn't have
 an email address on their profile.
 """
 
+from appengine_config import runtime_config
+from urlparse import urlparse
+
 def setup():
     def callback(self, req):
         import cPickle as pickle
@@ -36,11 +39,10 @@ def setup():
         req.load_user_by_profile(profile)
 
         if not hasattr(profile, 'email') or not profile.email:
-            from urlparse import urlparse
             redirect_uri = req.get_redirect_uri()
             parsed_uri = urlparse(redirect_uri)
-            return '{uri.scheme}://{uri.netloc}/my_gfw/?redirect={redirect}'.format(
-                uri=parsed_uri, redirect=redirect_uri)
+            return '{gfw_url}/my_gfw/?redirect={redirect}'.format(
+                gfw_url=runtime_config['GFW_BASE_URL'], redirect=parsed_uri.path)
         else:
             return req.get_redirect_uri()
 

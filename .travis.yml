@@ -7,4 +7,4 @@ cache:
 before_script:
   - sh setup.sh
 script:
-  - nosetests --with-gae --without-sandbox test
+  - nosetests --with-gae test
