@@ -206,9 +206,12 @@ class BaseApi(webapp2.RequestHandler):
             taskqueue.add(url='/log/error', params=error, queue_name="log")
 
     def _get_id(self, params):
-        whitespace = re.compile(r'\s+')
-        params = re.sub(whitespace, '', json.dumps(params, sort_keys=True))
-        return '/'.join([self.request.path.lower(), hashlib.md5(params).hexdigest()])
+        normalized_params = copy.copy(params)
+        if 'bust' in normalized_params: normalized_params.pop('bust')
+        normalized_params = json.dumps(normalized_params, sort_keys=True)
+        normalized_params = re.sub(re.compile(r'\s+'), '', normalized_params)
+
+        return md5(self.request.host + self.request.path + normalized_params).hexdigest()
 
     def _get_params(self, body=False):
         if body:
