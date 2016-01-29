@@ -35,11 +35,14 @@ class ProdesSql(Sql):
         """
 
     ISO = """
-        SELECT round(sum(f.areameters)/10000) AS value
+        SELECT r.*
             {additional_select}
-        FROM prodes_wgs84 f
-        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
-              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        FROM (
+            SELECT case when 'BRA'=UPPER('{iso}')  then round(sum(f.areameters)/10000)
+            else 0  end as value
+            FROM prodes_wgs84 f
+            WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+            AND to_date(f.ano, 'YYYY') < '{end}'::date) r
         """
 
     ID1 = """
