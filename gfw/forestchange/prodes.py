@@ -46,17 +46,17 @@ class ProdesSql(Sql):
         """
 
     ID1 = """
+        with s as (
+            SELECT st_simplify(the_geom, 0.0001) as the_geom 
+            FROM gadm2_provinces_simple
+            WHERE iso = UPPER('{iso}') AND id_1 = {id1})
         SELECT round(sum(f.areameters)/10000) AS value
-            {additional_select}
-        FROM prodes_wgs84 f
-        INNER JOIN (
-            SELECT *
-            FROM gadm2
-            WHERE id_1 = {id1}
-                  AND iso = UPPER('{iso}')) g
-            ON f.gadm2::int = g.objectid
-        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
-              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        	{additional_select}
+        FROM prodes_wgs84 f, s
+        WHERE  to_date(f.ano, 'YYYY') >= '{begin}'::date
+        AND to_date(f.ano, 'YYYY') < '{end}'::date
+        AND st_intersects(f.the_geom, s.the_geom)
+            
         """
 
     WDPA = """
