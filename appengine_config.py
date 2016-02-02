@@ -22,18 +22,13 @@ import os
 import sys
 import yaml
 
-
-def fix_path():
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/python-gflags'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/mandrill'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/docopt'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/requests/requests'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
-
-fix_path()
-
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/python-gflags'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/mandrill'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/docopt'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/requests/requests'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
 def _load_config(name):
     """Return dev config environment as dictionary."""
@@ -78,34 +73,20 @@ elif 'staging' in http_host:
 else:
     appversion, secret, public = ('production', 'prod.json', 'prod.yml')
 
-
 runtime_config = _get_runtime_config(appversion, secret, public)
 
 engineauth = {
     # The user will be returned here if an error occurs (default /login):
     'login_uri': '/',
     'redirect_back': True,
-    'secret_key': 'SHHHHHH'
+    'secret_key': 'SHHHHHH',
+    'user_model': 'gfw.user.gfw_user.GFWUser',
 }
 
 authentication_keys = runtime_config.get("authentication_keys") or {}
 engineauth['provider.twitter'] = authentication_keys.get('twitter')
 engineauth['provider.facebook'] = authentication_keys.get('facebook')
 engineauth['provider.google'] = authentication_keys.get('google')
-
-# LinkedIn Authentication
-# Currently using Dave P's Account
-#engineauth['provider.linkedin'] = {
-    #'client_id': '75b0lcdhgxqf64',
-    #'client_secret': 'M09xlYP6cHKEHSDj',
-#}
-
-# GitHub Authentication
-# Currently using Dave P's Account
-#engineauth['provider.github'] = {
-    #'client_id': 'ca82b0d062ce107c031d',
-    #'client_secret': 'e2d0420f8abd67d5fc4f8bdefd9e8144744bf3e8',
-#}
 
 def webapp_add_wsgi_middleware(app):
     """Adds authentication middleware."""

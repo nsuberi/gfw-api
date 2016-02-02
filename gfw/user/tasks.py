@@ -15,19 +15,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-notify
-  rate: 35/s
-- name: pubsub-publish
-  rate: 35/s
-- name: pubsub-pub-multicast
-  rate: 35/s
-- name: pubsub-pub-event-notification
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: log
-  rate: 35/s
+"""This module contains request handlers for user authentication."""
+
+import webapp2
+
+from gfw.middlewares.cors import CORSRequestHandler
+
+from gfw.user.spreadsheets import TesterSpreadsheet
+
+from engineauth import models
+from engineauth.models import UserProfile
+
+from google.appengine.ext import ndb
+
+class UserTaskApi(CORSRequestHandler):
+    def post(self):
+        profile = UserProfile.get_by_id(self.args().get('id'))
+
+        spreadsheet = TesterSpreadsheet()
+        spreadsheet.create_or_update(profile)

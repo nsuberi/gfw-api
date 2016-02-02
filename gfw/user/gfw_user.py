@@ -15,19 +15,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-notify
-  rate: 35/s
-- name: pubsub-publish
-  rate: 35/s
-- name: pubsub-pub-multicast
-  rate: 35/s
-- name: pubsub-pub-event-notification
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: log
-  rate: 35/s
+import webapp2
+
+from engineauth import models
+
+from google.appengine.api import taskqueue
+
+class GFWUser(models.User):
+    def _pre_put_hook(self):
+        taskqueue.add(url='/user/tasks/tester',
+            queue_name='user-tester-sign-up',
+            params={'id': self.auth_ids[0]})

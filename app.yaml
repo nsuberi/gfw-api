@@ -90,7 +90,7 @@ handlers:
 
 # User Info
 - url: /user.*
-  script: gfw.auth.handlers
+  script: gfw.user.api.handlers
 
 - url: /metadata.*
   script: gfw.metadata.handlers

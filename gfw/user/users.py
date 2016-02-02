@@ -20,22 +20,14 @@
 import webapp2
 import json
 
-from gfw import common
 from gfw.middlewares.user import UserAuthMiddleware
 
 from appengine_config import runtime_config
 
-from engineauth import models
 from engineauth.models import User
 from engineauth.models import UserProfile
 
 from google.appengine.ext import ndb
-
-config = {
-    'webapp2_extras.sessions': {
-        'secret_key': 'wIDjEesObzp5nonpRHDzSp40aba7STuqC6ZRY'
-    }
-}
 
 class UserApi(UserAuthMiddleware):
     """Handler for user info."""
@@ -54,6 +46,7 @@ class UserApi(UserAuthMiddleware):
 
         profile.populate(**self.__get_params())
         profile.put()
+        self.user.put()
 
         self.complete('respond', profile.to_dict())
 
@@ -81,27 +74,3 @@ class UserApi(UserAuthMiddleware):
             'state', 'city', 'use', 'sign_up', 'is_new']
         params = json.loads(self.request.body)
         return {k: v for k, v in params.items() if k in accepted_params}
-
-routes = [
-    webapp2.Route(r'/user',
-        handler=UserApi,
-        handler_method='get',
-        methods=['GET']),
-
-    webapp2.Route(r'/user/sign_out',
-        handler=UserApi,
-        handler_method='sign_out',
-        methods=['GET']),
-
-    webapp2.Route(r'/user',
-        handler=UserApi,
-        handler_method='put',
-        methods=['PUT', 'POST']),
-
-    webapp2.Route(r'/user',
-        handler=UserApi,
-        handler_method='options',
-        methods=['OPTIONS'])
-]
-
-handlers = webapp2.WSGIApplication(routes, debug=common.IS_DEV)
