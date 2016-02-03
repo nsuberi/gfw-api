@@ -184,9 +184,11 @@ class BiomasLossSql(Sql):
         WHERE cartodb_id = {pid}"""
 
     WDPA = """
-        SELECT ST_AsGeoJson(the_geom) AS geojson
-        FROM wdpa_protected_areas
-        WHERE wdpaid={wdpaid}"""
+        SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom)<=18000 THEN ST_AsGeoJson(the_geom)
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.001))
+      ELSE ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.005))
+       END as geojson FROM wdpa_protected_areas where wdpaid={wdpaid}"""
 
     @classmethod
     def download(cls, sql):
@@ -343,7 +345,20 @@ def _executeWdpa(args):
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    if rows:
+    if rows[0]['geojson']==None:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        data['params'].pop('geojson')
+        data['gain'] = None
+        data['loss'] = None
+        data['tree-extent'] = None
+        data['biomass'] = None
+        data['biomass_loss'] = None
+        data['biomass_loss_by_year'] = None
+        data['c_loss_by_year'] = None
+        data['co2_loss_by_year'] = None
+    elif rows:
         args['geojson'] = rows[0]['geojson']
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
         args['end'] = args['end'] if 'end' in args else '2013-01-01'
@@ -379,7 +394,7 @@ def execute(args):
 
     # Set default threshold
     if 'thresh' not in args:
-        args['thresh'] = 10
+        args['thresh'] = 30
 
     if query_type == 'iso':
         return _executeIso(args)
