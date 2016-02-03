@@ -159,6 +159,7 @@ META = {
             "id": "umd-loss-gain"
         },
         'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % UMD_API,
             'ifl_national': '%s/admin/ifl/{/iso}{?bust,dev,thresh}' %
             UMD_API,
             'ifl_subnational': '%s/admin/ifl/{/iso}{/id1}{?bust,dev,thresh}' %
@@ -166,6 +167,10 @@ META = {
             'national': '%s/admin{/iso}{?bust,dev,thresh}' %
             UMD_API,
             'subnational': '%s/admin{/iso}{/id1}{?bust,dev,thresh}' %
+            UMD_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            UMD_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
             UMD_API,
         }
     },

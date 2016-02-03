@@ -59,11 +59,15 @@ class ProdesSql(Sql):
     WDPA = """
         SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM prodes_wgs84 f, (SELECT * FROM wdpa_protected_areas
-            WHERE wdpaid={wdpaid}) AS p
+        FROM prodes_wgs84 f, (SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom)<=18000 THEN the_geom
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
+      ELSE ST_RemoveRepeatedPoints(the_geom, 0.005)
+       END as the_geom FROM wdpa_protected_areas where wdpaid={wdpaid}) AS p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
-              AND f.ano >= '{begin}'
-              AND f.ano <= '{end}'"""
+              and to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        """
 
     USE = """
         SELECT round(sum(f.areameters)/10000) AS value

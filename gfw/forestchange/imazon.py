@@ -64,7 +64,11 @@ class ImazonSql(Sql):
                 i.the_geom_webmercator,
                 p.the_geom_webmercator))/(100*100)) AS value
             {additional_select}
-        FROM (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) p,
+        FROM (SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom_webmercator)<=18000 THEN the_geom_webmercator
+       WHEN ST_NPoints(the_geom_webmercator) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom_webmercator, 100)
+      ELSE ST_RemoveRepeatedPoints(the_geom_webmercator, 1000)
+       END as the_geom_webmercator FROM wdpa_protected_areas where wdpaid={wdpaid}) p,
             imazon_sad i
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date

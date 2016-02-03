@@ -58,7 +58,11 @@ class QuiccSql(Sql):
         SELECT COUNT(pt.*) AS value
             {additional_select}
         FROM quicc_alerts pt,
-            (SELECT * FROM wdpa_protected_areas WHERE wdpaid = {wdpaid}) as p
+            (SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom)<=18000 THEN the_geom
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
+      ELSE ST_RemoveRepeatedPoints(the_geom, 0.005)
+       END as the_geom FROM wdpa_protected_areas where wdpaid={wdpaid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND pt.date >= '{begin}'::date
             AND pt.date <= '{end}'::date"""

@@ -58,9 +58,13 @@ class FormaSql(Sql):
         """
 
     WDPA = """
+        WITH p as (SELECT CASE when marine::numeric = 2 then 
+      null  when ST_NPoints(the_geom)<=18000 THEN the_geom
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
+      ELSE ST_RemoveRepeatedPoints(the_geom, 0.005) END as the_geom FROM wdpa_protected_areas where wdpaid={wdpaid})
         SELECT COUNT(f.*) AS value
             {additional_select}
-        FROM forma_api f, (SELECT * FROM wdpa_protected_areas WHERE wdpaid={wdpaid}) AS p
+        FROM forma_api f, p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
               AND f.date >= '{begin}'::date
               AND f.date <= '{end}'::date"""
