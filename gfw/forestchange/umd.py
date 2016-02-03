@@ -130,14 +130,19 @@ class UmdSql(Sql):
         AND type='intact'"""
 
     USE = """
-        SELECT ST_AsGeoJson(the_geom) AS geojson
+        SELECT CASE when ST_NPoints(the_geom)<=8000 THEN ST_AsGeoJson(the_geom)
+       WHEN ST_NPoints(the_geom) BETWEEN 8000 AND 20000 THEN ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.001))
+      ELSE ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.01))
+       END as geojson 
         FROM {use_table}
         WHERE cartodb_id = {pid}"""
 
     WDPA = """
-        SELECT ST_AsGeoJson(the_geom) AS geojson
-        FROM wdpa_protected_areas
-        WHERE wdpaid={wdpaid}"""
+        SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom)<=18000 THEN ST_AsGeoJson(the_geom)
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.001))
+      ELSE ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.005))
+       END as geojson FROM wdpa_protected_areas where wdpaid={wdpaid} """
 
     @classmethod
     def download(cls, sql):
@@ -271,7 +276,15 @@ def _executeWdpa(args):
     rows = data['rows']
     data.pop('rows')
     data.pop('download_urls')
-    if rows:
+    if rows[0]['geojson']==None:
+        args['geojson'] = rows[0]['geojson']
+        args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
+        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        data['params'].pop('geojson')
+        data['gain'] = 0
+        data['loss'] = 0
+        data['tree-extent'] = 0
+    elif rows:
         args['geojson'] = rows[0]['geojson']
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
         args['end'] = args['end'] if 'end' in args else '2013-01-01'
