@@ -59,8 +59,11 @@ class GladSql(Sql):
         """
 
     WDPA = """
-        WITH p as (SELECT st_simplify (the_geom_webmercator, 0.0001) as the_geom_webmercator FROM wdpa_protected_areas
-            WHERE wdpaid={wdpaid} LIMIT 1)
+        WITH p as (SELECT CASE when marine::numeric = 2 then null
+        when ST_NPoints(the_geom)<=18000 THEN the_geom_webmercator
+       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom_webmercator, 100)
+      ELSE ST_RemoveRepeatedPoints(the_geom_webmercator, 1000)
+       END as the_geom_webmercator FROM wdpa_protected_areas where wdpaid={wdpaid})
         SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM umd_alerts_agg_rast f, p
         WHERE ST_Intersects(f.the_geom_webmercator, p.the_geom_webmercator)
