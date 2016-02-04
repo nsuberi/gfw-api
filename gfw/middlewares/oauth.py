@@ -16,38 +16,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """
-This module monkey patches (sorry!) EngineAuth's OAuth implementations
-so that they redirect to the GFW profile page if the user doesn't have
-an email address on their profile.
+This module monkey patches (sorry!) EngineAuth's middleware so that it
+doesn't update its stored redirect URI if it's in the middle of an OAuth
+flow (mostly happens when logging in to facebook)
 """
 
-from appengine_config import runtime_config
-from urlparse import urlparse
-
 def setup():
-    def callback(self, req):
-        import cPickle as pickle
-        flow = pickle.loads(req.session.data.get(self.session_key))
-        if flow is None:
-            self.raise_error('And Error has occurred. Please try again.')
-        req.credentials = flow.step2_exchange(req.params)
-        user_info = self.user_info(req)
-        profile = self.get_or_create_profile(
-            auth_id=user_info['auth_id'],
-            user_info=user_info,
-            credentials=req.credentials)
-        req.load_user_by_profile(profile)
+    def _set_redirect_back(self):
+        if "callback" not in self.url:
+            next_uri = self.referer
+            if next_uri is not None and self._config['redirect_back']:
+                self.session.data['_redirect_uri'] = next_uri
 
-        if not hasattr(profile, 'email') or not profile.email:
-            redirect_uri = req.get_redirect_uri()
-            parsed_uri = urlparse(redirect_uri)
-            return '{gfw_url}/my_gfw/?redirect={redirect}'.format(
-                gfw_url=runtime_config['GFW_BASE_URL'], redirect=parsed_uri.path)
-        else:
-            return req.get_redirect_uri()
-
-    from engineauth.strategies import oauth
-    from engineauth.strategies import oauth2
-
-    oauth.OAuthStrategy.callback = callback
-    oauth2.OAuth2Strategy.callback = callback
+    from engineauth.middleware import EngineAuthRequest
+    EngineAuthRequest._set_redirect_back = _set_redirect_back
