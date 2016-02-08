@@ -10,12 +10,16 @@ from webob import Request
 class EngineAuthResponse(Response):
 
     def _save_session(self):
+        if self.request.path is '/user/sign_out':
+            return session
+
         session = self.request.session
         # Compare the hash that we set in load_session to the current one.
         # We only save the session and cookie if this value has changed.
         if self.request.session_hash == session.hash():
             return session
         session.put()
+
         # If we have a user_id we want to updated the
         # session to use the user_id as the key.
         if session.user_id is not None:
@@ -28,6 +32,7 @@ class EngineAuthResponse(Response):
             self.set_cookie('_eauth', session.serialize(),domain='.globalforestwatch.org')
         else:
             self.set_cookie('_eauth', session.serialize())
+
         return self
 
     def _save_user(self):

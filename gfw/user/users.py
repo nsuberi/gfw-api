@@ -52,7 +52,7 @@ class UserApi(UserAuthMiddleware):
 
     def sign_out(self):
         self.request.session.key.delete()
-        self.response.set_cookie('_eauth', '')
+        self.response.delete_cookie('_eauth')
 
         if 'my_gfw' not in self.request.referer:
             self.redirect(self.request.referer)
