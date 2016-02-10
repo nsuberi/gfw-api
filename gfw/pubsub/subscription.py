@@ -59,21 +59,16 @@ class Subscription(ndb.Model):
     def create(cls, params, user=None):
         """Create subscription if email and, iso or geom is present"""
 
-        iso = params.get('iso')
-        has_geom = bool(params.get('geom'))
-        if iso or has_geom:
-            subscription = Subscription()
-            subscription.populate(**params)
-            subscription.params = params
-            subscription.has_geom = has_geom
+        subscription = Subscription()
+        subscription.populate(**params)
+        subscription.params = params
+        subscription.has_geom = bool(params.get('geom'))
 
-            user_id = user.key if user is not None else ndb.Key('User', None)
-            subscription.user_id = user_id
+        user_id = user.key if user is not None else ndb.Key('User', None)
+        subscription.user_id = user_id
 
-            subscription.put()
-            return subscription
-        else:
-            return False
+        subscription.put()
+        return subscription
 
     #
     #   Query Helpers
