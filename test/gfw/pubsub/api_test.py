@@ -43,10 +43,7 @@ class SubscribeConfirmTest(common.BaseTest):
         self.assertEqual(False, sub.confirmed)
         url = '/pubsub/sub-confirm?token=%s' % sub.key.urlsafe()
         response = self.api.get(url)
-        self.assertEqual(response.status_int, 200)
-        self.assertEqual(
-            response.normal_body, '"{\\"status\\": \\"confirmed\\"}"')
-        self.assertEqual(response.content_type, 'application/json')
+        self.assertEqual(response.status_int, 302)
         sub = api.Subscription.query(namespace=ns).fetch(1)[0]
         self.assertEqual(True, sub.confirmed)
 
@@ -58,10 +55,7 @@ class SubscribeConfirmTest(common.BaseTest):
         self.assertEqual(False, sub.confirmed)
         url = '/pubsub/sub-confirm?token=%s' % sub.key.urlsafe()
         response = self.api.get(url)
-        self.assertEqual(response.status_int, 200)
-        self.assertEqual(
-            response.normal_body, '"{\\"status\\": \\"confirmed\\"}"')
-        self.assertEqual(response.content_type, 'application/json')
+        self.assertEqual(response.status_int, 302)
         sub = api.Subscription.query(namespace=ns).fetch(1)[0]
         self.assertEqual(True, sub.confirmed)
 
