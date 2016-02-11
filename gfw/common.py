@@ -19,6 +19,8 @@
 
 import json
 from hashlib import md5
+import urllib
+import urlparse
 
 from appengine_config import runtime_config
 
@@ -38,6 +40,18 @@ CONTENT_TYPES = {
     'json': 'application/json'
 }
 GCS_URL_TMPL = 'http://storage.googleapis.com/gfw-apis-analysis%s.%s'
+
+def gfw_url(path, params={}):
+    base_url = runtime_config.get('GFW_BASE_URL')
+
+    url_parts = list(urlparse.urlparse(base_url))
+    url_parts[2] = urlparse.urljoin(url_parts[2], path)
+
+    query = dict(urlparse.parse_qsl(url_parts[4]))
+    query.update(params)
+    url_parts[4] = urllib.urlencode(query)
+
+    return urlparse.urlunparse(url_parts)
 
 #
 # Helper Methods

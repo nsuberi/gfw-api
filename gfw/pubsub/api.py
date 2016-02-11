@@ -33,6 +33,8 @@ from appengine_config import runtime_config
 from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
 from gfw.pubsub.subscription import Subscription
 
+from gfw.common import gfw_url
+
 class Event(ndb.Model):
     """Model for publication events."""
     topic = ndb.StringProperty()
@@ -387,9 +389,13 @@ class SubscribeConfirmHandler(CORSRequestHandler):
     def get(self):
         try:
             params = ArgProcessor.process(self.args())
-            receive_confirmation_email(params.get('token'))
-            self.response.set_status(200)
-            self.complete('respond', json.dumps(dict(status='confirmed')))
+            token  = params.get('token')
+
+            if Subscription.confirm_by_token(token):
+                self.redirect(gfw_url('my_gfw/subscriptions',
+                    {'subscription_confirmed': 'true'}))
+            else:
+                self.write_error(404, 'Not Found')
         except (Exception), e:
             logging.exception(e)
             self.write_error(400, e.message)

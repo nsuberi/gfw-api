@@ -138,7 +138,7 @@ class Subscription(ndb.Model):
             sub.unsubscribe()
 
     @classmethod
-    def confirm_by_token(cls,token):
+    def confirm_by_token(cls, token):
         subscription = cls.with_token(token)
         if subscription:
             return subscription.confirm()
@@ -157,9 +157,8 @@ class Subscription(ndb.Model):
     #
 
     def confirm(self):
-        if not self.confirmed:
-            self.confirmed = True
-            return self.put()
+        self.confirmed = True
+        return self.put()
 
     def unsubscribe(self):
         return self.key.delete()
