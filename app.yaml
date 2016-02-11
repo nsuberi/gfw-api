@@ -95,6 +95,9 @@ handlers:
 - url: /metadata.*
   script: gfw.metadata.handlers
 
+- url: /geostore.*
+  script: gfw.geostore.api.handlers
+
 ## Version 2
 
 # Subscriptions

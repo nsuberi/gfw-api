@@ -402,7 +402,6 @@ class SubscribeConfirmHandler(CORSRequestHandler):
 
 
 handlers = webapp2.WSGIApplication([
-
     (r'/pubsub/pub', PublishHandler),
     (r'/pubsub/pub-multicast', MulticastHandler),
     (r'/pubsub/sub-confirm', SubscribeConfirmHandler),
