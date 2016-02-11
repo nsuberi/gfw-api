@@ -21,7 +21,7 @@ import urlparse
 import json
 
 from gfw import common
-from gfw.middlewares.cors import CORSRequestHandler
+from gfw.common import CORSRequestHandler
 
 from google.appengine.api import urlfetch
 
