@@ -44,7 +44,7 @@ class GeostoreHandler(CORSRequestHandler):
 
 handlers = webapp2.WSGIApplication([
   webapp2.Route(
-    r'/geostore',
+    r'/geostore/',
     handler=GeostoreHandler,
     handler_method='post',
     methods=['POST']
