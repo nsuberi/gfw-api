@@ -10,10 +10,10 @@ from webob import Request
 class EngineAuthResponse(Response):
 
     def _save_session(self):
-        if self.request.path is '/user/sign_out':
-            return session
-
         session = self.request.session
+
+        if self.request.path == '/user/sign_out':
+            return session
         # Compare the hash that we set in load_session to the current one.
         # We only save the session and cookie if this value has changed.
         if self.request.session_hash == session.hash():
