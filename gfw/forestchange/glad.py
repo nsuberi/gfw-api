@@ -27,7 +27,7 @@ class GladSql(Sql):
     WORLD = """
         SELECT COUNT(iso) AS value
           {additional_select}
-        FROM  umd_alerts_agg_rast f
+        FROM  umd_alerts_agg_analysis f
         WHERE date >= '{begin}'::date
           AND date <= '{end}'::date
           AND ST_INTERSECTS(
@@ -41,7 +41,7 @@ class GladSql(Sql):
 
     ISO = """
         SELECT count(iso) AS value, MIN(date) as min_date, MAX(date) as max_date   
-        FROM umd_alerts_agg_rast
+        FROM umd_alerts_agg_analysis
         WHERE iso = UPPER('{iso}')
             AND date >= '{begin}'::date
             AND date <= '{end}'::date
@@ -53,7 +53,7 @@ class GladSql(Sql):
                    WHERE iso = UPPER('{iso}') 
                    AND id_1 = {id1} )
         SELECT count(r.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
-        FROM umd_alerts_agg_rast r INNER JOIN  f ON st_intersects(f.the_geom_webmercator,r.the_geom_webmercator) 
+        FROM umd_alerts_agg_analysis r INNER JOIN  f ON st_intersects(f.the_geom_webmercator,r.the_geom_webmercator)
         WHERE date >= '{begin}'::date 
         AND date <= '{end}'::date
         """
@@ -65,7 +65,7 @@ class GladSql(Sql):
       ELSE ST_RemoveRepeatedPoints(the_geom_webmercator, 1000)
        END as the_geom_webmercator FROM wdpa_protected_areas where wdpaid={wdpaid})
         SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM umd_alerts_agg_rast f, p
+        FROM umd_alerts_agg_analysis f, p
         WHERE ST_Intersects(f.the_geom_webmercator, p.the_geom_webmercator)
               AND date >= '{begin}'::date
               AND date <= '{end}'::date
@@ -73,7 +73,7 @@ class GladSql(Sql):
 
     USE = """
         SELECT COUNT(*) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM {use_table} u, umd_alerts_agg_rast f
+        FROM {use_table} u, umd_alerts_agg_analysis f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom_webmercator, u.the_geom_webmercator)
               AND date >= '{begin}'::date
@@ -82,7 +82,7 @@ class GladSql(Sql):
 
     LATEST = """
         SELECT DISTINCT date
-        FROM umd_alerts_agg_rast
+        FROM umd_alerts_agg_analysis
         ORDER BY date DESC
         LIMIT {limit}"""
 
