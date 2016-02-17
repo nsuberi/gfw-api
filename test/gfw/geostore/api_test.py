@@ -63,7 +63,7 @@ class GeostoreTest(common.BaseTest):
                       ]
                     }"""
         params = json.dumps({'geojson': geojson})
-        response = self.api.post('/geostore', params)
+        response = self.api.post('/geostore/', params)
 
         self.assertEqual(response.status_int, 201)
         self.assertEqual(response.content_type, 'application/json')
