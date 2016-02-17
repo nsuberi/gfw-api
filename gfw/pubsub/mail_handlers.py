@@ -22,9 +22,10 @@ from google.appengine.ext import ndb
 from appengine_config import runtime_config
 from google.appengine.api import urlfetch
 
+from gfw.common import gfw_url
+
 mandrill_key = runtime_config.get('mandrill_api_key')
 mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
-
 
 def send_mandrill_email(template_name, template_content, message):
     "Send Mandrill Email"
@@ -41,12 +42,34 @@ def send_mandrill_email(template_name, template_content, message):
 
     return result
 
+def is_count_zero(topic, data):
+    """Returns true/false if there has been no change in the analysis
+    value since the last alert"""
+
+    simple_results = ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
+            'alerts/prodes', 'alerts/glad']
+
+    if topic in simple_results:
+        count = data.get('value')
+        return count == 0
+    elif topic == 'alerts/sad':
+        degradation = data.get('rows')[0].get('value')
+        deforestation = data.get('rows')[1].get('value')
+        return (degradation == 0) and (deforestation == 0)
+    elif (topic == 'alerts/treeloss') | (topic == 'alerts/treegain'):
+        gain = data.get('gain')
+        loss = data.get('loss')
+        return (gain == 0) and (loss == 0)
+
+    return true
+
 def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
     portion of the Mandrill Email template. """
 
-    if (topic == 'alerts/forma') | (topic == 'alerts/terrai') \
-       | (topic == 'alerts/quicc') | (topic == 'alerts/prodes'):
+    simple_results = ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
+            'alerts/prodes', 'alerts/glad']
+    if topic in simple_results:
         count = data.get('value')
     elif topic == 'alerts/sad':
         a = data.get('rows')[0]
@@ -63,7 +86,7 @@ def display_counts(topic, data):
 
     return count
 
-def send_mail_notification(email, topic, data, summary):
+def send_mail_notification(subscription_id, email, topic, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -85,6 +108,9 @@ def send_mail_notification(email, topic, data, summary):
       alert_link: - to view/download the data. In data.download_urls.csv
     """
     logging.info("Send Notification Email: %s" % email)
+    if (is_count_zero(topic, data)):
+        logging.info("Cancelled Send Notification Email: No change in analysis")
+        return
 
     params = data.get('params')
     begin = params.get('begin')
@@ -104,6 +130,10 @@ def send_mail_notification(email, topic, data, summary):
         area = "WDPA ID: " + str(params.get('wdpaid'))
     else:
         area = "Custom area."
+
+    subscriptions_url = gfw_url('my_gfw/subscriptions', {})
+    unsubscribe_url = '%s/v2/subscriptions/%s/unsubscribe' % \
+        (runtime_config['APP_BASE_URL'], str(subscription_id))
 
     template_content = []
     message = {
@@ -128,6 +158,12 @@ def send_mail_notification(email, topic, data, summary):
             },
             {
                 'content': csv, 'name': 'alert_link'
+            },
+            {
+                'content': unsubscribe_url, 'name': 'unsubscribe_url'
+            },
+            {
+                'content': subscriptions_url, 'name': 'subscriptions_url'
             }],
         'to': [
             {
@@ -167,12 +203,6 @@ def send_confirmation_email(email, urlsafe):
         'merge_language': 'handlebars',
         'track_opens': True
     }
-
-    # This does not work locally in GAE:
-    # result = mandrill_client.messages.send_template(
-    #     template_name='subscription-confirmation',
-    #     template_content=template_content,
-    #     message=message)
 
     result = send_mandrill_email("subscription-confirmation", template_content, message)
 

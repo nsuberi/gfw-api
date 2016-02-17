@@ -19,8 +19,8 @@ import json
 import webapp2
 
 from gfw.middlewares.user import UserAuthMiddleware
-
 from gfw.pubsub.subscription import Subscription
+from gfw.common import gfw_url
 
 class SubscriptionsApi(UserAuthMiddleware):
     def index(self):
@@ -37,6 +37,16 @@ class SubscriptionsApi(UserAuthMiddleware):
             self.complete('respond', {"subscribe": True, "token": token})
         else:
             self.write_error(400, 'Bad Request')
+
+    def unsubscribe(self, subscription_id):
+        subscription = Subscription.get_by_id(int(subscription_id))
+
+        if subscription:
+            subscription.unsubscribe()
+            self.redirect(gfw_url('my_gfw/subscriptions',
+                {'unsubscribed': 'true'}))
+        else:
+            self.write_error(404, 'Not found')
 
     def delete(self, subscription_id):
         subscription = Subscription.get_by_id(int(subscription_id))

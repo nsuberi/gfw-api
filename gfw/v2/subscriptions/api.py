@@ -49,6 +49,13 @@ routes = [
   ),
 
   webapp2.Route(
+    r'/v2/subscriptions/<subscription_id>/unsubscribe',
+    handler=SubscriptionsApi,
+    handler_method='unsubscribe',
+    methods=['GET']
+  ),
+
+  webapp2.Route(
     r'/v2/subscriptions<:/?.*>',
     handler=SubscriptionsApi,
     methods=['OPTIONS']

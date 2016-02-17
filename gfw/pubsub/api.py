@@ -244,9 +244,9 @@ def meta_str(meta):
 
     return s
 
-
 def notify(params):
     """Send notification to subscriber."""
+
     event = ndb.Key(urlsafe=params.get('event')).get()
     sub = ndb.Key(urlsafe=params.get('subscription')).get()
     params = copy.copy(sub.params)
@@ -264,7 +264,7 @@ def notify(params):
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail_notification(sub.email, event.topic, data, meta_str(get_meta(event.topic)))
+        send_mail_notification(sub.key.id(), sub.email, event.topic, data, meta_str(get_meta(event.topic)))
 
 
 def multicast(params):
@@ -278,6 +278,7 @@ def multicast(params):
     regular request). Each discrete event notification is added to the
     queue.
     """
+
     logging.info("Multicast. Event Key: %s " % params.get('event'))
     event = ndb.Key(urlsafe=params.get('event')).get()
 
@@ -297,6 +298,7 @@ def publish(params):
     We add a multicasting task to the queue for the supplied event and that's
     it.
     """
+
     topic, ns = map(params.get, ['topic', 'namespace'])
     logging.info("Publish. topic: %s namespace: %s" % (topic, ns))
     event = Event(namespace=ns, topic=topic)
@@ -307,23 +309,7 @@ def publish(params):
                   params=dict(event=event.key.urlsafe()))
 
 
-def subscribe(params):
-    """Create new Subscribe model from supplied params and return it.
-
-    If 'namespace' is in params, the Subscription model is created within the
-    supplied namespace.
-
-    Args:
-      params: Dictionary (topic and email keys required, namespace optional).
-    """
-    topic, email, ns = map(params.get, ['topic', 'email', 'namespace'])
-    if topic and email:
-        s = Subscription(namespace=ns, topic=topic, email=email, params=params)
-        s.put()
-        return s
-
 class NotificationHandler(CORSRequestHandler):
-
     """Handler for /pubsub/pub-event-notification requests."""
 
     def post(self):
@@ -342,7 +328,6 @@ class NotificationHandler(CORSRequestHandler):
 
 
 class MulticastHandler(CORSRequestHandler):
-
     """Handler for /pubsub/pub-multicast requests."""
 
     def post(self):
