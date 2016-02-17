@@ -27,7 +27,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from gfw.middlewares.cors import CORSRequestHandler
-from gfw.forestchange import api, forma, terrai, imazon, prodes, quicc, umd, guyra
+from gfw.forestchange import api, forma, terrai, imazon, prodes, quicc, umd, guyra, glad
 from appengine_config import runtime_config
 
 from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
@@ -151,7 +151,8 @@ class ArgProcessor():
         try:
             if value not in ['alerts/forma', 'alerts/terrai', 'alerts/sad',
                             'alerts/quicc', 'alerts/treeloss', 'alerts/treegain',
-                            'alerts/prodes', 'alerts/guyra', 'alerts/landsat']:
+                            'alerts/prodes', 'alerts/guyra', 'alerts/landsat',
+                            'alerts/glad']:
                 raise
             return dict(topic=value)
         except:
@@ -196,6 +197,8 @@ def get_deltas(topic, params):
         action, data = umd.execute(params)
     elif topic == 'alerts/guyra':
         action, data = guyra.execute(params)
+    elif topic == 'alerts/glad':
+        action, data = glad.execute(params)
 
     return action, data
 
@@ -230,6 +233,8 @@ def get_meta(topic):
         meta = api.META['umd-loss-gain']['meta']
     elif topic == 'alerts/sad':
         meta = api.META['imazon-alerts']['meta']
+    elif topic == 'alerts/glad':
+        meta = api.META['glad-alerts']['meta']
 
     return meta
 
