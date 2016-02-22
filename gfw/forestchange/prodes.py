@@ -89,7 +89,7 @@ class ProdesSql(Sql):
     def download(cls, sql):
         download_sql = sql.replace(ProdesSql.MIN_MAX_DATE_SQL, "")
         download_sql = download_sql.replace(
-            "SELECT COUNT(f.*) AS value", "SELECT f.*")
+            "SELECT round(sum(f.areameters)/10000) AS value", "SELECT f.*")
         return ' '.join(
             download_sql.split())
 
