@@ -270,7 +270,7 @@ def notify(params):
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
         user_profile = sub.user_id.get().get_profile()
-        send_mail_notification(sub.key.id(), sub.email, user_profile, event.topic, data, meta_str(get_meta(event.topic)))
+        send_mail_notification(sub, sub.email, user_profile, event.topic, data, meta_str(get_meta(event.topic)))
 
 
 def multicast(params):

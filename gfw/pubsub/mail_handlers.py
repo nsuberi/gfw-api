@@ -86,7 +86,7 @@ def display_counts(topic, data):
 
     return count
 
-def send_mail_notification(subscription_id, email, user, topic, data, summary):
+def send_mail_notification(subscription, email, user, topic, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -105,7 +105,7 @@ def send_mail_notification(subscription_id, email, user, topic, data, summary):
       alert_date: - in data.params.begin and data.params.end
       alert_summary: - metadata - ex: http://api.globalforestwatch.org//forest-change/forma-alerts/admin/ESP?thresh=30&begin=2006-01-01&end=2009-01-01
       alert_name: - the user's name for the subscription - provided as param 'name'
-      alert_link: - to view/download the data. In data.download_urls.csv
+      alert_link: - to view/download the data.
     """
     logging.info("Send Notification Email: %s" % email)
     if (is_count_zero(topic, data)):
@@ -116,11 +116,7 @@ def send_mail_notification(subscription_id, email, user, topic, data, summary):
     begin = params.get('begin')
     end = params.get('end')
     alert_name = params.get('name')
-
-    if (topic == "alerts/treeloss") | (topic == "alerts/treegain"):
-        csv = "#"  # TODO: Why is this missing?
-    else:
-        csv = data.get('download_urls').get('csv')
+    alert_link = subscription.url
 
     if 'id1' in params.keys():
         area = "ID1: " + params.get('id1')
@@ -133,7 +129,7 @@ def send_mail_notification(subscription_id, email, user, topic, data, summary):
 
     subscriptions_url = gfw_url('my_gfw/subscriptions', {})
     unsubscribe_url = '%s/v2/subscriptions/%s/unsubscribe' % \
-        (runtime_config['APP_BASE_URL'], str(subscription_id))
+        (runtime_config['APP_BASE_URL'], str(subscription.key.id()))
 
     template_content = []
     message = {
@@ -157,7 +153,7 @@ def send_mail_notification(subscription_id, email, user, topic, data, summary):
                 'content': alert_name, 'name': 'alert_name'
             },
             {
-                'content': csv, 'name': 'alert_link'
+                'content': alert_link, 'name': 'alert_link'
             },
             {
                 'content': unsubscribe_url, 'name': 'unsubscribe_url'
