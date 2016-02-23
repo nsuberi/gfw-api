@@ -120,7 +120,7 @@ class Subscription(ndb.Model):
     def subscribe(cls, params, user):
         subscription = Subscription.create(params, user)
         if subscription:
-            send_confirmation_email(subscription.email, subscription.key.urlsafe())
+            send_confirmation_email(subscription.email, user.get_profile().name, subscription.key.urlsafe())
             return subscription
         else:
             return False

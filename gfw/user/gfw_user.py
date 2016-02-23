@@ -19,9 +19,16 @@ import webapp2
 
 from engineauth import models
 
+from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 class GFWUser(models.User):
+    def get_profile(self):
+        profile_key = self.auth_ids[0]
+
+        if profile_key:
+            return ndb.Key('UserProfile', profile_key).get()
+
     def _pre_put_hook(self):
         taskqueue.add(url='/user/tasks/tester',
             queue_name='user-tester-sign-up',

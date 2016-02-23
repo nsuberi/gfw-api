@@ -86,7 +86,7 @@ def display_counts(topic, data):
 
     return count
 
-def send_mail_notification(subscription_id, email, topic, data, summary):
+def send_mail_notification(subscription_id, email, user, topic, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -168,7 +168,7 @@ def send_mail_notification(subscription_id, email, topic, data, summary):
         'to': [
             {
                 'email': email,
-                'name': 'Recipient Name',
+                'name': user_profile.name or email,
                 'type': 'to'}],
         'track_clicks': True,
         'merge_language': 'handlebars',
@@ -179,7 +179,7 @@ def send_mail_notification(subscription_id, email, topic, data, summary):
 
     logging.info("Send Notification Email Result: %s" % result.content)
 
-def send_confirmation_email(email, urlsafe):
+def send_confirmation_email(email, user_name, urlsafe):
     """Sends a confirmation email for a subscription request.
 
     Args:
@@ -197,7 +197,7 @@ def send_confirmation_email(email, urlsafe):
         'to': [
             {
                 'email': email,
-                'name': 'Recipient Name',
+                'name': user_name or email,
                 'type': 'to'}],
         'track_clicks': True,
         'merge_language': 'handlebars',

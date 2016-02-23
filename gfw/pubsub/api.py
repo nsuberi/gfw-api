@@ -269,7 +269,8 @@ def notify(params):
     # If we're running unit tests locally or via travis, skip this:
     if runtime_config.get('APP_VERSION') != 'unittest':
         action, data = get_deltas(event.topic, params)
-        send_mail_notification(sub.key.id(), sub.email, event.topic, data, meta_str(get_meta(event.topic)))
+        user_profile = sub.user_id.get().get_profile()
+        send_mail_notification(sub.key.id(), sub.email, user_profile, event.topic, data, meta_str(get_meta(event.topic)))
 
 
 def multicast(params):
