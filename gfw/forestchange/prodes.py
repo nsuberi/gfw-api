@@ -27,33 +27,36 @@ class ProdesSql(Sql):
         SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
         FROM prodes_wgs84 f
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+        WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
               AND ST_INTERSECTS(
                 ST_SetSRID(
                   ST_GeomFromGeoJSON('{geojson}'), 4326), f.the_geom)
         """
 
     ISO = """
-        SELECT round(sum(f.areameters)/10000) AS value
+        SELECT r.*
             {additional_select}
-        FROM prodes_wgs84 f
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+        FROM (
+            SELECT case when 'BRA'=UPPER('{iso}')  then round(sum(f.areameters)/10000)
+            else 0  end as value
+            FROM prodes_wgs84 f
+            WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
+            AND to_date(f.ano, 'YYYY') < '{end}'::date) r
         """
 
     ID1 = """
+        with s as (
+            SELECT st_simplify(the_geom, 0.0001) as the_geom
+            FROM gadm2_provinces_simple
+            WHERE iso = UPPER('{iso}') AND id_1 = {id1})
         SELECT round(sum(f.areameters)/10000) AS value
-            {additional_select}
-        FROM prodes_wgs84 f
-        INNER JOIN (
-            SELECT *
-            FROM gadm2
-            WHERE id_1 = {id1}
-                  AND iso = UPPER('{iso}')) g
-            ON f.gadm2::int = g.objectid
-        WHERE f.ano >= '{begin}'
-              AND f.ano <= '{end}'
+		{additional_select}
+        FROM prodes_wgs84 f, s
+        WHERE  to_date(f.ano, 'YYYY') >= '{begin}'::date
+        AND to_date(f.ano, 'YYYY') < '{end}'::date
+        AND st_intersects(f.the_geom, s.the_geom)
+
         """
 
     WDPA = """
@@ -75,8 +78,9 @@ class ProdesSql(Sql):
         FROM {use_table} u, prodes_wgs84 f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom, u.the_geom)
-              AND f.ano >= '{begin}'
-              AND f.ano <= '{end}'"""
+              AND to_date(f.ano, 'YYYY') >= '{begin}'::date
+              AND to_date(f.ano, 'YYYY') < '{end}'::date
+        """
 
     LATEST = """
         SELECT DISTINCT ano
