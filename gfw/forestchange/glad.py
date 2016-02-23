@@ -88,7 +88,7 @@ class GladSql(Sql):
 
     @classmethod
     def download(cls, sql):
-        return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", "SELECT f.*")
+        return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", " f.date, f.the_geom_webmercator as the_geom")
 
 def _processResults(action, data):
     if 'rows' in data:
