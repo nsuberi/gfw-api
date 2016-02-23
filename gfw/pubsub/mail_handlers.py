@@ -17,6 +17,7 @@
 
 import json
 import logging
+import datetime
 
 from google.appengine.ext import ndb
 from appengine_config import runtime_config
@@ -41,6 +42,28 @@ def send_mandrill_email(template_name, template_content, message):
                             headers={'Content-Type': 'application/json'})
 
     return result
+
+def alert_type_for_topic(topic):
+    if topic == 'alerts/forma':
+        return "FORMA"
+    elif topic == 'alerts/terrai':
+        return "Terra-i"
+    elif topic == 'alerts/sad':
+        return "SAD"
+    elif topic == 'alerts/quicc':
+        return "QUICC"
+    elif topic == 'alerts/prodes':
+        return "PRODES"
+    elif topic == 'alerts/treeloss':
+        return "Tree cover loss"
+    elif topic == 'alerts/treegain':
+        return "Tree cover gain"
+    elif topic == 'alerts/guyra':
+        return "Gran Chaco deforestation"
+    elif topic == 'alerts/glad':
+        return "GLAD Tree Cover Loss Alerts"
+    else:
+        return "Unspecified"
 
 def is_count_zero(topic, data):
     """Returns true/false if there has been no change in the analysis
@@ -67,26 +90,27 @@ def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
     portion of the Mandrill Email template. """
 
-    simple_results = ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
-            'alerts/prodes', 'alerts/glad']
-    if topic in simple_results:
-        count = data.get('value')
+    if topic in ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
+            'alerts/glad']:
+        count = str(data.get('value')) + " alerts"
+    elif topic == 'alerts/prodes':
+        count = str(data.get('value')) + " ha"
     elif topic == 'alerts/sad':
         a = data.get('rows')[0]
         b = data.get('rows')[1]
         if a.get('data_type') == 'degrad':
             count = "Degradation: " + str(a.get('value')) + \
-                    ". Deforestation: " + str(b.get('value'))
+                    " ha, Deforestation: " + str(b.get('value')) + " ha"
         else:
             count = "Degradation: " + str(b.get('value')) + \
-                    ". Deforestation: " + str(a.get('value'))
+                    " ha, Deforestation: " + str(a.get('value')) + " ha"
     elif (topic == 'alerts/treeloss') | (topic == 'alerts/treegain'):
         count = "Gain: " + str(data.get('gain')) + \
-                " Loss: " + str(data.get('loss'))
+                " ha, Loss: " + str(data.get('loss')) + " ha"
 
     return count
 
-def send_mail_notification(subscription, email, user, topic, data, summary):
+def send_mail_notification(subscription, email, user_profile, topic, data, summary):
     """Sends a notification email for a publication event.
 
     Data contains:
@@ -113,10 +137,15 @@ def send_mail_notification(subscription, email, user, topic, data, summary):
         return
 
     params = data.get('params')
-    begin = params.get('begin')
-    end = params.get('end')
-    alert_name = params.get('name')
+
+    begin = datetime.datetime.strptime(
+        params.get('begin'), "%m-%d-%Y").strftime('%d %b %Y')
+    end = datetime.datetime.strptime(
+        params.get('end'), "%m-%d-%Y").strftime('%d %b %Y')
+
+    alert_name = params.get('name') or "Unnamed Subscription"
     alert_link = subscription.url
+    alert_type = alert_type_for_topic(topic)
 
     if 'id1' in params.keys():
         area = "ID1: " + params.get('id1')
@@ -141,7 +170,7 @@ def send_mail_notification(subscription, email, user, topic, data, summary):
                 'content': display_counts(topic, data), 'name': 'alert_count'
             },
             {
-                'content': topic, 'name': 'alert_type'
+                'content': alert_type, 'name': 'alert_type'
             },
             {
                 'content': begin + " to " + end, 'name': 'alert_date'

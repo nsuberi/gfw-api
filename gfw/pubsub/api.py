@@ -33,6 +33,8 @@ from appengine_config import runtime_config
 from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
 from gfw.pubsub.subscription import Subscription
 
+from gfw.user.gfw_user import GFWUser
+
 from gfw.common import gfw_url
 
 class Event(ndb.Model):
