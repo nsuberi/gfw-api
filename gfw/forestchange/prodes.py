@@ -35,14 +35,16 @@ class ProdesSql(Sql):
         """
 
     ISO = """
-        SELECT r.*
+        with s as (
+            SELECT st_simplify(the_geom, 0.0001) as the_geom 
+            FROM gadm2_provinces_simple
+            WHERE iso = UPPER('{iso}'))
+        SELECT round(sum(f.areameters)/10000) AS value
             {additional_select}
-        FROM (
-            SELECT case when 'BRA'=UPPER('{iso}')  then round(sum(f.areameters)/10000)
-            else 0  end as value
-            FROM prodes_wgs84 f
-            WHERE to_date(f.ano, 'YYYY') >= '{begin}'::date
-            AND to_date(f.ano, 'YYYY') < '{end}'::date) r
+        FROM prodes_wgs84 f, s
+        WHERE  to_date(f.ano, 'YYYY') >= '{begin}'::date
+        AND to_date(f.ano, 'YYYY') < '{end}'::date
+        AND st_intersects(f.the_geom, s.the_geom)
         """
 
     ID1 = """
@@ -92,8 +94,7 @@ class ProdesSql(Sql):
     @classmethod
     def download(cls, sql):
         download_sql = sql.replace(ProdesSql.MIN_MAX_DATE_SQL, "")
-        download_sql = download_sql.replace(
-            "SELECT round(sum(f.areameters)/10000) AS value", "SELECT f.*")
+        download_sql = download_sql.replace("SELECT round(sum(f.areameters)/10000) AS value", "SELECT f.*")
         return ' '.join(
             download_sql.split())
 
