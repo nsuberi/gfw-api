@@ -25,8 +25,7 @@ from gfw.forestchange.common import Sql
 class GladSql(Sql):
 
     WORLD = """
-        SELECT COUNT(iso) AS value
-          {additional_select}
+        SELECT count(iso) AS value, MIN(date) as min_date, MAX(date) as max_date 
         FROM  umd_alerts_agg_analysis f
         WHERE date >= '{begin}'::date
           AND date <= '{end}'::date
