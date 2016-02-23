@@ -38,6 +38,15 @@ class SubscriptionsApi(UserAuthMiddleware):
         else:
             self.write_error(400, 'Bad Request')
 
+    def send_confirmation(self, subscription_id):
+        subscription = Subscription.get_by_id(int(subscription_id))
+
+        if subscription:
+            subscription.unconfirm();
+
+        self.redirect(gfw_url('my_gfw/subscriptions',
+            {'subscription_confirmation_sent': 'true'}))
+
     def unsubscribe(self, subscription_id):
         subscription = Subscription.get_by_id(int(subscription_id))
 
@@ -63,6 +72,10 @@ class SubscriptionsApi(UserAuthMiddleware):
         if subscription:
             subscription.populate(**self.__get_params())
             subscription.put()
+
+            if 'email' in self.__get_params():
+                subscription.unconfirm();
+
             self.complete('respond', subscription.to_dict())
         else:
             self.write_error(404, 'Not found')

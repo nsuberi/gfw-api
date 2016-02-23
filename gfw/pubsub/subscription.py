@@ -26,6 +26,8 @@ from google.appengine.api import users
 
 from gfw.pubsub.mail_handlers import send_confirmation_email
 
+from gfw.user.gfw_user import GFWUser
+
 #
 # Model
 #
@@ -120,7 +122,7 @@ class Subscription(ndb.Model):
     def subscribe(cls, params, user):
         subscription = Subscription.create(params, user)
         if subscription:
-            send_confirmation_email(subscription.email, user.get_profile().name, subscription.key.urlsafe())
+            subscription.send_confirmation_email()
             return subscription
         else:
             return False
@@ -148,6 +150,10 @@ class Subscription(ndb.Model):
 
     """ Instance Methods """
 
+    def send_confirmation_email(cls):
+        user_profile = cls.user_id.get().get_profile()
+        send_confirmation_email(cls.email, user_profile.name, cls.key.urlsafe())
+
     def to_dict(self):
         result = super(Subscription,self).to_dict()
         result['key'] = self.key.id()
@@ -158,6 +164,12 @@ class Subscription(ndb.Model):
 
     def confirm(self):
         self.confirmed = True
+        return self.put()
+
+    def unconfirm(self):
+        self.confirmed = False
+        self.send_confirmation_email()
+
         return self.put()
 
     def unsubscribe(self):
