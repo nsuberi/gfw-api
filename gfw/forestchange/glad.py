@@ -25,7 +25,7 @@ from gfw.forestchange.common import Sql
 class GladSql(Sql):
 
     WORLD = """
-        SELECT count(iso) AS value, MIN(date) as min_date, MAX(date) as max_date 
+        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM  umd_alerts_agg_analysis f
         WHERE date >= '{begin}'::date
           AND date <= '{end}'::date
@@ -39,20 +39,20 @@ class GladSql(Sql):
         """
 
     ISO = """
-        SELECT count(iso) AS value, MIN(date) as min_date, MAX(date) as max_date   
-        FROM umd_alerts_agg_analysis
+        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
+        FROM umd_alerts_agg_analysis f
         WHERE iso = UPPER('{iso}')
             AND date >= '{begin}'::date
             AND date <= '{end}'::date
         """
 
     ID1 = """
-        WITH f as (SELECT name_1,iso, id_1, the_geom_webmercator 
+        WITH r as (SELECT name_1,iso, id_1, the_geom_webmercator 
                    FROM gadm2_provinces_simple 
                    WHERE iso = UPPER('{iso}') 
                    AND id_1 = {id1} )
-        SELECT count(r.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
-        FROM umd_alerts_agg_analysis r INNER JOIN  f ON st_intersects(f.the_geom_webmercator,r.the_geom_webmercator)
+        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
+        FROM umd_alerts_agg_analysis f INNER JOIN r ON st_intersects(r.the_geom_webmercator,f.the_geom_webmercator)
         WHERE date >= '{begin}'::date 
         AND date <= '{end}'::date
         """
@@ -71,7 +71,7 @@ class GladSql(Sql):
         """
 
     USE = """
-        SELECT COUNT(*) AS value, MIN(date) as min_date, MAX(date) as max_date
+        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM {use_table} u, umd_alerts_agg_analysis f
         WHERE u.cartodb_id = {pid}
               AND ST_Intersects(f.the_geom_webmercator, u.the_geom_webmercator)

@@ -27,8 +27,7 @@ class GuyraSql(Sql):
     MIN_MAX_DATE_SQL = ""
 
     WORLD = """
-        SELECT sum(sup) AS value
-            {additional_select}
+        SELECT sum(sup) AS value, MIN(date) as min_date, MAX(date) as max_date
         FROM gran_chaco_deforestation f
         WHERE date >= '{begin}'::date
               AND date <= '{end}'::date
@@ -39,10 +38,10 @@ class GuyraSql(Sql):
 
     ISO = """
         with r as (SELECT date,pais,sup, prov_dep FROM gran_chaco_deforestation),
-              f as (SELECT name_1,iso, id_1, name_0 FROM gadm2_provinces_simple), 
-              d as (select * from r inner join f on prov_dep=name_1)
+              d as (SELECT name_1,iso, id_1, name_0 FROM gadm2_provinces_simple), 
+              f as (select * from r inner join f on prov_dep=name_1)
         SELECT sum(sup) AS value, MIN(date) as min_date, MAX(date) as max_date   
-        FROM d
+        FROM f
         WHERE iso = UPPER('{iso}')
             AND date >= '{begin}'::date
             AND date <= '{end}'::date
@@ -50,10 +49,10 @@ class GuyraSql(Sql):
 
     ID1 = """
         with r as (SELECT date,pais,sup, prov_dep FROM gran_chaco_deforestation),
-              f as (SELECT name_1,iso, id_1, name_0 FROM gadm2_provinces_simple), 
-              d as (select * from r inner join f on prov_dep=name_1)
+              d as (SELECT name_1,iso, id_1, name_0 FROM gadm2_provinces_simple), 
+              f as (select * from r inner join f on prov_dep=name_1)
         SELECT sum(sup) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM d
+        FROM f
         WHERE iso = UPPER('{iso}')
             AND id_1 = {id1}
             AND date >= '{begin}'::date
