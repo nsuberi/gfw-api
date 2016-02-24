@@ -27,8 +27,7 @@ class TerraiSql(Sql):
     MIN_MAX_DATE_SQL = ", MIN(date) as min_date, MAX(date) as max_date"
 
     WORLD = """
-        SELECT 
-            COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f
         WHERE date >= '{begin}'::date
@@ -39,8 +38,7 @@ class TerraiSql(Sql):
         """
 
     ISO = """
-        SELECT 
-            COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f
         WHERE iso = UPPER('{iso}')
@@ -51,8 +49,7 @@ class TerraiSql(Sql):
     ID1 = """
         WITH p as (SELECT st_simplify (the_geom, 0.0001) as the_geom FROM gadm2_provinces_simple
             WHERE iso = UPPER('{iso}') AND id_1 = {id1} LIMIT 1)
-        SELECT 
-            COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f,p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
@@ -66,8 +63,7 @@ class TerraiSql(Sql):
        WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
       ELSE ST_RemoveRepeatedPoints(the_geom, 0.005)
        END as the_geom FROM wdpa_protected_areas where wdpaid={wdpaid})
-        SELECT 
-            COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value
             {additional_select}
         FROM latin_decrease_current_points f, p
         WHERE ST_Intersects(f.the_geom, p.the_geom)
@@ -76,8 +72,7 @@ class TerraiSql(Sql):
         """
 
     USE = """
-        SELECT 
-            COUNT(f.*) AS value
+        SELECT COUNT(f.*) AS value
             {additional_select}
         FROM {use_table} u, latin_decrease_current_points f
         WHERE u.cartodb_id = {pid}
