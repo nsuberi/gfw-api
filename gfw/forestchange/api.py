@@ -406,7 +406,7 @@ TARGETS = {
     'terrai-alerts': terrai,
     'glad-alerts': glad,
     'prodes-loss': prodes,
-    'loss-by-type': loss_by_type
+    'loss-by-type': loss_by_type,
     'prodes-loss': prodes,
     'guyra-loss': guyra
 }
