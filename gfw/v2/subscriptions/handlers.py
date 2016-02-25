@@ -73,9 +73,6 @@ class SubscriptionsApi(UserAuthMiddleware):
             subscription.populate(**self.__get_params())
             subscription.put()
 
-            if 'email' in self.__get_params():
-                subscription.unconfirm();
-
             self.complete('respond', subscription.to_dict())
         else:
             self.write_error(404, 'Not found')
