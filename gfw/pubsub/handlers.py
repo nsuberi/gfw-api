@@ -136,7 +136,6 @@ class BaseApi(webapp2.RequestHandler):
 
         return md5(self.request.host + self.request.path + normalized_params).hexdigest()
 
-
     def _get_params(self, body=False):
         if body and self.request.body:
             params = json.loads(self.request.body)

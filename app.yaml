@@ -88,6 +88,7 @@ handlers:
 - url: /stories.*
   script: gfw.stories.handlers
 
+<<<<<<< HEAD
 # User Info
 - url: /user.*
   script: gfw.user.api.handlers
@@ -103,6 +104,9 @@ handlers:
 # Subscriptions
 - url: /v2/subscriptions.*
   script: gfw.v2.subscriptions.api.handlers
+
+- url: /metadata.*
+  script: gfw.metadata.handlers
 
 # PubSub
 - url: /.*

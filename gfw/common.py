@@ -17,6 +17,7 @@
 
 """This module supports common functions."""
 
+import copy
 import json
 from hashlib import md5
 import urllib

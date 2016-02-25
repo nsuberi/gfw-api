@@ -23,7 +23,6 @@ from gfw import cdb
 from gfw.forestchange import umd
 from gfw import stories
 
-
 class CountrySql(object):
 
     INDEX = """
@@ -227,9 +226,7 @@ def _getBounds(args):
     return dict(bounds=json.loads(_handler(cdb.execute(query))[0]['bounds']))
 
 def _getstory(args):
-
     return dict(story=stories.get_country_story(args))
-
 
 def _getUmd(args):
     action, data = umd.execute(args)
