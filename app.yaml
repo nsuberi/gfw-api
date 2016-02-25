@@ -88,7 +88,6 @@ handlers:
 - url: /stories.*
   script: gfw.stories.handlers
 
-<<<<<<< HEAD
 # User Info
 - url: /user.*
   script: gfw.user.api.handlers
