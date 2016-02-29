@@ -16,8 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 application: gfw-apis
-module: testingadrianapi
-version: v1-wip
 runtime: python27
 threadsafe: true
 api_version: 1
