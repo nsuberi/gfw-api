@@ -30,17 +30,11 @@ class GeostoreHandler(CORSRequestHandler):
         self.complete('respond', geostore.to_dict())
 
     def post(self):
-        geostore = Geostore()
-        geostore.populate(**self.__get_params())
-        geostore.put()
+        body = self.request.body
+        geostore = Geostore.create_from_request_body(body)
 
         self.response.set_status(201)
         self.complete('respond', geostore.to_dict())
-
-    def __get_params(self):
-        accepted_params = ["geojson"]
-        params = json.loads(self.request.body)
-        return {k: v for k, v in params.items() if k in accepted_params}
 
 handlers = webapp2.WSGIApplication([
   webapp2.Route(
