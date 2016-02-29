@@ -43,6 +43,20 @@ def send_mandrill_email(template_name, template_content, message):
 
     return result
 
+def alert_description(topic):
+    descriptions = {
+        'alerts/terra': 'monthly Terra-i tree cover loss alerts',
+        'alerts/sad': 'monthly SAD tree cover loss alerts',
+        'alerts/quicc': 'quarterly QUICC tree cover loss alerts',
+        'alerts/treeloss': 'annual tree cover loss data',
+        'alerts/treegain': '12-year tree cover gain data',
+        'alerts/prodes': 'annual PRODES deforestation data',
+        'alerts/guyra': 'monthly Gran Chaco deforestation data',
+        'alerts/glad': 'weekly GLAD tree cover loss alerts',
+    }
+
+    return descriptions[topic]
+
 def alert_type_for_topic(topic):
     if topic == 'alerts/forma':
         return "FORMA"
@@ -211,6 +225,9 @@ def send_confirmation_email(email, user_name, urlsafe):
       email: Address to mail to.
       urlsafe: Subscription model urlsafe key.
     """
+    subscription = ndb.Key(urlsafe=urlsafe).get()
+    topic = subscription.topic
+
     url_base = runtime_config['APP_BASE_URL']
     conf_url = '%s/pubsub/sub-confirm?token=%s' % (url_base, urlsafe)
     template_content = []
@@ -218,6 +235,8 @@ def send_confirmation_email(email, user_name, urlsafe):
         'global_merge_vars': [
             {
                 'content': conf_url, 'name': 'confirmation_url'
+            }, {
+                'content': alert_description(topic), 'name': 'dataset_name'
             }],
         'to': [
             {
