@@ -278,13 +278,13 @@ META = {
     'glad-alerts': {
         'meta': {
             "description": "Identifies areas of likely tree cover loss in near-real time",
-            "resolution": "",
-            "coverage": "",
-            "timescale": "",
-            "updates": "",
-            "source": "",
-            "units": "",
-            "name": "",
+            "resolution": "30 × 30 meters",
+            "coverage": "Peru, Republic of Congo, and Kalimantan (Indonesia), eventually to cover the humid tropics",
+            "timescale": "January 1, 2015 - present",
+            "updates": "Weekly",
+            "source": "Hansen, M.C., A. Krylov, A. Tyukavina, P.V. Potapov, S. Turubanova, B. Zutta, S. Ifo, B. Margono, F. Stolle, and R. Moore. Humid tropical forest disturbance alerts using Landsat data. Environmental Research Letters, in press",
+            "units": "Alerts",
+            "name": "GLAD alerts",
             "id": "glad-alerts"
         },
         'apis': {
