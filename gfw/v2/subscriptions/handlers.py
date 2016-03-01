@@ -34,7 +34,7 @@ class SubscriptionsApi(UserAuthMiddleware):
         if subscription:
             token = subscription.key.urlsafe()
             self.response.set_status(201)
-            self.complete('respond', {"subscribe": True, "token": token})
+            self.complete('respond', {"subscribe": True, "key": token})
         else:
             self.write_error(400, 'Bad Request')
 

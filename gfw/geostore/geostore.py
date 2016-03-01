@@ -45,7 +45,7 @@ class Geostore(ndb.Model):
 
     def to_dict(self):
         result = super(Geostore, self).to_dict()
-        result['geojson'] = self.get_combined_geojson()
+        result['geojson'] = json.loads(self.get_combined_geojson())
         result['id'] = self.key.urlsafe()
         return result
 
