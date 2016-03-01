@@ -20,14 +20,53 @@ import json
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 
+CHUNK_SIZE = 500000
+
 class Geostore(ndb.Model):
-    geojson = ndb.JsonProperty()
+    geojson = ndb.TextProperty()
+    next_id = ndb.KeyProperty()
 
     kind = 'Geostore'
 
     """ Instance Methods """
 
+    def next_chunk(self):
+        next_chunk = self.next_id.get()
+
+    def get_combined_geojson(self):
+        geojson = self.geojson
+        next_id = self.next_id
+        while next_id is not None:
+            next_chunk = next_id.get()
+            geojson += next_chunk.geojson
+            next_id = next_chunk.next_id
+
+        return geojson
+
     def to_dict(self):
-        result = super(Geostore,self).to_dict()
+        result = super(Geostore, self).to_dict()
+        result['geojson'] = self.get_combined_geojson()
         result['id'] = self.key.urlsafe()
         return result
+
+    @classmethod
+    def create_from_request_body(cls, body):
+        body_length = len(body)
+        number_of_chunks = body_length / CHUNK_SIZE
+
+        first_chunk = current_chunk = Geostore()
+        current_chunk.geojson = body[0:CHUNK_SIZE]
+        current_chunk.put()
+        for chunk_index in range(1, number_of_chunks+1):
+            new_chunk = Geostore()
+
+            start_index = chunk_index * CHUNK_SIZE
+            end_index   = (chunk_index + 1) * CHUNK_SIZE
+            new_chunk.geojson = body[start_index:end_index]
+            new_chunk.put()
+
+            current_chunk.next_id = new_chunk.key
+            current_chunk.put()
+            current_chunk = new_chunk
+
+        return first_chunk
