@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Global Forest Watch API
 # Copyright (C) 2014 World Resource Institute
 #
@@ -278,7 +280,7 @@ META = {
     'glad-alerts': {
         'meta': {
             "description": "Identifies areas of likely tree cover loss in near-real time",
-            "resolution": "30 × 30 meters",
+            "resolution": u"30 × 30 meters",
             "coverage": "Peru, Republic of Congo, and Kalimantan (Indonesia), eventually to cover the humid tropics",
             "timescale": "January 1, 2015 - present",
             "updates": "Weekly",
