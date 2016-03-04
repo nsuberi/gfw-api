@@ -98,7 +98,7 @@ def is_count_zero(topic, data):
         loss = data.get('loss')
         return (gain == 0) and (loss == 0)
 
-    return true
+    return True
 
 def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
