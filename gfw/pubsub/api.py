@@ -185,7 +185,7 @@ def get_deltas(topic, params):
 
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
-    elif topic == 'alerts/terrai':
+    elif topic == 'alerts/terra':
         action, data = terrai.execute(params)
     elif topic == 'alerts/sad':
         action, data = imazon.execute(params)
