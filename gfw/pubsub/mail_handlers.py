@@ -60,12 +60,12 @@ def alert_description(topic):
 def alert_type_for_topic(topic):
     if topic == 'alerts/forma':
         return "FORMA"
-    elif topic == 'alerts/terrai':
+    elif topic == 'alerts/terra':
         return "Terra-i"
     elif topic == 'alerts/sad':
         return "SAD"
     elif topic == 'alerts/quicc':
-        return "QUICC"
+        return "QUICC tree cover loss alerts (quarterly)"
     elif topic == 'alerts/prodes':
         return "PRODES"
     elif topic == 'alerts/treeloss':
@@ -75,7 +75,7 @@ def alert_type_for_topic(topic):
     elif topic == 'alerts/guyra':
         return "Gran Chaco deforestation"
     elif topic == 'alerts/glad':
-        return "GLAD Tree Cover Loss Alerts"
+        return "GLAD tree cover loss alerts (weekly)"
     else:
         return "Unspecified"
 
@@ -83,12 +83,12 @@ def is_count_zero(topic, data):
     """Returns true/false if there has been no change in the analysis
     value since the last alert"""
 
-    simple_results = ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
-            'alerts/prodes', 'alerts/glad']
+    simple_results = ['alerts/forma', 'alerts/terra', 'alerts/quicc',
+            'alerts/prodes', 'alerts/glad', 'alerts/guyra']
 
     if topic in simple_results:
         count = data.get('value')
-        return count == 0
+        return count == 0 or count == None
     elif topic == 'alerts/sad':
         degradation = data.get('rows')[0].get('value')
         deforestation = data.get('rows')[1].get('value')
@@ -104,10 +104,10 @@ def display_counts(topic, data):
     """ Returns a string suitable for display in the 'Alert Counts'
     portion of the Mandrill Email template. """
 
-    if topic in ['alerts/forma', 'alerts/terrai', 'alerts/quicc',
+    if topic in ['alerts/forma', 'alerts/terra', 'alerts/quicc',
             'alerts/glad']:
         count = str(data.get('value')) + " alerts"
-    elif topic == 'alerts/prodes':
+    elif topic == 'alerts/prodes' or topic == 'alerts/guyra':
         count = str(data.get('value')) + " ha"
     elif topic == 'alerts/sad':
         a = data.get('rows')[0]
@@ -168,7 +168,7 @@ def send_mail_notification(subscription, email, user_profile, topic, data, summa
     elif 'wdpaid' in params.keys():
         area = "WDPA ID: " + str(params.get('wdpaid'))
     else:
-        area = "Custom area."
+        area = "Custom area"
 
     subscriptions_url = gfw_url('my_gfw/subscriptions', {})
     unsubscribe_url = '%s/v2/subscriptions/%s/unsubscribe' % \
