@@ -29,7 +29,7 @@ from google.appengine.ext import ndb
 
 import appengine_config
 
-CDB_URL = 'http://wri-01.cartodb.com/api/v2/sql?%s'
+CDB_URL = 'https://wri-01.cartodb.com/api/v2/sql?%s'
 
 
 def combos(params, repeat=None, min=None):

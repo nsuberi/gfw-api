@@ -97,7 +97,7 @@ class DatasetExecuteTest(common.FetchBaseTest):
         # self.setResponse(content=response, status_code=400)
         action, data = service.execute(args)
         self.assertEqual(action, 'redirect')
-        self.assertTrue(data.startswith('http://wri-01.cartodb.com'))
+        self.assertTrue(data.startswith('https://wri-01.cartodb.com'))
         print data
         return action, data
 
