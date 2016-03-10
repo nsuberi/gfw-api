@@ -28,7 +28,7 @@ from google.appengine.api import urlfetch
 if runtime_config.get('cdb_endpoint'):
     ENDPOINT = runtime_config.get('cdb_endpoint')
 else:
-    ENDPOINT = 'http://wri-01.cartodb.com/api/v2/sql'
+    ENDPOINT = 'https://wri-01.cartodb.com/api/v2/sql'
 
 
 def _get_api_key():
