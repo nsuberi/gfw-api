@@ -69,4 +69,4 @@ routes = [
   )
 ]
 
-handlers = webapp2.WSGIApplication(routes, debug=True)
+handlers = webapp2.WSGIApplication(routes, debug=False)
