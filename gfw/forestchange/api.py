@@ -33,6 +33,7 @@ from gfw.forestchange import terrai
 from gfw.forestchange import prodes
 from gfw.forestchange import guyra
 from gfw.forestchange import glad
+from gfw.forestchange import viirs
 from gfw.forestchange import loss_by_type
 from gfw.forestchange import args
 
@@ -49,6 +50,7 @@ TERRAI_API = '%s/terrai-alerts' % APP_BASE_URL
 GLAD_API = '%s/glad-alerts' % APP_BASE_URL
 PRODES_API = '%s/prodes-loss' % APP_BASE_URL
 GUYRA_API = '%s/guyra-loss' % APP_BASE_URL
+VIIRS_API = '%s/viirs-active-fires' % APP_BASE_URL
 LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
 
 META = {
@@ -301,6 +303,30 @@ META = {
             GLAD_API
         }
     },
+    'viirs-active-fires': {
+        'meta': {
+            "description": "Displays fire alert data for the past 7 days.",
+            "resolution": "1 x 1 kilometer",
+            "coverage": "Global",
+            "timescale": "Last 7 days",
+            "updates": "Daily",
+            "source": "MODIS",
+            "units": "Alerts",
+            "name": "NASA Active Fires Alerts",
+            "id": "viirs-active-fires"
+        },
+        'apis': {
+            'world': '%s{?period,geojson,download,bust,dev}' % VIIRS_API,
+            'national': '%s/admin{/iso}{?period,download,bust,dev}' %
+            VIIRS_API,
+            'subnational': '%s/admin{/iso}{/id1}{?period,download,bust,dev}' %
+            VIIRS_API,
+            'use': '%s/use/{/name}{/id}{?period,download,bust,dev}' %
+            VIIRS_API,
+            'wdpa': '%s/wdpa/{/id}{?period,download,bust,dev}' %
+            VIIRS_API
+        }
+    },
     'loss-by-type': {
         'meta': {
             "id": "loss-by-type"
@@ -392,6 +418,14 @@ PARAMS = {
         'use': ['period', 'download', 'dev', 'bust'],
         'latest': ['bust', 'limit']
     },
+    'viirs-active-fires': {
+        'all': ['period', 'download', 'geojson', 'dev', 'bust'],
+        'iso': ['period', 'download', 'dev', 'bust'],
+        'id1': ['period', 'download', 'dev', 'bust'],
+        'wdpa': ['period', 'download', 'dev', 'bust'],
+        'use': ['period', 'download', 'dev', 'bust'],
+        'latest': ['bust', 'limit']
+    },
     'loss-by-type': {
         'all': ['aggregate_by', 'geojson']
     }
@@ -410,7 +444,8 @@ TARGETS = {
     'prodes-loss': prodes,
     'loss-by-type': loss_by_type,
     'prodes-loss': prodes,
-    'guyra-loss': guyra
+    'guyra-loss': guyra,
+    'viirs-active-fires': viirs,
 }
 
 
