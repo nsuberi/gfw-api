@@ -50,7 +50,9 @@ def gfw_map_url(params):
     if not params: return BASE_PATH
 
     if 'geom' in params:
-        params['geojson'] = json.dumps(params['geom'])
+        geojson = json.dumps(params['geom'])
+        if len(geojson) <= 1000:
+            params['geojson'] = geojson
 
     url_params = {k: params[k] for k in ALLOWED_PARAMS if k in params}
     query_string = urllib.urlencode(url_params, doseq=True)

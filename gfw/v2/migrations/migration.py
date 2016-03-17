@@ -33,6 +33,31 @@ class Migration(ndb.Model):
 
     kind = 'Migration'
 
+    @classmethod
+    def create_for_email(cls, email):
+        migration = cls.query(cls.email == email).fetch()
+        if len(migration) > 0:
+            migration = migration[0]
+        else:
+            migration = cls()
+            migration.email = email
+
+        subscriptions = Subscription.query(Subscription.email == email)
+        for subscription in subscriptions.iter():
+            if hasattr(subscription, 'user_id') and subscription.user_id != None: continue
+            migration.subscriptions.append(subscription.key)
+
+        if len(migration.subscriptions) > 0:
+            migration.put()
+
+    @classmethod
+    def create_from_subscriptions(cls):
+        query_set = Subscription.query(projection=["email"], distinct=True)
+        unique_emails = [data.email for data in query_set]
+
+        for email in unique_emails:
+            cls.create_for_email(email)
+
     def update_subscriptions(self, user):
         for i, subscription_key in enumerate(self.subscriptions):
             subscription = subscription_key.get()
