@@ -23,6 +23,7 @@ from gfw.v2.migrations.handlers import MigrationsApi
 routes = [
   webapp2.Route(
     r'/v2/migrations/<migration_id>/migrate',
+    name='migrate',
     handler=MigrationsApi,
     handler_method='migrate',
     methods=['GET']

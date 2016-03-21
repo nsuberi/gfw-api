@@ -32,7 +32,9 @@ class MigrationsApi(CORSRequestHandler):
         options_request = (self.request.method == "OPTIONS")
         self.user = self.request.user if hasattr(self.request, 'user') else None
         if not options_request and self.user is None:
-            self.redirect(gfw_url('my_gfw/subscriptions', {}))
+            params = self.app.router.match(self.request)[-1]
+            self.redirect(gfw_url('my_gfw/subscriptions', {
+                'migration_id': params['migration_id']}))
         else:
             webapp2.RequestHandler.dispatch(self)
 
@@ -41,6 +43,6 @@ class MigrationsApi(CORSRequestHandler):
         if migration and migration.key.kind() == Migration.kind:
             migration.update_subscriptions(self.user)
             self.redirect(gfw_url('my_gfw/subscriptions', {
-                'migration_successful': True}))
+                'migration_successful': 'true'}))
         else:
             self.write_error(404, 'Not found')
