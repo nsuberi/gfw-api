@@ -53,6 +53,8 @@ class Migration(ndb.Model):
         subscriptions = Subscription.query(Subscription.email == email)
         for subscription in subscriptions.iter():
             if hasattr(subscription, 'user_id') and subscription.user_id != None: continue
+            if subscription.topic in IGNORED_TOPICS: continue
+
             migration.subscriptions.append(subscription.key)
 
         if len(migration.subscriptions) > 0:
