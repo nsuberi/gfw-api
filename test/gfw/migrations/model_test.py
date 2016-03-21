@@ -33,6 +33,7 @@ class MigrationTest(common.BaseTest):
 
     def testUpdateSubscriptions(self):
         subscription = Subscription()
+        subscription.params = {}
         subscription.put()
 
         migration = Migration()
@@ -54,6 +55,7 @@ class MigrationTest(common.BaseTest):
         user.auth_ids = ['123']
         user.put()
         new_subscription = Subscription()
+        new_subscription.params = {}
         new_subscription.user_id = user.key
         new_subscription.put()
 
