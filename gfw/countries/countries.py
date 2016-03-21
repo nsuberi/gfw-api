@@ -66,6 +66,10 @@ class CountrySql(object):
 
     TOPO_JSON = """
         SELECT the_geom
+        FROM forest_cov_glob_v3
+        WHERE country_code = UPPER('{iso}')
+        UNION
+        SELECT the_geom
         FROM ne_50m_admin_0_countries
         WHERE adm0_a3 = UPPER('{iso}')"""
 

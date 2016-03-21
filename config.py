@@ -3,6 +3,7 @@ import ee
 import json
 from oauth2client.appengine import AppAssertionCredentials
 
+from appengine_config import runtime_config
 
 def _load_asset_ids():
     """Return private EE asset ids as dictionary."""
@@ -17,7 +18,7 @@ def _load_asset_ids():
 EE_URL = 'https://earthengine.googleapis.com'
 
 # The service account email address authorized by your Google contact.
-EE_ACCOUNT = '872868960419@developer.gserviceaccount.com'
+EE_ACCOUNT = runtime_config.get('EE_ACCOUNT')
 #'gfw-apis@appspot.gserviceaccount.com'
 
 # The private key associated with your service account in Privacy Enhanced

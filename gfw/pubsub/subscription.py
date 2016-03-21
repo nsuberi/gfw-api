@@ -152,7 +152,12 @@ class Subscription(ndb.Model):
 
     def send_confirmation_email(cls):
         user_profile = cls.user_id.get().get_profile()
-        send_confirmation_email(cls.email, user_profile.name, cls.key.urlsafe())
+
+        name = None
+        if hasattr(user_profile, 'name'):
+            name = user_profile.name
+
+        send_confirmation_email(cls.email, name, cls.key.urlsafe())
 
     def to_dict(self):
         result = super(Subscription,self).to_dict()

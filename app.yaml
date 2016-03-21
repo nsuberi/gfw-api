@@ -98,9 +98,12 @@ handlers:
 
 ## Version 2
 
-# Subscriptions
 - url: /v2/subscriptions.*
   script: gfw.v2.subscriptions.api.handlers
+
+- url: /v2/migrations.*
+  script: gfw.v2.migrations.api.handlers
+
 
 - url: /metadata.*
   script: gfw.metadata.handlers

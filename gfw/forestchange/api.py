@@ -56,7 +56,7 @@ LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
 META = {
     'forma-alerts': {
         'meta': {
-            "description": "Forest disturbances alerts.",
+            "description": "Forest disturbances alerts",
             "resolution": "500 x 500 meters",
             "coverage": "Humid tropical forest biome",
             "timescale": "January 2006 to present",
@@ -80,7 +80,7 @@ META = {
     },
     'nasa-active-fires': {
         'meta': {
-            "description": "Displays fire alert data for the past 7 days.",
+            "description": "Displays fire alert data for the past 7 days",
             "resolution": "1 x 1 kilometer",
             "coverage": "Global",
             "timescale": "Last 7 days",
@@ -104,9 +104,9 @@ META = {
     },
     'quicc-alerts': {
         'meta': {
-            "description": "Identifies areas of land that have lost at least \
-            40% of their green vegetation cover from the previous quarterly \
-            product.",
+            "description": "Identifies areas of land <37 degrees north \
+            that have lost at least 40% of their green vegetation cover \
+            from the previous quarterly product",
             "resolution": "5 x 5 kilometer",
             "coverage": "Global, except for areas >37 degrees north",
             "timescale": "October 2011-present",
@@ -131,7 +131,7 @@ META = {
     'imazon-alerts': {
         'meta': {
             "description": "Deforestation alert system that monitors forest \
-            cover loss and forest degradation.",
+            cover loss and forest degradation",
             "resolution": "250 x 250 meters",
             "coverage": "Brazilian Amazon",
             "timescale": "January 2007-present",
@@ -155,7 +155,7 @@ META = {
     },
     'umd-loss-gain': {
         'meta': {
-            "description": "Identifies areas of tree cover loss and gain.",
+            "description": "Identifies areas of tree cover loss and gain",
             "resolution": "30 x 30 meters",
             "coverage": "Global land area (excluding Antarctica and other \
                 Arctic islands)",
@@ -209,7 +209,7 @@ META = {
     },
     'terrai-alerts': {
         'meta': {
-            "description": "Forest decrease alerts.",
+            "description": "Forest decrease alerts",
             "resolution": "250 x 250 meters",
             "coverage": "Latin America",
             "timescale": "January 2004 to present",
@@ -233,7 +233,7 @@ META = {
     },
     'prodes-loss': {
         'meta': {
-            "description": "Alerts for the Brazilian Amazon.",
+            "description": "Alerts for the Brazilian Amazon",
             "resolution": "30 x 30 meters",
             "coverage": "Brazilian Amazon",
             "timescale": "2000-2014",
@@ -257,7 +257,7 @@ META = {
     },
     'guyra-loss': {
         'meta': {
-            "description": "Alerts for the Gran Chaco.",
+            "description": "Alerts for the Gran Chaco",
             "resolution": "",
             "coverage": "",
             "timescale": "",

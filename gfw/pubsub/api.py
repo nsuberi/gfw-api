@@ -151,7 +151,7 @@ class ArgProcessor():
     @classmethod
     def topic(cls, value):
         try:
-            if value not in ['alerts/forma', 'alerts/terrai', 'alerts/sad',
+            if value not in ['alerts/forma', 'alerts/terra', 'alerts/sad',
                             'alerts/quicc', 'alerts/treeloss', 'alerts/treegain',
                             'alerts/prodes', 'alerts/guyra', 'alerts/landsat',
                             'alerts/glad']:
@@ -185,7 +185,7 @@ def get_deltas(topic, params):
 
     if topic == 'alerts/forma':
         action, data = forma.execute(params)
-    elif topic == 'alerts/terrai':
+    elif topic == 'alerts/terra':
         action, data = terrai.execute(params)
     elif topic == 'alerts/sad':
         action, data = imazon.execute(params)
@@ -225,7 +225,7 @@ def get_meta(topic):
 
     if topic == 'alerts/forma':
         meta = api.META['forma-alerts']['meta']
-    elif topic == 'alerts/terrai':
+    elif topic == 'alerts/terra':
         meta = api.META['terrai-alerts']['meta']
     elif topic == 'alerts/quicc':
         meta = api.META['quicc-alerts']['meta']
@@ -237,6 +237,8 @@ def get_meta(topic):
         meta = api.META['imazon-alerts']['meta']
     elif topic == 'alerts/glad':
         meta = api.META['glad-alerts']['meta']
+    elif topic == 'alerts/guyra':
+        meta = api.META['guyra-loss']['meta']
 
     return meta
 
@@ -244,10 +246,12 @@ def meta_str(meta):
     """Returns a string of the important metadata values suitable for
     display or use in an email."""
 
-    s = meta['description'] + " Coverage of " + meta['coverage'] + \
-    ". Source is " + meta['source'] + " at resolution of " + meta['resolution'] + \
-    ". Available data from " + meta['timescale'] + ", updated " + \
-    meta['updates'].lower()
+    lower_first = func = lambda s: s[:1].lower() + s[1:] if s else ''
+    s = meta['description'] + " at a " + meta['resolution'] + " resolution."  \
+            " Coverage of " + meta['coverage'] + \
+            ". Source is " + meta['source'] + \
+            ". Available data from " + meta['timescale'] + ", updated " + \
+            lower_first(meta['updates'])
 
     return s
 

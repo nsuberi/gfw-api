@@ -25,6 +25,12 @@ from gfw.middlewares.cors import CORSRequestHandler
 from gfw.geostore.geostore import Geostore
 
 class GeostoreHandler(CORSRequestHandler):
+    def index(self):
+        geostores = Geostore.query().fetch()
+        to_dict = lambda g: g.to_dict()
+        geostores = map(to_dict, geostores)
+        self.complete('respond', geostores)
+
     def get(self, geostore_id):
         geostore = ndb.Key(urlsafe=geostore_id).get()
         self.complete('respond', geostore.to_dict())
@@ -42,6 +48,13 @@ handlers = webapp2.WSGIApplication([
     handler=GeostoreHandler,
     handler_method='post',
     methods=['POST']
+  ),
+
+  webapp2.Route(
+    r'/geostore/all',
+    handler=GeostoreHandler,
+    handler_method='index',
+    methods=['GET']
   ),
 
   webapp2.Route(
