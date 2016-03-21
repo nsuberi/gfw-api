@@ -56,14 +56,14 @@ LOSS_BY_TYPE_API = '%s/loss-by-type' % APP_BASE_URL
 META = {
     'forma-alerts': {
         'meta': {
-            "description": "Forest disturbances alerts",
-            "resolution": "500 x 500 meters",
+            "description": "Identifies areas of likely tree cover loss",
+            "resolution": "500 x 500 meters (MODIS)",
             "coverage": "Humid tropical forest biome",
-            "timescale": "January 2006 to present",
-            "updates": "16 day",
-            "source": "MODIS",
+            "timescale": "January 2006–August 2015",
+            "updates": "N/A",
+            "source": "WRI/CGD",
             "units": "Alerts",
-            "name": "FORMA Alerts",
+            "name": "FORMA tree cover loss alerts",
             "id": "forma-alerts"
         },
         'apis': {
@@ -80,14 +80,14 @@ META = {
     },
     'nasa-active-fires': {
         'meta': {
-            "description": "Displays fire alert data for the past 7 days",
-            "resolution": "1 x 1 kilometer",
+            "description": "Identifies fire alerts for the past 24 hours",
+            "resolution": "1 x 1 kilometer (MODIS)",
             "coverage": "Global",
-            "timescale": "Last 7 days",
+            "timescale": "Past 24 hours",
             "updates": "Daily",
-            "source": "MODIS",
+            "source": "NASA",
             "units": "Alerts",
-            "name": "NASA Active Fires Alerts",
+            "name": "FIRMS active fire alerts",
             "id": "nasa-active-fires"
         },
         'apis': {
@@ -104,16 +104,16 @@ META = {
     },
     'quicc-alerts': {
         'meta': {
-            "description": "Identifies areas of land <37 degrees north \
-            that have lost at least 40% of their green vegetation cover \
-            from the previous quarterly product",
-            "resolution": "5 x 5 kilometer",
+            "description": "Identifies areas of land that have lost at least \
+            40% of their green vegetation cover compared to the same \
+            quarter of the previous year",
+            "resolution": "5 x 5 kilometers (MODIS)",
             "coverage": "Global, except for areas >37 degrees north",
-            "timescale": "October 2011-present",
+            "timescale": "October 2011–present",
             "updates": "Quarterly (April, July, October, January)",
-            "source": "MODIS",
+            "source": "NASA",
             "units": "Alerts",
-            "name": "QUICC Alerts",
+            "name": "QUICC tree cover loss alerts",
             "id": "quicc-alerts"
         },
         'apis': {
@@ -131,14 +131,14 @@ META = {
     'imazon-alerts': {
         'meta': {
             "description": "Deforestation alert system that monitors forest \
-            cover loss and forest degradation",
-            "resolution": "250 x 250 meters",
+            cover loss and forest degradation in the Brazilian Amazon",
+            "resolution": "250 x 250 meters (MODIS, validated with Landsat and CBERS)",
             "coverage": "Brazilian Amazon",
             "timescale": "January 2007-present",
             "updates": "Monthly",
-            "source": "MODIS, validated with Landsat and CBERS",
-            "units": "Alerts",
-            "name": "IMAZON Alerts",
+            "source": "Imazon",
+            "units": "hectares",
+            "name": "SAD tree cover loss alerts",
             "id": "imazon-alerts"
         },
         'apis': {
@@ -155,16 +155,15 @@ META = {
     },
     'umd-loss-gain': {
         'meta': {
-            "description": "Identifies areas of tree cover loss and gain",
+            "description": "Identifies areas of tree cover loss",
             "resolution": "30 x 30 meters",
             "coverage": "Global land area (excluding Antarctica and other \
                 Arctic islands)",
-            "timescale": "January 2000-2012",
-            "updates": "Loss: Annual, Gain: 12-year cumulative, updated \
-                annually",
-            "source": "Landsat 7 ETM+",
+            "timescale": "2000–2014",
+            "updates": "Annual",
+            "source": "Hansen/UMD/Google/USGS/NASA",
             "units": "Percents and hectares",
-            "name": "University of Maryland tree cover loss and gain",
+            "name": "UMD/Google tree cover loss",
             "id": "umd-loss-gain"
         },
         'apis': {
@@ -185,14 +184,14 @@ META = {
     },
     'biomass-loss': {
         'meta': {
-            "description": "Identifies areas of biomass loss, carbon loss and co2 loss",
-            "resolution": "30 x 30 meters",
-            "coverage": "",
-            "timescale": "January 2000-2014",
-            "updates": "Updated annually",
-            "source": "Landsat 7 ETM+",
-            "units": "Tree cover loss: hectares, Biomass: Tg, Biomass loss: Tg biomass, carbon loss: Mg C, co2 loss: Mt CO2",
-            "name": "",
+            "description": "Identifies areas of biomass loss, carbon loss and CO2 loss",
+            "resolution": "30 x 30 meters (Landsat)",
+            "coverage": "Humid tropical forest biome",
+            "timescale": "2000–2014",
+            "updates": "Annual",
+            "source": "Hansen/UMD/Zarin/WHRC/Google/USGS/NASA",
+            "units": "Tree cover loss: hectares; Biomass loss: Tg; Carbon loss: Mg C; CO2 loss: Mt CO2",
+            "name": "Tree biomass loss",
             "id": "biomass-loss"
         },
         'apis': {
@@ -209,14 +208,14 @@ META = {
     },
     'terrai-alerts': {
         'meta': {
-            "description": "Forest decrease alerts",
-            "resolution": "250 x 250 meters",
+            "description": "Identifies areas of likely tree cover loss",
+            "resolution": "250 x 250 meters (MODIS)",
             "coverage": "Latin America",
-            "timescale": "January 2004 to present",
-            "updates": "16 day",
-            "source": "MODIS",
+            "timescale": "January 2004-present",
+            "updates": "Monthly",
+            "source": "CIAT",
             "units": "Alerts",
-            "name": "Terra-i Alerts",
+            "name": "Terra-i tree cover loss alerts",
             "id": "terrai-alerts"
         },
         'apis': {
@@ -233,14 +232,14 @@ META = {
     },
     'prodes-loss': {
         'meta': {
-            "description": "Alerts for the Brazilian Amazon",
-            "resolution": "30 x 30 meters",
+            "description": "Identifies annual deforestation in the Brazilian Amazon.",
+            "resolution": "30 x 30 meters (Landsat with CBERS, Resourcesat, and UK2-DMC)",
             "coverage": "Brazilian Amazon",
-            "timescale": "2000-2014",
+            "timescale": "2000–2015",
             "updates": "Annual",
-            "source": "Landsat with CBERS, Resourcesat, and UK2-DMC",
-            "units": "Alerts",
-            "name": "PRODES tree cover loss",
+            "source": "INPE",
+            "units": "hectares",
+            "name": "PRODES deforestation",
             "id": "prodes-loss"
         },
         'apis': {
@@ -257,14 +256,14 @@ META = {
     },
     'guyra-loss': {
         'meta': {
-            "description": "Alerts for the Gran Chaco",
-            "resolution": "",
-            "coverage": "",
-            "timescale": "",
-            "updates": "",
-            "source": "",
-            "units": "",
-            "name": "",
+            "description": "Identifies monthly deforestation in the Gran Chaco region",
+            "resolution": "30 x 30 meters (Landsat)",
+            "coverage": "Gran Chaco (parts of Paraguay, Argentina, and Bolivia)",
+            "timescale": "September 2011–present",
+            "updates": "Monthly",
+            "source": "Guyra",
+            "units": "hectares",
+            "name": "Gran Chaco deforestation",
             "id": "guyra-loss"
         },
         'apis': {
@@ -282,13 +281,13 @@ META = {
     'glad-alerts': {
         'meta': {
             "description": "Identifies areas of likely tree cover loss in near-real time",
-            "resolution": u"30 × 30 meters",
+            "resolution": "30 × 30 meters (Landsat)",
             "coverage": "Peru, Republic of Congo, and Kalimantan (Indonesia), eventually to cover the humid tropics",
-            "timescale": "January 1, 2015 - present",
+            "timescale": "January 1, 2015-present",
             "updates": "Weekly",
-            "source": "Hansen, M.C., A. Krylov, A. Tyukavina, P.V. Potapov, S. Turubanova, B. Zutta, S. Ifo, B. Margono, F. Stolle, and R. Moore. Humid tropical forest disturbance alerts using Landsat data. Environmental Research Letters, in press",
+            "source": "UMD/GLAD",
             "units": "Alerts",
-            "name": "GLAD alerts",
+            "name": "GLAD tree cover loss alerts",
             "id": "glad-alerts"
         },
         'apis': {
