@@ -59,6 +59,8 @@ class Migration(ndb.Model):
             migration.complete = True
             migration.put()
 
+        return migration
+
     @classmethod
     def create_from_subscriptions(cls):
         query_set = Subscription.query(projection=["email"], distinct=True)

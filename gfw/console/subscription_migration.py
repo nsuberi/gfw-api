@@ -8,129 +8,73 @@
 # migration.create_migrations()
 #
 
-from gfw.pubsub.subscription import Subscription
-from google.appengine.ext import ndb
-from gfw.user.gfw_user import GFWUser
-from gfw.pubsub.api import notify
-from gfw.pubsub.api import get_deltas
-from gfw.pubsub.api import meta_str
-from gfw.pubsub.api import get_meta
-from gfw.pubsub.mail_handlers import send_mail_notification
-from gfw.pubsub.mail_handlers import is_count_zero
-from gfw.pubsub.mail_handlers import display_counts
 import copy
 import json
 import traceback
+
 from google.appengine.ext import ndb
+from google.appengine.api import urlfetch
 
-def count_subscriptions():
-    from gfw.pubsub.subscription import Subscription
-    print Subscription.query(Subscription.topic == 'alerts/glad').count()
+from gfw.pubsub.subscription import Subscription
+from gfw.v2.migrations.migration import Migration
 
-def for_alicia():
-    #subs = Subscription.query(Subscription.user_id == ndb.Key(GFWUser, 5204238581891072))
-    subs = Subscription.query(Subscription.topic == 'alerts/glad')
+from appengine_config import runtime_config
 
-    dates = {
-        'alerts/glad': {
-            'begin': '02-26-2016',
-            'end': '03-03-2016'
-        },
-        'alerts/treeloss': {
-            'begin': '01-01-2015',
-            'end': '01-01-2016'
-        },
-        'alerts/terra': {
-            'begin': '01-01-2004',
-            'end': '01-01-2016'
-        },
-        'alerts/prodes': {
-            'begin': '01-01-2013',
-            'end': '01-01-2016'
-        },
-        'alerts/sad': {
-            'begin': '01-01-2015',
-            'end': '01-01-2016'
-        },
-        'alerts/quicc': {
-            'begin': '01-01-2015',
-            'end': '01-01-2016'
-        },
-        'alerts/guyra': {
-            'begin': '01-01-2001',
-            'end': '01-01-2016'
-        }
+def count_subscriptions(topic=None):
+    if topic:
+        print Subscription.query(Subscription.topic == topic).count()
+    else:
+        print Subscription.query().count()
+
+def create_migrations():
+    return Migration.create_from_subscriptions()
+
+def send_migration_email(migration):
+    print "#####"
+    print "Sending migration {0} for {1}".format(migration.key.urlsafe(), migration.email)
+
+    migration_url = '%s/v2/migrations/%s/migrate' % \
+        (runtime_config['APP_BASE_URL'], str(migration.key.urlsafe()))
+
+    template_content = []
+    message = {
+        'global_merge_vars': [{
+            'content': migration_url, 'name': 'migration_link'
+        }],
+        'to': [{
+            'email': migration.email,
+            'name': migration.email,
+            'type': 'to'
+        }],
+        'track_clicks': True,
+        'merge_language': 'handlebars',
+        'track_opens': True
     }
 
-    for sub in subs.iter():
-      if not sub.topic in dates:
-          continue
-      #if not sub.topic == 'alerts/prodes':
-          #continue
-      params = copy.copy(sub.params)
-      params['begin'] = dates[sub.topic]['begin']
-      params['end'] = dates[sub.topic]['end']
+    mandrill_key = runtime_config.get('mandrill_api_key')
+    mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
 
-      if 'geom' in params:
-        geom = params['geom']
-        if 'geometry' in geom:
-            geom = geom['geometry']
-        params['geojson'] = json.dumps(geom)
+    payload = {
+        "template_content": [],
+        "template_name": 'subscription-migration',
+        "message": message,
+        "key": mandrill_key,
+        "async": "false"
+    }
 
-      try:
-        action, data = get_deltas(sub.topic, params)
-        if (is_count_zero(sub.topic, data) == False):
-          print '---'
-          print sub.key.id()
-          print sub.email
-          print sub.topic
-          print display_counts(sub.topic, data)
-          print '*** more than zero'
-          print sub.user_id
-          send_mail_notification(sub, sub.email,
-                  sub.user_id.get().get_profile(), sub.topic, data,
-                  meta_str(get_meta(sub.topic)))
-        else:
-          pass
-          #print '---'
-          #print sub.topic
-          #print sub.url
-          #print data
-          #print data
-      except Exception as e:
-        print str(e)
-        traceback.print_exc()
+    result = urlfetch.fetch(mandrill_url,
+                            payload=json.dumps(payload),
+                            method=urlfetch.POST,
+                            headers={'Content-Type': 'application/json'})
 
+    print "Sent!"
+    print result
 
+def send_migration_emails():
+    migrations = Migration.query()
+    for migration in migrations.iter():
+        send_migration_email(migration)
 
-def list_migrations():
-    subs = Subscription.query(Subscription.topic == 'alerts/glad')
-
-    for sub in subs.iter():
-        #print sub.url
-        params = copy.copy(sub.params)
-        params['begin'] = '02-26-2016' # mm-dd-yyyy
-        params['end'] = '03-03-2016'
-
-        if 'geom' in params:
-          geom = params['geom']
-          if 'geometry' in geom:
-              geom = geom['geometry']
-          params['geojson'] = json.dumps(geom)
-
-        try:
-          action, data = get_deltas(sub.topic, params)
-          if (is_count_zero('alerts/glad', data) == False):
-            print '---'
-            print sub.key.id()
-            print sub.email
-            print sub.url
-            print sub.topic
-            print display_counts(sub.topic, data)
-            print '*** more than zero'
-          else:
-            print '---'
-            print sub.topic
-            print data
-        except Exception:
-            pass
+def create_migration_for_email(email):
+    print 'Creating migration for ' + email
+    print Migration.create_for_email(email)
