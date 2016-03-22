@@ -50,7 +50,8 @@ class ProfileSpreadsheet:
             '1oCRTDUlaaadA_xVCWTQ9BaCLxY8do0uSQYGLXu0fQ1k')
         self.worksheet = self.spreadsheet.get_worksheet(1)
 
-    def create_or_update(self, profile):
+    def create_or_update(self, user):
+        profile = user.get_profile()
         values = self.worksheet.get_all_values()
 
         number_of_columns = len(values[0])
@@ -63,7 +64,6 @@ class ProfileSpreadsheet:
         except Exception:
             number_of_rows = len(values)
             new_row_index = number_of_rows+1
-            is_new_row = True
 
         cell_range = 'A{0}:{1}{2}'.format(new_row_index, last_column_index, new_row_index)
         cell_list = self.worksheet.range(cell_range)
@@ -82,8 +82,8 @@ class ProfileSpreadsheet:
                 cell.value = profile.key.id()
                 continue
 
-            if cell_name == 'Date First Added' and is_new_row:
-                cell.value = str(datetime.date.today())
+            if cell_name == 'Date First Added':
+                cell.value = user.created
                 continue
 
             if cell_name in ATTRIBUTE_MAP:

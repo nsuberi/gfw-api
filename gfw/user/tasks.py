@@ -28,6 +28,7 @@ from engineauth import models
 from engineauth.models import UserProfile
 
 from google.appengine.ext import ndb
+from gfw.user.gfw_user import GFWUser
 
 class UserTaskApi(CORSRequestHandler):
     def tester(self):
@@ -37,7 +38,7 @@ class UserTaskApi(CORSRequestHandler):
         spreadsheet.create_or_update(profile)
 
     def profile(self):
-        profile = UserProfile.get_by_id(self.args().get('id'))
+        user = ndb.Key('GFWUser', self.args().get('id')).get()
 
         spreadsheet = ProfileSpreadsheet()
-        spreadsheet.create_or_update(profile)
+        spreadsheet.create_or_update(user)
