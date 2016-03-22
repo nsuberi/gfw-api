@@ -29,5 +29,7 @@ queue:
   rate: 35/s
 - name: user-tester-sign-up
   rate: 35/s
+- name: user-profile
+  rate: 35/s
 - name: log
   rate: 35/s

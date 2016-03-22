@@ -45,7 +45,12 @@ routes = [
 
     webapp2.Route(r'/user/tasks/tester',
         handler=UserTaskApi,
-        handler_method='post',
+        handler_method='tester',
+        methods=['POST']),
+
+    webapp2.Route(r'/user/tasks/profile',
+        handler=UserTaskApi,
+        handler_method='profile',
         methods=['POST'])
 ]
 

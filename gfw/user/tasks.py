@@ -21,7 +21,8 @@ import webapp2
 
 from gfw.middlewares.cors import CORSRequestHandler
 
-from gfw.user.spreadsheets import TesterSpreadsheet
+from gfw.user.spreadsheets.tester import TesterSpreadsheet
+from gfw.user.spreadsheets.profile import ProfileSpreadsheet
 
 from engineauth import models
 from engineauth.models import UserProfile
@@ -29,8 +30,14 @@ from engineauth.models import UserProfile
 from google.appengine.ext import ndb
 
 class UserTaskApi(CORSRequestHandler):
-    def post(self):
+    def tester(self):
         profile = UserProfile.get_by_id(self.args().get('id'))
 
         spreadsheet = TesterSpreadsheet()
+        spreadsheet.create_or_update(profile)
+
+    def profile(self):
+        profile = UserProfile.get_by_id(self.args().get('id'))
+
+        spreadsheet = ProfileSpreadsheet()
         spreadsheet.create_or_update(profile)

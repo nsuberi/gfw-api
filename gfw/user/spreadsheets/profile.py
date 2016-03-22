@@ -19,21 +19,26 @@ import webapp2
 
 import gspread
 import string
+import datetime
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from appengine_config import runtime_config
 
 ATTRIBUTE_MAP = {
-    'Last': 'name',
+    'Name': 'name',
     'Email': 'email',
-    'Position': 'job',
-    'Address': 'country'
+    'Sector': 'sector',
+    'Primary Responsibilities': 'job',
+    'Country': 'country',
+    'State / Department / Province': 'state',
+    'City': 'city',
+    'How do you use or plan to use GFW?': 'use'
 }
 
 def character_for_number(number):
     return string.ascii_uppercase[number-1]
 
-class TesterSpreadsheet:
+class ProfileSpreadsheet:
     def __init__(self):
         scope = ['https://spreadsheets.google.com/feeds']
         config = runtime_config['google_sheets_service_account']
@@ -43,7 +48,7 @@ class TesterSpreadsheet:
 
         self.spreadsheet = gc.open_by_key(
             '1oCRTDUlaaadA_xVCWTQ9BaCLxY8do0uSQYGLXu0fQ1k')
-        self.worksheet = self.spreadsheet.get_worksheet(0)
+        self.worksheet = self.spreadsheet.get_worksheet(1)
 
     def create_or_update(self, profile):
         values = self.worksheet.get_all_values()
@@ -51,12 +56,14 @@ class TesterSpreadsheet:
         number_of_columns = len(values[0])
         last_column_index = character_for_number(number_of_columns)
 
+        is_new_row = False
         try:
             cell = self.worksheet.find(profile.key.id())
             new_row_index = cell.row
         except Exception:
             number_of_rows = len(values)
             new_row_index = number_of_rows+1
+            is_new_row = True
 
         cell_range = 'A{0}:{1}{2}'.format(new_row_index, last_column_index, new_row_index)
         cell_list = self.worksheet.range(cell_range)
@@ -64,18 +71,29 @@ class TesterSpreadsheet:
         for cell in cell_list:
             cell_name = self.worksheet.cell(1, cell.col).value
 
-            if (not hasattr(profile, 'sign_up')) or (profile.sign_up != 'yes'):
-                cell.value = ''
+            if cell_name == 'Official Tester':
+                if (not hasattr(profile, 'sign_up')) or (profile.sign_up != 'yes'):
+                    cell.value = 'no'
+                else:
+                    cell.value = 'yes'
                 continue
 
             if cell_name == 'user_key':
                 cell.value = profile.key.id()
                 continue
 
+            if cell_name == 'Date First Added' and is_new_row:
+                cell.value = str(datetime.date.today())
+                continue
+
             if cell_name in ATTRIBUTE_MAP:
                 attribute_name = ATTRIBUTE_MAP[cell_name]
 
                 if hasattr(profile, attribute_name):
-                    cell.value = getattr(profile, attribute_name)
+                    value = getattr(profile, attribute_name)
+                    if isinstance(value, list):
+                        value = ', '.join(filter(len, value))
+
+                    cell.value = value
 
         self.worksheet.update_cells(cell_list)
