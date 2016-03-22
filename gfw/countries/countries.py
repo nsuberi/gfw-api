@@ -26,16 +26,18 @@ from gfw import stories
 class CountrySql(object):
 
     INDEX = """
-        SELECT countries.iso, countries.name, countries.enabled, countries.lat,
-        countries.lng, countries.extent, countries.gva, countries.gva_percent,
-        countries.employment, countries.indepth, countries.national_policy_link,
+        SELECT countries.iso, countries.name, countries.enabled,
+        countries.lat, countries.lng, countries.extent, countries.gva,
+        countries.gva_percent, countries.employment, countries.indepth,
+        countries.national_policy_link, countries.policy_links,
         countries.national_policy_title, countries.convention_cbd,
         countries.convention_unfccc, countries.convention_kyoto,
         countries.convention_unccd, countries.convention_itta,
         countries.convention_cites, countries.convention_ramsar,
         countries.convention_world_heritage, countries.convention_nlbi,
-        countries.convention_ilo, countries.ministry_link, countries.external_links,
-        countries.dataset_link, countries.emissions, countries.carbon_stocks,
+        countries.convention_ilo, countries.ministry_link,
+        countries.external_links, countries.dataset_link,
+        countries.emissions, countries.carbon_stocks,
         countries.country_alt, alerts.count AS alerts_count
         FROM gfw2_countries AS countries
         LEFT OUTER JOIN (
@@ -48,16 +50,18 @@ class CountrySql(object):
     """
 
     SHOW = """
-        SELECT countries.iso, countries.name, countries.enabled, countries.lat,
-        countries.lng, countries.extent, countries.gva, countries.gva_percent,
-        countries.employment, countries.indepth, countries.national_policy_link,
+        SELECT countries.iso, countries.name, countries.enabled,
+        countries.lat, countries.lng, countries.extent, countries.gva,
+        countries.gva_percent, countries.employment, countries.indepth,
+        countries.national_policy_link, countries.policy_links,
         countries.national_policy_title, countries.convention_cbd,
         countries.convention_unfccc, countries.convention_kyoto,
         countries.convention_unccd, countries.convention_itta,
         countries.convention_cites, countries.convention_ramsar,
         countries.convention_world_heritage, countries.convention_nlbi,
-        countries.convention_ilo, countries.ministry_link, countries.external_links,
-        countries.dataset_link, countries.emissions, countries.carbon_stocks,
+        countries.convention_ilo, countries.ministry_link,
+        countries.external_links, countries.dataset_link,
+        countries.emissions, countries.carbon_stocks,
         countries.country_alt
         FROM gfw2_countries AS countries
         WHERE countries.iso = UPPER('{iso}')
