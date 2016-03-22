@@ -35,4 +35,4 @@ class GFWUser(models.User):
             params={'id': self.auth_ids[0]})
         taskqueue.add(url='/user/tasks/profile',
             queue_name='user-profile',
-            params={'id': self.key.id()})
+            params={'id': self.key.urlsafe()})

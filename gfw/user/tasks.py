@@ -38,7 +38,7 @@ class UserTaskApi(CORSRequestHandler):
         spreadsheet.create_or_update(profile)
 
     def profile(self):
-        user = ndb.Key('GFWUser', self.args().get('id')).get()
+        user = ndb.Key(urlsafe=self.args().get('id')).get()
 
         spreadsheet = ProfileSpreadsheet()
         spreadsheet.create_or_update(user)
