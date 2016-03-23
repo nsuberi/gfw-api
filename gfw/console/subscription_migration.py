@@ -73,7 +73,13 @@ def send_migration_email(migration):
 def send_migration_emails():
     migrations = Migration.query()
     for migration in migrations.iter():
-        send_migration_email(migration)
+        try:
+            send_migration_email(migration)
+        except Exception as e:
+            print "Failed"
+            print migration.key.urlsafe()
+            print str(e)
+            traceback.print_exc()
 
 def create_migration_for_email(email):
     print 'Creating migration for ' + email
