@@ -93,7 +93,11 @@ class SubscriptionDump(webapp2.RequestHandler):
         self.response.out.write(json.dumps(subs, sort_keys=True))
 
 
-ALLOWED_DOMAINS = ['globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
+ALLOWED_DOMAINS = [
+    'api-gateway-staging.globalforestwatch.org',
+    'www.globalforestwatch.org', 'globalforestwatch.org',
+    'staging.globalforestwatch.org', 'localhost:5000'
+]
 
 #
 # Pubsub API: TODO needs refactoring
