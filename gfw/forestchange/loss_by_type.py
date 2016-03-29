@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""This module supports accessing forest loff by type data."""
+"""This module supports accessing forest loss by type data."""
 
 import json
 import config
@@ -25,12 +25,7 @@ from google.appengine.api import urlfetch
 
 from dateutil.parser import parse as parseDate
 
-LABELS = ["Agriculture", "Mixed agriculture and forest",
-    "Open broadleaved forest", "Closed broadleaved forest",
-    "Open needleleaved forest", "Closed needleleaved forest",
-    "Open mixed forest", "Mixed forest and grassland",
-    "Grassland / shrub", "Flooded forest", "Wetland", "Settlements",
-    "Bare land", "Water bodies", "Snow / ice", "No data"]
+LABELS = ["Agriculture", "Mixed agriculture and forest", "Secondary forest", "Primary forest", "Mixed forest and grassland", "Grassland / shrub", "Swamp", "Settlements", "Bare land", "Water bodies", "Snow / ice"]
 
 def _generate_rendering_rule(period):
     start_year = period[0]
@@ -55,7 +50,7 @@ def _generate_rendering_rule(period):
                     "Operation": 3
                 }
             },
-            "Raster2": "$525",
+            "Raster2": "$544",
             "Operation": 1
         }
     }
