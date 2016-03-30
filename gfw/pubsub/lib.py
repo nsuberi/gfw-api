@@ -33,7 +33,8 @@ BASELAYERS = {
     'alerts/terra': 'terrailoss',
     'alerts/prodes': 'prodes',
     'alerts/guyra': 'guyra',
-    'alerts/glad': 'umd_as_it_happens'
+    'alerts/glad': 'umd_as_it_happens',
+    'alerts/viirs': 'viirs_fires_alerts'
 };
 
 def iso(params):

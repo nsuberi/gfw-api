@@ -53,6 +53,7 @@ def alert_description(topic):
         'alerts/prodes': 'annual PRODES deforestation data',
         'alerts/guyra': 'monthly Gran Chaco deforestation data',
         'alerts/glad': 'weekly GLAD tree cover loss alerts',
+        'alerts/viirs': 'daily VIIRS active fires alerts',
     }
 
     return descriptions[topic]
@@ -76,6 +77,8 @@ def alert_type_for_topic(topic):
         return "Gran Chaco deforestation"
     elif topic == 'alerts/glad':
         return "GLAD tree cover loss alerts (weekly)"
+    elif topic == 'alerts/viirs':
+        return "VIIRS Active fires"
     else:
         return "Unspecified"
 
