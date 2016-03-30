@@ -25,7 +25,7 @@ from google.appengine.api import urlfetch
 
 from dateutil.parser import parse as parseDate
 
-LABELS = ["Agriculture", "Mixed agriculture and forest", "Secondary forest", "Primary forest", "Mixed forest and grassland", "Grassland / shrub", "Swamp", "Settlements", "Bare land", "Water bodies", "Snow / ice"]
+LABELS = ["Snow / ice","Agriculture","Mixed agriculture and forest", "Secondary forest", "Primary forest", "Mixed forest and grassland", "Grassland / shrub", "Swamp", "Settlements","Bare land","Water bodies"]
 
 def _generate_rendering_rule(period):
     start_year = period[0]
@@ -102,7 +102,7 @@ def _get_histogram(period, esri_json):
 
 def _aggregate_histogram_by_year(period, histogram):
     """Groups the given histogram value by year and land type"""
-
+    print histogram
     years = {}
 
     if histogram is not None:
