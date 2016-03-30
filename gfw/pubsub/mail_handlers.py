@@ -87,7 +87,8 @@ def is_count_zero(topic, data):
     value since the last alert"""
 
     simple_results = ['alerts/forma', 'alerts/terra', 'alerts/quicc',
-            'alerts/prodes', 'alerts/glad', 'alerts/guyra']
+            'alerts/prodes', 'alerts/glad', 'alerts/guyra',
+            'alerts/viirs']
 
     if topic in simple_results:
         count = data.get('value')
@@ -112,6 +113,8 @@ def display_counts(topic, data):
         count = str(data.get('value')) + " alerts"
     elif topic == 'alerts/prodes' or topic == 'alerts/guyra':
         count = str(data.get('value')) + " ha"
+    elif topic == 'alerts/viirs':
+        count = str(data.get('value')) + " NASA Active Fires Alerts"
     elif topic == 'alerts/sad':
         a = data.get('rows')[0]
         b = data.get('rows')[1]
@@ -155,10 +158,16 @@ def send_mail_notification(subscription, email, user_profile, topic, data, summa
 
     params = data.get('params')
 
-    begin = datetime.datetime.strptime(
-        params.get('begin'), "%m-%d-%Y").strftime('%d %b %Y')
-    end = datetime.datetime.strptime(
-        params.get('end'), "%m-%d-%Y").strftime('%d %b %Y')
+    if topic == 'alerts/viirs':
+        begin = datetime.datetime.strptime(
+            params.get('begin'), "%Y-%m-%d").strftime('%d %b %Y')
+        end = datetime.datetime.strptime(
+            params.get('end'), "%Y-%m-%d").strftime('%d %b %Y')
+    else:
+        begin = datetime.datetime.strptime(
+            params.get('begin'), "%m-%d-%Y").strftime('%d %b %Y')
+        end = datetime.datetime.strptime(
+            params.get('end'), "%m-%d-%Y").strftime('%d %b %Y')
 
     alert_name = params.get('name') or "Unnamed Subscription"
     alert_link = subscription.url
