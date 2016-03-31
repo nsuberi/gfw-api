@@ -28,6 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/mandrill'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/docopt'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/requests/requests'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/sparkpost'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
 def _load_config(name):

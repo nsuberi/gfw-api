@@ -25,23 +25,10 @@ from google.appengine.api import urlfetch
 
 from gfw.common import gfw_url
 
-mandrill_key = runtime_config.get('mandrill_api_key')
-mandrill_url = "https://mandrillapp.com/api/1.0/messages/send-template.json"
+from sparkpost import SparkPost
 
-def send_mandrill_email(template_name, template_content, message):
-    "Send Mandrill Email"
-    payload = {"template_content": template_content,
-               "template_name": template_name,
-               "message": message,
-               "key": mandrill_key,
-               "async": "false"}
-
-    result = urlfetch.fetch(mandrill_url,
-                            payload=json.dumps(payload),
-                            method=urlfetch.POST,
-                            headers={'Content-Type': 'application/json'})
-
-    return result
+sparkpost_key = runtime_config.get('sparkpost_api_key')
+sparkpost = SparkPost(sparkpost_key)
 
 def alert_description(topic):
     descriptions = {
@@ -186,49 +173,30 @@ def send_mail_notification(subscription, email, user_profile, topic, data, summa
     unsubscribe_url = '%s/v2/subscriptions/%s/unsubscribe' % \
         (runtime_config['APP_BASE_URL'], str(subscription.key.id()))
 
-    template_content = []
-    message = {
-        'global_merge_vars': [
+    response = sparkpost.transmissions.send(
+        recipients=[
             {
-                'content': area, 'name': 'selected_area'
-            },
-            {
-                'content': display_counts(topic, data), 'name': 'alert_count'
-            },
-            {
-                'content': alert_type, 'name': 'alert_type'
-            },
-            {
-                'content': begin + " to " + end, 'name': 'alert_date'
-            },
-            {
-                'content': summary, 'name': 'alert_summary'
-            },
-            {
-                'content': alert_name, 'name': 'alert_name'
-            },
-            {
-                'content': alert_link, 'name': 'alert_link'
-            },
-            {
-                'content': unsubscribe_url, 'name': 'unsubscribe_url'
-            },
-            {
-                'content': subscriptions_url, 'name': 'subscriptions_url'
-            }],
-        'to': [
-            {
-                'email': email,
-                'name': user_profile.name or email,
-                'type': 'to'}],
-        'track_clicks': True,
-        'merge_language': 'handlebars',
-        'track_opens': True
-    }
+                'address': {
+                    'email': email,
+                    'name': user_profile.name or email
+                }
+            }
+        ],
+        template='forest-change-notification',
+        substitution_data={
+            'selected_area': area,
+            'alert_count': display_counts(topic, data),
+            'alert_type': alert_type,
+            'alert_date': begin + " to " + end,
+            'alert_summary': summary,
+            'alert_name': alert_name,
+            'alert_link': alert_link,
+            'unsubscribe_url': unsubscribe_url,
+            'subscriptions_url': subscriptions_url
+        }
+    )
 
-    result = send_mandrill_email("forest-change-notification", template_content, message)
-
-    logging.info("Send Notification Email Result: %s" % result.content)
+    logging.info("Send Notification Email Result: %s" % response)
 
 def send_confirmation_email(email, user_name, urlsafe):
     """Sends a confirmation email for a subscription request.
@@ -242,27 +210,24 @@ def send_confirmation_email(email, user_name, urlsafe):
 
     url_base = runtime_config['APP_BASE_URL']
     conf_url = '%s/pubsub/sub-confirm?token=%s' % (url_base, urlsafe)
-    template_content = []
-    message = {
-        'global_merge_vars': [
-            {
-                'content': conf_url, 'name': 'confirmation_url'
-            }, {
-                'content': alert_description(topic), 'name': 'dataset_name'
-            }],
-        'to': [
-            {
-                'email': email,
-                'name': user_name or email,
-                'type': 'to'}],
-        'track_clicks': True,
-        'merge_language': 'handlebars',
-        'track_opens': True
-    }
 
-    result = send_mandrill_email("subscription-confirmation", template_content, message)
+    response = sparkpost.transmissions.send(
+        recipients=[
+            {
+                'address': {
+                    'email': email,
+                    'name': user_name or email
+                }
+            }
+        ],
+        template='subscription-confirmation',
+        substitution_data={
+            'confirmation_url': conf_url,
+            'dataset_name': alert_description(topic)
+        }
+    )
 
-    logging.info("Send Confirmation Email Result: %s" % result.content)
+    logging.info("Send Confirmation Email Result: %s" % response)
 
 
 def receive_confirmation_email(urlsafe):

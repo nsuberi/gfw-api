@@ -28,7 +28,11 @@ from appengine_config import runtime_config
 #
 # SHARED CONSTANTS/TEMPLATES
 #
-ALLOWED_DOMAINS = ['www.globalforestwatch.org', 'globalforestwatch.org', 'staging.globalforestwatch.org', 'localhost:5000']
+ALLOWED_DOMAINS = [
+    'api-gateway-staging.globalforestwatch.org',
+    'www.globalforestwatch.org', 'globalforestwatch.org',
+    'staging.globalforestwatch.org', 'localhost:5000'
+]
 APP_VERSION = runtime_config.get('APP_VERSION')
 APP_BASE_URL = runtime_config.get('APP_BASE_URL')
 IS_DEV = runtime_config.get('IS_DEV')
