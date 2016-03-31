@@ -71,32 +71,23 @@ handlers:
   script: admin.handlers
   login: admin
 
-# Forest change handlers
 - url: /forest-change
   script: gfw.forestchange.api.handlers
-
-# Country handlers
-- url: /countries.*
-  script: gfw.countries.api.handlers
 
 - url: /forest-change/(forma-alerts|umd-loss-gain|imazon-alerts|quicc-alerts|nasa-active-fires|terrai-alerts|glad-alerts|prodes-loss|biomass-loss|guyra-loss|viirs-active-fires|loss-by-type).*
   script: gfw.forestchange.api.handlers
 
-# Stories
+- url: /countries.*
+  script: gfw.countries.api.handlers
+
 - url: /stories.*
   script: gfw.stories.handlers
 
-# User Info
 - url: /user.*
   script: gfw.user.api.handlers
 
-- url: /metadata.*
-  script: gfw.metadata.handlers
-
 - url: /geostore.*
   script: gfw.geostore.api.handlers
-
-## Version 2
 
 - url: /v2/subscriptions.*
   script: gfw.v2.subscriptions.api.handlers
@@ -104,9 +95,11 @@ handlers:
 - url: /v2/migrations.*
   script: gfw.v2.migrations.api.handlers
 
-
 - url: /metadata.*
   script: gfw.metadata.handlers
+
+- url: /urthecast.*
+  script: gfw.urthecast.handler.app
 
 # PubSub
 - url: /.*
