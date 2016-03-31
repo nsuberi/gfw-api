@@ -39,7 +39,10 @@ class UserApi(UserAuthMiddleware):
             profile.is_new = True
             profile.put()
 
-        self.complete('respond', profile.to_dict())
+        profile = profile.to_dict()
+        profile['id'] = self.user.key.id()
+
+        self.complete('respond', profile)
 
     def put(self):
         profile = self.__get_profile()
