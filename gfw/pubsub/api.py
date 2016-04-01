@@ -31,6 +31,8 @@ from gfw.forestchange import api, forma, terrai, imazon, prodes, quicc, umd, guy
 from appengine_config import runtime_config
 
 from gfw.pubsub.mail_handlers import send_mail_notification, send_confirmation_email, receive_confirmation_email
+from gfw.pubsub.mail_handlers import is_count_zero, display_counts
+
 from gfw.pubsub.subscription import Subscription
 
 from gfw.user.gfw_user import GFWUser
@@ -48,7 +50,7 @@ class Event(ndb.Model):
     def latest(cls, topic):
         """Return the latest event for supplied topic."""
         q = cls.query().filter(cls.topic == topic)
-        event = q.order(cls.created).fetch(1)
+        event = q.order(-cls.created).fetch(1)
         if event:
             return event[0]
 
@@ -282,7 +284,6 @@ def notify(params):
         user_profile = sub.user_id.get().get_profile()
         send_mail_notification(sub, sub.email, user_profile, event.topic, data, meta_str(get_meta(event.topic)))
 
-
 def multicast(params):
     """Multicast event notifications.
 
@@ -360,6 +361,8 @@ class MulticastHandler(CORSRequestHandler):
             logging.exception(e)
             self.write_error(400, e.message)
 
+import os
+from google.appengine.ext.webapp import template
 
 class PublishHandler(CORSRequestHandler):
 
@@ -370,11 +373,9 @@ class PublishHandler(CORSRequestHandler):
 
     def get(self):
         try:
-            logging.info("Publish Handler: %s" % self.args())
-            params = ArgProcessor.process(self.args())
-            publish(params)
-            self.response.set_status(201)
-            self.complete('respond', {'success': True})
+            template_values = {}
+            template_path = os.path.join(os.path.dirname(__file__), '/templates/index.html')
+            self.response.out.write(template.render(path, template_values))
         except (Exception), e:
             logging.exception(e)
             self.write_error(400, e.message)
@@ -401,9 +402,120 @@ class SubscribeConfirmHandler(CORSRequestHandler):
             logging.exception(e)
             self.write_error(400, e.message)
 
+import os
+from google.appengine.ext.webapp import template
+
+TOPICS = {
+    'alerts/terra': 'Terra-i',
+    'alerts/sad': 'SAD',
+    'alerts/quicc': 'QUICC',
+    'alerts/treeloss': 'Tree cover loss',
+    'alerts/treegain': 'Tree cover gain',
+    'alerts/prodes': 'PRODES deforestation',
+    'alerts/guyra': 'Gran Chaco deforestation',
+    'alerts/glad': 'GLAD Tree Cover Loss Alerts'
+}
+
+def get_subscription_previews(topic, begin, end):
+    subs = Subscription.query(Subscription.topic == topic)
+
+    alerts = []
+    for sub in subs.iter():
+        params = copy.copy(sub.params)
+        params['begin'] = begin.strftime('%Y-%m-%d')
+        params['end'] = end.strftime('%Y-%m-%d')
+
+        if 'geom' in params:
+            geom = params['geom']
+            if 'geometry' in geom:
+                geom = geom['geometry']
+            params['geojson'] = json.dumps(geom)
+
+        action, data = get_deltas(sub.topic, params)
+        if (is_count_zero(sub.topic, data) == False):
+            alerts.append({
+                'count': display_counts(topic, data),
+                'subscription': sub
+            })
+
+    return alerts
+
+def send_subscription_alerts(topic, begin, end):
+    subs = Subscription.query(Subscription.topic == topic)
+
+    for sub in subs.iter():
+        params = copy.copy(sub.params)
+        params['begin'] = begin
+        params['end'] = end
+
+        if 'geom' in params:
+            geom = params['geom']
+            if 'geometry' in geom:
+                geom = geom['geometry']
+            params['geojson'] = json.dumps(geom)
+
+        action, data = get_deltas(sub.topic, params)
+        user_profile = sub.user_id.get().get_profile()
+        send_mail_notification(sub, sub.email, user_profile, topic, data, meta_str(get_meta(topic)))
+
+class ManagementHandler(CORSRequestHandler):
+    def post(self):
+        params = self.args()
+        if 'topic' in params:
+            selected_topic = params['topic']
+        else:
+            selected_topic = 'alerts/glad'
+
+        event = Event(topic=selected_topic)
+
+        if 'begin' in params:
+            begin_date = params['begin']
+            begin_date = datetime.datetime.strptime(begin_date, '%Y-%m-%d')
+        else:
+            begin_date = event.latest_date(selected_topic)
+            if begin_date:
+                begin_date = datetime.datetime.strptime(begin_date, "%m-%d-%Y")
+
+        if 'end' in params:
+            end_date = params['end']
+            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        else:
+            end_date = event.date
+            end_date = datetime.datetime.strptime(end_date, "%m-%d-%Y")
+
+        if 'send' in params:
+            event.put()
+            send_subscription_alerts(selected_topic, begin_date.strftime("%m-%d-%Y"), end_date.strftime("%m-%d-%Y"))
+            self.redirect('/pubsub')
+
+        alerts = []
+        if 'preview' in params:
+            alerts = get_subscription_previews(selected_topic, begin_date, end_date)
+
+        if begin_date:
+            formatted_date = begin_date.strftime('%Y-%m-%d')
+        else:
+            formatted_date = None
+
+        template_values = {
+            'topics': TOPICS,
+            'selected_topic': selected_topic,
+            'begin_date': formatted_date,
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'alerts': alerts,
+            'preview': 'preview' in params
+        }
+
+        template_path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
+        self.response.out.write(template.render(template_path, template_values))
 
 handlers = webapp2.WSGIApplication([
-    (r'/pubsub/pub', PublishHandler),
+    webapp2.Route(
+        r'/pubsub',
+        handler=ManagementHandler,
+        handler_method='post',
+        methods=['GET', 'POST']
+    ),
     (r'/pubsub/pub-multicast', MulticastHandler),
     (r'/pubsub/sub-confirm', SubscribeConfirmHandler),
     (r'/pubsub/pub-event-notification', NotificationHandler)],

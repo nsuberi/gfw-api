@@ -41,6 +41,9 @@ builtins:
 
 handlers:
 
+- url: /assets
+  static_dir: gfw/assets
+
 ## Earth Engine dep:
 - url: /oauth2callback
   script: oauth2client.appengine.application
