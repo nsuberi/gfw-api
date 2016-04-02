@@ -30,7 +30,12 @@ from gfw.models.event import Event
 from gfw.models.topic import Topic
 from gfw.models.subscription import Subscription
 
-def get_subscription_previews(event):
+def get_subscription_emails(event):
+    subscriptions = Subscription.query(Subscription.topic ==
+            event.topic, Subscription.confirmed == True)
+    return [s.email for s in subscriptions.iter()]
+
+def get_subscriptions(event):
     subscriptions = Subscription.query(Subscription.topic ==
             event.topic, Subscription.confirmed == True)
 
@@ -46,7 +51,7 @@ def get_subscription_previews(event):
 
     return alerts
 
-def send_subscription_alerts(event):
+def send_subscriptions(event):
     taskqueue.add(url='/manage/pubsub/tasks/publish',
         queue_name='pubsub-publish',
         params=dict(event=event.key.urlsafe()))
@@ -72,12 +77,16 @@ class PubSubManagementApi(CORSRequestHandler):
 
         if 'send' in params:
             event.put()
-            send_subscription_alerts(event)
+            send_subscriptions(event)
             self.redirect('/manage/pubsub?success=true')
 
         alerts = []
         if 'preview' in params:
-            alerts = get_subscription_previews(event)
+            alerts = get_subscriptions(event)
+
+        emails = []
+        if 'preview_emails' in params:
+            emails = get_subscription_emails(event)
 
         template_values = {
             'topics': Topic.all(),
@@ -85,7 +94,9 @@ class PubSubManagementApi(CORSRequestHandler):
             'begin_date': event.begin.strftime('%Y-%m-%d'),
             'end_date': event.end.strftime('%Y-%m-%d'),
             'alerts': alerts,
+            'emails': emails,
             'preview': 'preview' in params,
+            'preview_emails': 'preview_emails' in params,
             'success': 'success' in params
         }
 

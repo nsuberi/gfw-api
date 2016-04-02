@@ -67,7 +67,8 @@
             </div>
             <div class="form-group">
               <div class="col-sm-offset-4 col-sm-6">
-                <button type="submit" name="preview" class="btn btn-primary">Preview emails</button>
+                <button type="submit" name="preview" class="btn btn-primary">Preview</button>
+                <button type="submit" name="preview_emails" class="btn btn-primary">Preview (emails only)</button>
               </div>
             </div>
           </div>
@@ -81,9 +82,37 @@
                   </div>
                 </div>
 
+                <p>
+                  Emails will be sent to:
+                </p>
+
                 <ul>
                   {% for alert in alerts %}
                     <li>{{alert.count}}, {{alert.subscription.email}}</li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                No alerts need to be sent (either there are no subscriptions
+                for this topic, or no subscriptions have more than zero
+                alerts).
+              {% endif %}
+            {% endif %}
+
+            {% if preview_emails %}
+              {% if emails|length > 0 %}
+                <div class="form-group">
+                  <div class="col-sm-3">
+                    <button type="submit" name="send" class="btn btn-danger">Send emails</button>
+                  </div>
+                </div>
+
+                <p>
+                  Emails will be sent to:
+                </p>
+
+                <ul>
+                  {% for email in emails %}
+                    <li>{{email}}</li>
                   {% endfor %}
                 </ul>
               {% else %}
