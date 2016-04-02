@@ -29,6 +29,10 @@ class GFWUser(models.User):
         if profile_key:
             return ndb.Key('UserProfile', profile_key).get()
 
+    def make_admin(self):
+        self.admin = True
+        self.put()
+
     def _pre_put_hook(self):
         taskqueue.add(url='/user/tasks/tester',
             queue_name='user-tester-sign-up',
