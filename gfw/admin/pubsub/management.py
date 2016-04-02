@@ -31,7 +31,8 @@ from gfw.models.topic import Topic
 from gfw.models.subscription import Subscription
 
 def get_subscription_previews(event):
-    subscriptions = Subscription.query(Subscription.topic == event.topic)
+    subscriptions = Subscription.query(Subscription.topic ==
+            event.topic, Subscription.confirmed == True)
 
     alerts = []
     for subscription in subscriptions.iter():

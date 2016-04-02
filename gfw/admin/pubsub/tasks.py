@@ -28,7 +28,8 @@ from google.appengine.ext import ndb
 class PubSubTaskApi(CORSRequestHandler):
     def publish_subscriptions(self):
         event = ndb.Key(urlsafe=self.args().get('event')).get()
-        subscriptions = Subscription.query(Subscription.topic == event.topic)
+        subscriptions = Subscription.query(Subscription.topic ==
+                event.topic, Subscription.confirmed == True)
 
         for subscription in subscriptions.iter():
             mailer = SubscriptionMailer(subscription)
