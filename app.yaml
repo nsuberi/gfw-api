@@ -102,3 +102,6 @@ handlers:
 
 - url: /urthecast.*
   script: gfw.urthecast.handler.app
+
+- url: /.*
+  script: gfw.urthecast.handler.app

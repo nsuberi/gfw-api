@@ -25,7 +25,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import template
 
-from gfw.middlewares.cors import CORSRequestHandler
+from gfw.middlewares.user import AdminAuthMiddleware
 from gfw.models.event import Event
 from gfw.models.topic import Topic
 from gfw.models.subscription import Subscription
@@ -56,8 +56,9 @@ def send_subscriptions(event):
         queue_name='pubsub-publish',
         params=dict(event=event.key.urlsafe()))
 
-class PubSubManagementApi(CORSRequestHandler):
+class PubSubManagementApi(AdminAuthMiddleware):
     def post(self):
+
         params = self.args()
         if 'topic' in params:
             selected_topic = params['topic']

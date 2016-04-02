@@ -27,3 +27,14 @@ class UserAuthMiddleware(CORSRequestHandler):
             return self.write_error(401, 'Unauthorised')
         else:
             webapp2.RequestHandler.dispatch(self)
+
+class AdminAuthMiddleware(CORSRequestHandler):
+    def dispatch(self):
+        options_request = (self.request.method == "OPTIONS")
+        self.user = self.request.user if self.request.user else None
+        is_admin = getattr(self.user, 'admin', False)
+
+        if (not options_request and self.user is None) or (is_admin == False):
+            return self.write_error(401, 'Unauthorised')
+        else:
+            webapp2.RequestHandler.dispatch(self)
