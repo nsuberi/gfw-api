@@ -18,6 +18,7 @@
 import webapp2
 
 from gfw.v2.subscriptions.handlers import SubscriptionsApi
+from gfw.v2.subscriptions.tasks import SubscriptionsTaskApi
 
 routes = [
   webapp2.Route(
@@ -73,7 +74,13 @@ routes = [
     r'/v2/subscriptions<:/?.*>',
     handler=SubscriptionsApi,
     methods=['OPTIONS']
-  )
+  ),
+
+  webapp2.Route(r'/v2/subscriptions/tasks/confirmation',
+    handler=SubscriptionsTaskApi,
+    handler_method='send_confirmation',
+    methods=['POST'])
+
 ]
 
 handlers = webapp2.WSGIApplication(routes, debug=False)

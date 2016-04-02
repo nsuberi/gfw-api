@@ -18,6 +18,7 @@
 import copy
 import json
 import datetime
+import logging
 
 from appengine_config import runtime_config
 
@@ -57,7 +58,7 @@ class SubscriptionMailer:
             user_profile = self.subscription.user_id.get().get_profile()
             name = getattr(user_profile, 'name', email)
 
-            return sparkpost.transmissions.send(
+            response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
                 template='forest-change-notification',
                 substitution_data={
@@ -66,9 +67,11 @@ class SubscriptionMailer:
                     'alert_type': topic.description,
                     'alert_date': begin + " to " + end,
                     'alert_summary': summary_for_topic(topic),
-                    'alert_name': self.subscription.name(),
-                    'alert_link': self.subscription.name(),
+                    'alert_name': self.subscription.formatted_name(),
+                    'alert_link': self.subscription.url,
                     'unsubscribe_url': unsubscribe_url,
                     'subscriptions_url': subscriptions_url
                 }
             )
+
+            logging.info("Send Subscription Email Result: %s" % response)

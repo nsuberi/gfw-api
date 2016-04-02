@@ -15,17 +15,19 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-confirmation
-  rate: 35/s
-- name: pubsub-publish
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: user-profile
-  rate: 35/s
-- name: log
-  rate: 35/s
+import webapp2
+
+from gfw.middlewares.cors import CORSRequestHandler
+from gfw.mailers.subscription_confirmation import SubscriptionConfirmationMailer
+from gfw.models.subscription import Subscription
+
+from google.appengine.ext import ndb
+
+class SubscriptionsTaskApi(CORSRequestHandler):
+    def send_confirmation(self):
+        token = self.args().get('subscription')
+        subscription = ndb.Key(urlsafe=token).get()
+
+        if subscription:
+            mailer = SubscriptionConfirmationMailer(subscription)
+            mailer.send()

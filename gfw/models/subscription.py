@@ -23,11 +23,11 @@ import json
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import users
-
-from gfw.admin.pubsub.mail_handlers import send_confirmation_email
+from google.appengine.api import taskqueue
 
 from gfw.user.gfw_user import GFWUser
 from gfw.models.topic import Topic
+from gfw.mailers.subscription_confirmation import SubscriptionConfirmationMailer
 
 class Subscription(ndb.Model):
     name      = ndb.StringProperty()
@@ -53,8 +53,6 @@ class Subscription(ndb.Model):
 
     kind = 'Subscription'
 
-    """ Class Methods """
-
     @classmethod
     def create(cls, params, user=None):
         """Create subscription if email and, iso or geom is present"""
@@ -70,52 +68,6 @@ class Subscription(ndb.Model):
         subscription.put()
         return subscription
 
-    #
-    #   Query Helpers
-    #
-
-    @classmethod
-    def by_topic(cls, topic):
-        """Return all confirmed Subscription entities for supplied topic."""
-        return cls.query(cls.topic == topic, cls.confirmed == True).iter()
-
-    @classmethod
-    def with_token(cls, token):
-        """Return subscription for a given token"""
-        token_type = type(token)
-        if (token_type is str) or (token_type is unicode):
-            subscription = ndb.Key(urlsafe=token).get()
-            if subscription.key.kind()==cls.kind:
-                subscription = subscription
-            else:
-                subscription = False
-        else:
-            subscription = token.get()
-        return subscription
-
-    @classmethod
-    def with_confirmation(cls):
-        """Return all confirmed Subscription entities"""
-        return cls.query(cls.confirmed == True).iter()
-
-    @classmethod
-    def without_confirmation(cls):
-        """Return all unconfirmed Subscription entities"""
-        return cls.query(cls.confirmed == True).iter()
-
-    @classmethod
-    def with_topic(cls, topic):
-        """Return all confirmed Subscription entities for supplied topic."""
-        return cls.query(cls.topic == topic, cls.confirmed == True).iter()
-
-    @classmethod
-    def with_email(cls, email):
-        return cls.query(cls.email == email).iter()
-
-    #
-    # Subscriptions
-    #
-
     @classmethod
     def subscribe(cls, params, user):
         subscription = Subscription.create(params, user)
@@ -126,18 +78,6 @@ class Subscription(ndb.Model):
             return False
 
     @classmethod
-    def unsubscribe_by_token(cls, token):
-        subscription = cls.with_token(token)
-        if subscription:
-            return subscription.unsubscribe()
-
-    @classmethod
-    def unsubscribe_all(cls, topic, email):
-        subs = cls.query(cls.topic == topic, cls.email == email)
-        for sub in subs:
-            sub.unsubscribe()
-
-    @classmethod
     def confirm_by_id(cls, id):
         subscription = cls.get_by_id(int(id))
         if subscription:
@@ -145,27 +85,21 @@ class Subscription(ndb.Model):
         else:
             return False
 
-    """ Instance Methods """
-
-    def send_confirmation_email(cls):
-        user_profile = cls.user_id.get().get_profile()
-
-        name = None
-        if hasattr(user_profile, 'name'):
-            name = user_profile.name
-
-        send_confirmation_email(cls.email, name, cls.key.urlsafe())
+    def send_confirmation_email(self):
+        taskqueue.add(url='/v2/subscriptions/tasks/confirmation',
+            queue_name='pubsub-confirmation',
+            params=dict(subscription=self.key.urlsafe()))
 
     def to_dict(self):
         result = super(Subscription,self).to_dict()
         result['key'] = self.key.id()
         return result
-    #
-    # Subscriptions
-    #
 
-    def name(self):
-        return self.params.get('name') or "Unnamed Subscription"
+    def formatted_name(self):
+        if (not self.name) or (len(self.name) == 0):
+            return "Unnamed Subscription"
+        else:
+            return self.name
 
     def confirm(self):
         self.confirmed = True
