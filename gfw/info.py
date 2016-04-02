@@ -20,7 +20,7 @@ import webapp2
 from google.appengine.api import modules
 
 from gfw import common
-from gfw.common import CORSRequestHandler
+from gfw.middlewares.cors import CORSRequestHandler
 
 class InfoApi(CORSRequestHandler):
     def get(self):

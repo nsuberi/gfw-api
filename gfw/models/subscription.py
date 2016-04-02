@@ -17,20 +17,18 @@
 
 """This module supports pubsub."""
 import logging
-
-from gfw.mailers import subscribe_mailer
+import copy
+import json
 
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 from google.appengine.api import users
 
-from gfw.pubsub.mail_handlers import send_confirmation_email
+from gfw.admin.pubsub.mail_handlers import send_confirmation_email
 
 from gfw.user.gfw_user import GFWUser
+from gfw.models.topic import Topic
 
-#
-# Model
-#
 class Subscription(ndb.Model):
     name      = ndb.StringProperty()
     topic     = ndb.StringProperty()
@@ -140,13 +138,12 @@ class Subscription(ndb.Model):
             sub.unsubscribe()
 
     @classmethod
-    def confirm_by_token(cls, token):
-        subscription = cls.with_token(token)
+    def confirm_by_id(cls, id):
+        subscription = cls.get_by_id(int(id))
         if subscription:
             return subscription.confirm()
         else:
             return False
-
 
     """ Instance Methods """
 
@@ -167,6 +164,9 @@ class Subscription(ndb.Model):
     # Subscriptions
     #
 
+    def name(self):
+        return self.params.get('name') or "Unnamed Subscription"
+
     def confirm(self):
         self.confirmed = True
         return self.put()
@@ -179,3 +179,17 @@ class Subscription(ndb.Model):
 
     def unsubscribe(self):
         return self.key.delete()
+
+    def run_analysis(self, begin, end):
+        params = copy.copy(self.params)
+        params['begin'] = begin.strftime('%Y-%m-%d')
+        params['end'] = end.strftime('%Y-%m-%d')
+
+        if 'geom' in params:
+            geom = params['geom']
+            if 'geometry' in geom:
+                geom = geom['geometry']
+            params['geojson'] = json.dumps(geom)
+
+        topic = Topic.get_by_id(self.topic)
+        return topic.execute(params)

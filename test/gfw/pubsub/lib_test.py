@@ -23,7 +23,7 @@ import unittest
 import webapp2
 import webtest
 
-from gfw.pubsub.lib import gfw_map_url
+from gfw.admin.pubsub.lib import gfw_map_url
 
 class PubSubLibTest(common.BaseTest):
     def testNoParams(self):

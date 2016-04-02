@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pub/Sub Management</title>
+
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      .main-container {
+        margin-top: 75px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Pub/Sub Management</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container main-container">
+      <div class="row">
+        {% if success %}
+          <div class="alert alert-success">
+            <strong>Success!</strong> The emails are being sent as you
+            read this.
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="row">
+        <form class="form-horizontal" method="post">
+          <div class="col-md-6">
+            <p>
+              Select a topic and a date range. If an alert has already
+              been sent for a topic, the start date will be
+              pre-populated with the date of the alert.
+            </p>
+
+            <div class="form-group">
+              <label for="topic" class="col-sm-4 control-label">Topic</label>
+              <div class="col-sm-6">
+                <select id="topic" name="topic" class="form-control">
+                  {% for topic in topics %}
+                    <option value="{{topic.id}}" {% if topic.id == selected_topic %}selected{% endif %}>{{topic.name}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="begin" class="col-sm-4 control-label">Start Date</label>
+              <div class="col-sm-6">
+                <input type="date" class="form-control" id="begin" name="begin" value="{{begin_date}}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="end" class="col-sm-4 control-label">End Date</label>
+              <div class="col-sm-6">
+                <input type="date" class="form-control" id="end" name="end" value="{{end_date}}">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-offset-4 col-sm-6">
+                <button type="submit" name="preview" class="btn btn-primary">Preview emails</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            {% if preview %}
+              {% if alerts|length > 0 %}
+                <div class="form-group">
+                  <div class="col-sm-3">
+                    <button type="submit" name="send" class="btn btn-danger">Send emails</button>
+                  </div>
+                </div>
+
+                <ul>
+                  {% for alert in alerts %}
+                    <li>{{alert.count}}, {{alert.subscription.email}}</li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                No alerts need to be sent (either there are no subscriptions
+                for this topic, or no subscriptions have more than zero
+                alerts).
+              {% endif %}
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.2.2.min.js" integrity="sha256-36cp2Co+/62rEAAYHLmRCPIych47CvdM+uTBJwSzWjI=" crossorigin="anonymous"></script>
+    <script>
+      $('#topic').on('change', function() {
+        var topic = $(this).val();
+        window.location.href="?topic="+topic;
+      });
+    </script>
+  </body>
+</html>

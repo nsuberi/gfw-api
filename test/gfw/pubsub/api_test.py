@@ -25,7 +25,7 @@ import webtest
 
 from datetime import datetime
 
-from gfw.pubsub import api
+from gfw.admin.pubsub import api
 
 class SubscribeConfirmTest(common.BaseTest):
 

@@ -49,6 +49,13 @@ routes = [
   ),
 
   webapp2.Route(
+    r'/v2/subscriptions/<subscription_id>/confirm',
+    handler=SubscriptionsApi,
+    handler_method='confirm',
+    methods=['GET']
+  ),
+
+  webapp2.Route(
     r'/v2/subscriptions/<subscription_id>/send_confirmation',
     handler=SubscriptionsApi,
     handler_method='send_confirmation',

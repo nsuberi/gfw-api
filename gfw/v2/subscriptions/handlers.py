@@ -19,7 +19,7 @@ import json
 import webapp2
 
 from gfw.middlewares.user import UserAuthMiddleware
-from gfw.pubsub.subscription import Subscription
+from gfw.models.subscription import Subscription
 from gfw.common import gfw_url
 
 class SubscriptionsApi(UserAuthMiddleware):
@@ -43,9 +43,17 @@ class SubscriptionsApi(UserAuthMiddleware):
 
         if subscription:
             subscription.unconfirm();
+            self.redirect(gfw_url('my_gfw/subscriptions',
+                {'subscription_confirmation_sent': 'true'}))
+        else:
+            self.write_error(404, 'Not Found')
 
-        self.redirect(gfw_url('my_gfw/subscriptions',
-            {'subscription_confirmation_sent': 'true'}))
+    def confirm(self, subscription_id):
+        if Subscription.confirm_by_id(subscription_id):
+            self.redirect(gfw_url('my_gfw/subscriptions',
+                {'subscription_confirmed': 'true'}))
+        else:
+            self.write_error(404, 'Not Found')
 
     def unsubscribe(self, subscription_id):
         subscription = Subscription.get_by_id(int(subscription_id))

@@ -48,10 +48,6 @@ handlers:
 - url: /oauth2callback
   script: oauth2client.appengine.application
 
-- url: /_ah/mail/sub.*
-  script: gfw.pubsub.handlers
-  login: admin
-
 - url: /_info
   script: gfw.info.handlers
 
@@ -95,6 +91,9 @@ handlers:
 - url: /v2/subscriptions.*
   script: gfw.v2.subscriptions.api.handlers
 
+- url: /manage/pubsub.*
+  script: gfw.admin.pubsub.api.handlers
+
 - url: /v2/migrations.*
   script: gfw.v2.migrations.api.handlers
 
@@ -103,7 +102,3 @@ handlers:
 
 - url: /urthecast.*
   script: gfw.urthecast.handler.app
-
-# PubSub
-- url: /.*
-  script: gfw.pubsub.api.handlers

@@ -15,7 +15,7 @@ import traceback
 from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
 
-from gfw.pubsub.subscription import Subscription
+from gfw.models.subscription import Subscription
 from gfw.v2.migrations.migration import Migration
 
 from appengine_config import runtime_config

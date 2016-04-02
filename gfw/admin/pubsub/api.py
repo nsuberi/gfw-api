@@ -15,15 +15,24 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-publish
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: user-profile
-  rate: 35/s
-- name: log
-  rate: 35/s
+import webapp2
+
+from gfw import common
+from gfw.admin.pubsub.tasks import PubSubTaskApi
+from gfw.admin.pubsub.management import PubSubManagementApi
+
+handlers = webapp2.WSGIApplication([
+
+    webapp2.Route(
+        r'/manage/pubsub',
+        handler=PubSubManagementApi,
+        handler_method='post',
+        methods=['GET', 'POST']
+    ),
+
+    webapp2.Route(r'/manage/pubsub/tasks/publish',
+        handler=PubSubTaskApi,
+        handler_method='publish_subscriptions',
+        methods=['POST'])
+
+], debug=common.IS_DEV)

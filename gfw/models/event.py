@@ -15,15 +15,25 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-publish
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: user-profile
-  rate: 35/s
-- name: log
-  rate: 35/s
+"""This NDB entity stores that dates when subscription alerts are sent"""
+
+import copy
+import datetime
+
+from google.appengine.ext import ndb
+
+class Event(ndb.Model):
+    """Model for publication events."""
+    topic = ndb.StringProperty()
+
+    begin = ndb.DateTimeProperty(
+        auto_now_add=True, default=datetime.datetime.now())
+    end = ndb.DateTimeProperty(
+        auto_now_add=True, default=datetime.datetime.now())
+
+    @classmethod
+    def latest_for_topic(cls, topic):
+        q = cls.query().filter(cls.topic == topic)
+        event = q.order(-cls.begin).fetch(1)
+        if event:
+            return event[0]

@@ -24,7 +24,7 @@ import webapp2
 import webtest
 
 from gfw.user.gfw_user import GFWUser
-from gfw.pubsub.subscription import Subscription
+from gfw.models.subscription import Subscription
 from gfw.v2.migrations.migration import Migration
 
 class MigrationTest(common.BaseTest):

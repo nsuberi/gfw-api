@@ -18,8 +18,8 @@
 from appengine_config import runtime_config
 from google.appengine.ext import ndb
 
-from gfw.pubsub.subscription import Subscription
-from gfw.pubsub.lib import gfw_map_url
+from gfw.models.subscription import Subscription
+from gfw.admin.pubsub.lib import gfw_map_url
 
 ALLOWED_TOPICS = [
     'alerts/forma', 'alerts/terra', 'alerts/sad', 'alerts/quicc',

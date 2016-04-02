@@ -25,7 +25,7 @@ from gfw.common import gfw_url
 from appengine_config import runtime_config
 
 from gfw.v2.migrations.migration import Migration
-from gfw.pubsub.subscription import Subscription
+from gfw.models.subscription import Subscription
 
 class MigrationsApi(CORSRequestHandler):
     def dispatch(self):
