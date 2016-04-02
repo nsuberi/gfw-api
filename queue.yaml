@@ -21,7 +21,9 @@ queue:
   rate: 35/s
 - name: pubsub-confirmation
   rate: 35/s
-- name: pubsub-publish
+- name: pubsub-publish-sub
+  rate: 35/s
+- name: pubsub-publish-subs
   rate: 35/s
 - name: user-tester-sign-up
   rate: 35/s

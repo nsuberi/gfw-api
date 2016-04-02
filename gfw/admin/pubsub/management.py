@@ -52,8 +52,8 @@ def get_subscriptions(event):
     return alerts
 
 def send_subscriptions(event):
-    taskqueue.add(url='/manage/pubsub/tasks/publish',
-        queue_name='pubsub-publish',
+    taskqueue.add(url='/manage/pubsub/tasks/publish_subscriptions',
+        queue_name='pubsub-publish-subs',
         params=dict(event=event.key.urlsafe()))
 
 class PubSubManagementApi(AdminAuthMiddleware):

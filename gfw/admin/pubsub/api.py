@@ -30,9 +30,15 @@ handlers = webapp2.WSGIApplication([
         methods=['GET', 'POST']
     ),
 
-    webapp2.Route(r'/manage/pubsub/tasks/publish',
+    webapp2.Route(r'/manage/pubsub/tasks/publish_subscriptions',
         handler=PubSubTaskApi,
         handler_method='publish_subscriptions',
+        methods=['POST']),
+
+    webapp2.Route(r'/manage/pubsub/tasks/publish_subscription',
+        handler=PubSubTaskApi,
+        handler_method='publish_subscription',
         methods=['POST'])
+
 
 ], debug=common.IS_DEV)

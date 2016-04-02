@@ -32,5 +32,13 @@ class PubSubTaskApi(CORSRequestHandler):
                 event.topic, Subscription.confirmed == True)
 
         for subscription in subscriptions.iter():
-            mailer = SubscriptionMailer(subscription)
-            mailer.send_for_event(event)
+            taskqueue.add(url='/manage/pubsub/tasks/publish_subscription',
+                queue_name='pubsub-publish-sub',
+                params=dict(event=event.key.urlsafe(), subscription=subscription.key.urlsafe()))
+
+    def publish_subscription(self):
+        event = ndb.Key(urlsafe=self.args().get('event')).get()
+        subscription = ndb.Key(urlsafe=self.args().get('subscription')).get()
+
+        mailer = SubscriptionMailer(subscription)
+        mailer.send_for_event(event)
