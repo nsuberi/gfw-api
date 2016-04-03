@@ -91,8 +91,6 @@ class GladSql(Sql):
         return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", " f.date, st_transform(f.the_geom_webmercator, 4326) as the_geom, ST_Y(st_transform(the_geom_webmercator, 4326)) as lat, ST_X(st_transform(the_geom_webmercator, 4326)) as long")
 
 def _processResults(action, data):
-    logging.info(data)
-
     if 'rows' in data:
         results = data.pop('rows')
         result = results[0]

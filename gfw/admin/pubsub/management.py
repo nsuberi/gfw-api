@@ -41,13 +41,16 @@ def get_subscriptions(event):
 
     alerts = []
     for subscription in subscriptions.iter():
-        topic_result = subscription.run_analysis(event.begin, event.end)
+        try:
+            topic_result = subscription.run_analysis(event.begin, event.end)
 
-        if (topic_result.is_zero() == False):
-            alerts.append({
-                'count': topic_result.formatted_value(),
-                'subscription': subscription
-            })
+            if (topic_result.is_zero() == False):
+                alerts.append({
+                    'count': topic_result.formatted_value(),
+                    'subscription': subscription
+                })
+        except Exception:
+            pass
 
     return alerts
 
