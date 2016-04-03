@@ -69,8 +69,8 @@ def _get_period(args):
     start_year = DEFAULT_START_YEAR
     end_year = DEFAULT_END_YEAR
     if args.get('begin') and args.get('end'):
-        start_year = parseDate(args.get('begin')).year
-        end_year = parseDate(args.get('end')).year
+        start_year = args.get('begin').year
+        end_year = args.get('end').year
 
     return (start_year, end_year)
 

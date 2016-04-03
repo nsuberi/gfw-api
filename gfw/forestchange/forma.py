@@ -113,6 +113,12 @@ def _processResults(action, data):
 def execute(args):
     #TODO: Document what can go in 'args'.
     args['version'] = 'v1'
+
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     action, data = CartoDbExecutor.execute(args, FormaSql)
     #To get the count: data.get('rows')[0].get('value')
     if action == 'redirect' or action == 'error':

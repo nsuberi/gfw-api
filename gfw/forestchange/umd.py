@@ -324,6 +324,11 @@ def _executeWorld(args):
 def execute(args):
     query_type = classify_query(args)
 
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     # Set default threshold
     if 'thresh' not in args:
         args['thresh'] = 30

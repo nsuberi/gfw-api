@@ -32,7 +32,7 @@ class ImazonSql(Sql):
         WHERE i.date >= '{begin}'::date
             AND i.date <= '{end}'::date
         GROUP BY data_type"""
-        
+
     # ISO same as WORLD since imazon only in Brazil
 
     ISO = """
@@ -88,12 +88,12 @@ class ImazonSql(Sql):
 
 
     LATEST = """
-        SELECT DISTINCT date 
+        SELECT DISTINCT date
         FROM imazon_sad
         WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
-        
+
     @classmethod
     def download(cls, sql):
         download_sql = sql.replace(ImazonSql.MIN_MAX_DATE_SQL, "")
@@ -113,7 +113,7 @@ def _processResults(action, data, args):
     if 'iso' in args and args['iso'].lower() != 'bra':
         result = NO_DATA
     elif 'rows' in data:
-        result = data.pop('rows')            
+        result = data.pop('rows')
     else:
         result = NO_DATA
 
@@ -123,6 +123,11 @@ def _processResults(action, data, args):
 
 
 def execute(args):
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     action, data = CartoDbExecutor.execute(args, ImazonSql)
     if action == 'redirect' or action == 'error':
         return action, data

@@ -64,7 +64,6 @@ class SqlError(ValueError):
     def __init__(self, msg):
         super(SqlError, self).__init__(msg)
 
-
 class Sql(object):
 
     MIN_MAX_DATE_SQL = ', MIN(date) as min_date, MAX(date) as max_date'

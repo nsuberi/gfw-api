@@ -131,7 +131,13 @@ def _processResults(action, data):
 
 
 def execute(args):
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     action, data = CartoDbExecutor.execute(args, FiresSql)
+
     if action == 'redirect' or action == 'error':
         return action, data
     return _processResults(action, data)

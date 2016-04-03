@@ -77,12 +77,12 @@ class QuiccSql(Sql):
             AND pt.date <= '{end}'::date"""
 
     LATEST = """
-        SELECT DISTINCT date 
+        SELECT DISTINCT date
         FROM quicc_alerts
         WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
-        
+
     @classmethod
     def download(cls, sql):
         download_sql = sql.replace(QuiccSql.MIN_MAX_DATE_SQL, "")
@@ -108,6 +108,11 @@ def _processResults(action, data):
 
 
 def execute(args):
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     action, data = CartoDbExecutor.execute(args, QuiccSql)
     if action == 'redirect' or action == 'error':
         return action, data

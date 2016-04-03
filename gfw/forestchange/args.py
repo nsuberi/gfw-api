@@ -206,7 +206,7 @@ class ArgProcessor():
             b, e = f(begin, '%Y-%m-%d'), f(end, '%Y-%m-%d')
             if b > e:
                 raise
-            return dict(begin=begin, end=end)
+            return dict(begin=b, end=e)
         except:
             raise PeriodArgError()
 

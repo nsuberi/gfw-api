@@ -130,7 +130,7 @@ class CORSRequestHandler(webapp2.RequestHandler):
     def get_id(self, params):
         normalized_params = copy.copy(params)
         if 'bust' in normalized_params: normalized_params.pop('bust')
-        normalized_params = json.dumps(normalized_params, sort_keys=True)
+        normalized_params = json.dumps(normalized_params, sort_keys=True, default=self.json_serial)
         normalized_params = re.sub(re.compile(r'\s+'), '', normalized_params)
 
         return md5(self.request.host + self.request.path + normalized_params).hexdigest()

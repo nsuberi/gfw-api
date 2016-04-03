@@ -124,6 +124,12 @@ def _gridCodeToDate(grid_code):
 
 def execute(args):
     args['version'] = 'v2'
+
+    if 'begin' in args:
+        args['begin'] = args['begin'].strftime('%Y-%m-%d')
+    if 'end' in args:
+        args['end'] = args['end'].strftime('%Y-%m-%d')
+
     action, data = CartoDbExecutor.execute(args, TerraiSql)
     if action == 'redirect' or action == 'error':
         return action, data
