@@ -116,8 +116,8 @@ class Subscription(ndb.Model):
 
     def run_analysis(self, begin, end):
         params = copy.copy(self.params)
-        params['begin'] = begin.strftime('%Y-%m-%d')
-        params['end'] = end.strftime('%Y-%m-%d')
+        params['begin'] = begin
+        params['end'] = end
 
         if 'geom' in params:
             geom = params['geom']
