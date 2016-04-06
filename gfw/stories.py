@@ -37,6 +37,8 @@ import copy
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 
+from gfw.mailers.story import NewStoryWriMailer, NewStoryMailer
+
 TABLE = 'stories_dev_copy' if runtime_config.get('IS_DEV') else 'community_stories'
 
 
@@ -235,34 +237,11 @@ class StoriesApi(BaseApi):
     def _send_new_story_emails(self):
         story = self._get_params()
 
-        # Email WRI:
-        subject = 'A new story has been registered with Global Forest Watch'
-        sender = \
-            'Global Forest Watch Stories <noreply@gfw-apis.appspotmail.com>'
-        to = runtime_config.get('wri_emails_stories')
-        story_url = '%s/stories/%s' % (runtime_config.get('GFW_BASE_URL'), story['id'])
-        api_url = '%s/stories/%s' % (runtime_config.get('APP_BASE_URL'), story['id'])
-        token = story['token']
-        body = 'Story URL: %s\nStory API: %s\nStory token: %s' % \
-            (story_url, api_url, token)
-        mail.send_mail(sender=sender, to=to, subject=subject, body=body)
+        story_mailer = NewStoryMailer(story)
+        story_mailer.send()
 
-        # Email user:
-        config = { 'name': story['name'], 'story_url': story_url }
-        txt_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.txt')
-        txt_file = open(txt_path)
-        text_body = Template(txt_file.read()).substitute(config)
-
-        html_path = os.path.join(os.path.dirname(__file__), 'templates', 'story_response.html')
-        html_file = open(html_path)
-        html_body = Template(html_file.read()).substitute(config)
-
-        subject = 'Your story has been registered with Global Forest Watch!'
-        message = mail.EmailMessage(sender=sender, subject=subject)
-        message.to = '%s <%s>' % (story['name'], story['email'])
-        message.body = text_body
-        message.html = html_body
-        message.send()
+        wri_mailer = NewStoryWriMailer(story)
+        wri_mailer.send()
 
     def _gen_token(self):
         return base64.b64encode(
