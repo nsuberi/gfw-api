@@ -15,21 +15,13 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: pubsub-confirmation
-  rate: 35/s
-- name: pubsub-publish-sub
-  rate: 35/s
-- name: pubsub-publish-subs
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: user-profile
-  rate: 35/s
-- name: log
-  rate: 35/s
-- name: feedback-tester
-  rate: 35/s
+import webapp2
+
+from gfw.middlewares.cors import CORSRequestHandler
+from gfw.feedback.spreadsheets.tester import TesterSpreadsheet
+
+class FeedbackTaskApi(CORSRequestHandler):
+    def tester(self):
+        email = self.args().get('email')
+        spreadsheet = TesterSpreadsheet()
+        spreadsheet.create_or_update(email)

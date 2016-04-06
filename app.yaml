@@ -85,6 +85,9 @@ handlers:
 - url: /user.*
   script: gfw.user.api.handlers
 
+- url: /feedback.*
+  script: gfw.feedback.api.handlers
+
 - url: /geostore.*
   script: gfw.geostore.api.handlers
 
