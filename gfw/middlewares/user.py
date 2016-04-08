@@ -30,6 +30,9 @@ class UserAuthMiddleware(CORSRequestHandler):
 
 class AdminAuthMiddleware(CORSRequestHandler):
     def dispatch(self):
+        if self.request.headers.get('X-Appengine-Cron') != None:
+            return webapp2.RequestHandler.dispatch(self)
+
         options_request = (self.request.method == "OPTIONS")
         self.user = self.request.user if self.request.user else None
         is_admin = getattr(self.user, 'admin', False)

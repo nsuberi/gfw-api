@@ -3,3 +3,6 @@ cron:
   url: /_ah/datastore_admin/backup.create?name=BackupToCloud&kind=UserProfile&kind=GFWUser&kind=Subscription&filesystem=gs&gs_bucket_name=gfw_subscriptions_backups
   schedule: every 12 hours
   target: ah-builtin-python-bundle
+- description: VIIRS
+  url: /manage/pubsub/automatic?topic=alerts/viirs&send=true
+  schedule: every day 00:00

@@ -60,8 +60,31 @@ def send_subscriptions(event):
         params=dict(event=event.key.urlsafe()))
 
 class PubSubManagementApi(AdminAuthMiddleware):
-    def post(self):
+    def automatic(self):
+        params = self.args()
 
+        if 'topic' in params:
+            selected_topic = params['topic']
+        else:
+            self.write_error(400, 'Bad Request')
+
+        previous_event = Event.latest_for_topic(selected_topic)
+        event = Event(topic=selected_topic)
+
+        if previous_event == None:
+            self.write_error(400, 'Bad Request')
+
+        event.begin = previous_event.end
+        event.end = datetime.datetime.now()
+
+        if 'send' in params:
+            event.put()
+            send_subscriptions(event)
+            return self.complete('respond', {})
+
+        self.write_error(400, 'Bad Request')
+
+    def post(self):
         params = self.args()
         if 'topic' in params:
             selected_topic = params['topic']
