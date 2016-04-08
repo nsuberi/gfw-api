@@ -24,6 +24,7 @@ from appengine_config import runtime_config
 
 from gfw.common import gfw_url
 from gfw.models.topic import Topic
+from gfw.lib.urls import map_url
 
 from sparkpost import SparkPost
 sparkpost = SparkPost(runtime_config.get('sparkpost_api_key'))
@@ -54,6 +55,13 @@ class SubscriptionMailer:
             begin = event.begin.strftime('%d %b %Y')
             end = event.end.strftime('%d %b %Y')
 
+            url_params = self.subscription.params
+            url_params['begin'] = event.begin
+            url_params['end'] = event.end
+            url_params['fit_to_geom'] = 'true'
+            url_params['tab'] = 'analysis-tab'
+            alert_link = map_url(self.subscription.params)
+
             email = self.subscription.email
             user_profile = self.subscription.user_id.get().get_profile()
             name = getattr(user_profile, 'name', email)
@@ -68,7 +76,7 @@ class SubscriptionMailer:
                     'alert_date': begin + " to " + end,
                     'alert_summary': summary_for_topic(topic),
                     'alert_name': self.subscription.formatted_name(),
-                    'alert_link': self.subscription.url,
+                    'alert_link': alert_link,
                     'unsubscribe_url': unsubscribe_url,
                     'subscriptions_url': subscriptions_url
                 }

@@ -50,6 +50,7 @@ class Subscription(ndb.Model):
     updates   = ndb.JsonProperty()
     created   = ndb.DateTimeProperty(auto_now_add=True)
     new       = ndb.BooleanProperty(default=True)
+    geostore  = ndb.StringProperty()
 
     kind = 'Subscription'
 

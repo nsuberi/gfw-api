@@ -28,6 +28,7 @@ TOPICS = [
         'meta_id': 'glad-alerts',
         'analysis_class': glad,
         'template': '{} alerts',
+        'baselayer': 'umd_as_it_happens',
         'parser': TopicResultParsers.simple
     }, {
         'id': 'alerts/terra',
@@ -36,6 +37,7 @@ TOPICS = [
         'meta_id': 'terrai-alerts',
         'analysis_class': terrai,
         'template': '{} alerts',
+        'baselayer': 'terrailoss',
         'parser': TopicResultParsers.simple
     }, {
         'id': 'alerts/sad',
@@ -44,6 +46,7 @@ TOPICS = [
         'meta_id': 'imazon-alerts',
         'analysis_class': imazon,
         'template': 'Degradation: {} ha, Deforestation: {} ha',
+        'baselayer': 'imazon',
         'parser': TopicResultParsers.sad
     }, {
         'id': 'alerts/quicc',
@@ -52,6 +55,7 @@ TOPICS = [
         'meta_id': 'quicc-alerts',
         'analysis_class': quicc,
         'template': '{} alerts',
+        'baselayer': 'modis',
         'parser': TopicResultParsers.simple
     }, {
         'id': 'alerts/treeloss',
@@ -60,6 +64,7 @@ TOPICS = [
         'meta_id': 'umd-loss-gain',
         'analysis_class': umd,
         'template': 'Gain: {} ha, Loss: {} ha',
+        'baselayer': 'loss',
         'parser': TopicResultParsers.umd
     }, {
         'id': 'alerts/treegain',
@@ -68,6 +73,7 @@ TOPICS = [
         'meta_id': 'umd-loss-gain',
         'analysis_class': umd,
         'template': 'Gain: {} ha, Loss: {} ha',
+        'baselayer': 'forestgain',
         'parser': TopicResultParsers.umd
     }, {
         'id': 'alerts/prodes',
@@ -76,6 +82,7 @@ TOPICS = [
         'meta_id': 'prodes-loss',
         'analysis_class': prodes,
         'template': '{} ha',
+        'baselayer': 'prodes',
         'parser': TopicResultParsers.simple
     }, {
         'id': 'alerts/guyra',
@@ -84,6 +91,7 @@ TOPICS = [
         'meta_id': 'guyra-loss',
         'analysis_class': guyra,
         'template': '{} ha',
+        'baselayer': 'guyra',
         'parser': TopicResultParsers.simple
     }, {
         'id': 'alerts/viirs',
@@ -92,6 +100,7 @@ TOPICS = [
         'meta_id': 'viirs-active-fires',
         'analysis_class': viirs,
         'template': '{} NASA Active Fires Alerts',
+        'baselayer': 'viirs_fires_alerts',
         'parser': TopicResultParsers.simple
     }
 ]
