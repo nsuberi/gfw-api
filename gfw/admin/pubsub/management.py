@@ -25,6 +25,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import template
 
+from gfw.lib.urls import map_url
 from gfw.middlewares.user import AdminAuthMiddleware
 from gfw.models.event import Event
 from gfw.models.topic import Topic
@@ -58,6 +59,18 @@ def send_subscriptions(event):
     taskqueue.add(url='/manage/pubsub/tasks/publish_subscriptions',
         queue_name='pubsub-publish-subs',
         params=dict(event=event.key.urlsafe()))
+
+def set_url(event, alert):
+    url_params = alert['subscription'].params
+    url_params['begin'] = event.begin
+    url_params['end'] = event.end
+    url_params['fit_to_geom'] = 'true'
+    url_params['tab'] = 'analysis-tab'
+    alert['subscription'].url = map_url(alert['subscription'].params)
+    return alert
+
+def set_url_factory(event):
+    return lambda alert: set_url(event, alert)
 
 class PubSubManagementApi(AdminAuthMiddleware):
     def automatic(self):
@@ -110,6 +123,7 @@ class PubSubManagementApi(AdminAuthMiddleware):
         alerts = []
         if 'preview' in params:
             alerts = get_subscriptions(event)
+            alerts = map(set_url_factory(event), alerts)
 
         emails = []
         if 'preview_emails' in params:
