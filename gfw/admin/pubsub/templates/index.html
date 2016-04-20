@@ -89,7 +89,7 @@
 
                 <ul>
                   {% for alert in alerts %}
-                    <li>{{alert.count}}, {{alert.subscription.email}}, <a href="{{alert.subscription.url}}">view on GFW</a></li>
+                    <li>{{alert.count}}, {{alert.subscription.email}}, <a href="{{alert.subscription_url}}">view on GFW</a></li>
                   {% endfor %}
                 </ul>
               {% else %}
