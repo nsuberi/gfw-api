@@ -27,7 +27,7 @@ from gfw.geostore.geostore import Geostore
 
 class GeostoreHandler(CORSRequestHandler):
     def index(self):
-        per_page = 50
+        per_page = 10
         cursor_id = self.args().get('cursor')
         cursor = Cursor(urlsafe=cursor_id)
         geostores, next_cursor, more = Geostore.query().fetch_page(per_page, start_cursor=cursor)
