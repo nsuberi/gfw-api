@@ -67,6 +67,7 @@ def set_url(event, alert):
     url_params['fit_to_geom'] = 'true'
     url_params['tab'] = 'analysis-tab'
     alert['subscription_url'] = map_url(alert['subscription'].params)
+    alert['id'] = alert['subscription'].key.urlsafe()
     return alert
 
 def set_url_factory(event):

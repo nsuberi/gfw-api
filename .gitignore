@@ -9,7 +9,7 @@ man
 # Virtualenv
 .Python
 bin
-lib
+/lib
 include
 
 *.pyc
