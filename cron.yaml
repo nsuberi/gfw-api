@@ -6,4 +6,4 @@ cron:
 - description: VIIRS
   url: /manage/pubsub/automatic?topic=alerts/viirs&send=true
   schedule: every day 00:00
-  target: staging
+  target: default
