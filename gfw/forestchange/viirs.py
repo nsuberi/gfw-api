@@ -27,7 +27,7 @@ class FiresSql(Sql):
 
     WORLD = """
         SELECT COUNT(pt.*) AS value
-        FROM vnp14imgt_nrt_global_7d pt
+        FROM vnp14imgtdl_nrt_global_7d pt
         WHERE acq_date::date >= '{begin}'::date
             AND acq_date::date <= '{end}'::date
             AND ST_INTERSECTS(
@@ -36,7 +36,7 @@ class FiresSql(Sql):
 
     ISO = """
         SELECT COUNT(pt.*) AS value
-        FROM vnp14imgt_nrt_global_7d pt,
+        FROM vnp14imgtdl_nrt_global_7d pt,
             (SELECT
                 *
             FROM gadm2_countries_simple
@@ -48,7 +48,7 @@ class FiresSql(Sql):
 
     ID1 = """
         SELECT COUNT(pt.*) AS value
-        FROM vnp14imgt_nrt_global_7d pt,
+        FROM vnp14imgtdl_nrt_global_7d pt,
              (SELECT
                 *
              FROM gadm2_provinces_simple
@@ -61,7 +61,7 @@ class FiresSql(Sql):
 
     WDPA = """
         SELECT COUNT(pt.*) AS value
-        FROM vnp14imgt_nrt_global_7d pt,
+        FROM vnp14imgtdl_nrt_global_7d pt,
             (SELECT CASE when marine::numeric = 2 then null
         when ST_NPoints(the_geom)<=18000 THEN the_geom
        WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
@@ -74,7 +74,7 @@ class FiresSql(Sql):
 
     USE = """
         SELECT COUNT(pt.*) AS value
-        FROM vnp14imgt_nrt_global_7d pt,
+        FROM vnp14imgtdl_nrt_global_7d pt,
             (SELECT * FROM {use_table} WHERE cartodb_id = {pid}) as p
         WHERE ST_Intersects(pt.the_geom, p.the_geom)
             AND acq_date::date >= '{begin}'::date
@@ -83,7 +83,7 @@ class FiresSql(Sql):
 
     LATEST = """
         SELECT DISTINCT acq_date as date
-        FROM vnp14imgt_nrt_global_7d
+        FROM vnp14imgtdl_nrt_global_7d
         WHERE date IS NOT NULL
         ORDER BY date DESC
         LIMIT {limit}"""
