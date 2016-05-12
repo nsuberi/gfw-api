@@ -23,12 +23,15 @@ from gfw.admin.pubsub.management import PubSubManagementApi
 
 handlers = webapp2.WSGIApplication([
 
-    webapp2.Route(
-        r'/manage/pubsub',
+    webapp2.Route(r'/manage/pubsub',
         handler=PubSubManagementApi,
         handler_method='post',
-        methods=['GET', 'POST']
-    ),
+        methods=['GET', 'POST']),
+
+    webapp2.Route(r'/manage/pubsub/automatic',
+        handler=PubSubManagementApi,
+        handler_method='automatic',
+        methods=['GET']),
 
     webapp2.Route(r'/manage/pubsub/tasks/publish_subscriptions',
         handler=PubSubTaskApi,

@@ -44,10 +44,13 @@ class Geostore(ndb.Model):
         return geojson
 
     def to_dict(self):
-        result = super(Geostore, self).to_dict()
-        result['geojson'] = json.loads(self.get_combined_geojson())
-        result['id'] = self.key.urlsafe()
-        return result
+        try:
+            result = super(Geostore, self).to_dict()
+            result['id'] = self.key.urlsafe()
+            result['geojson'] = json.loads(self.get_combined_geojson())
+            return result
+        except Exception as e:
+            return None
 
     @classmethod
     def create_from_request_body(cls, body):

@@ -19,6 +19,7 @@ import json
 import webapp2
 
 from google.appengine.ext import ndb
+from google.appengine.datastore.datastore_query import Cursor
 
 from gfw import common
 from gfw.middlewares.cors import CORSRequestHandler
@@ -26,10 +27,23 @@ from gfw.geostore.geostore import Geostore
 
 class GeostoreHandler(CORSRequestHandler):
     def index(self):
-        geostores = Geostore.query().fetch()
+        per_page = 10
+        cursor_id = self.args().get('cursor')
+        cursor = Cursor(urlsafe=cursor_id)
+        geostores, next_cursor, more = Geostore.query().fetch_page(per_page, start_cursor=cursor)
+
         to_dict = lambda g: g.to_dict()
-        geostores = map(to_dict, geostores)
-        self.complete('respond', geostores)
+        geostores_as_dicts = map(to_dict, geostores)
+
+        if more:
+            next_cursor = next_cursor.urlsafe()
+        else:
+            next_cursor = None
+
+        self.complete('respond', {
+            "geostore": geostores_as_dicts,
+            "cursor": next_cursor
+        })
 
     def get(self, geostore_id):
         geostore = ndb.Key(urlsafe=geostore_id).get()

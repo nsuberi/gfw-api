@@ -1,0 +1,10 @@
+application: gfw-apis
+
+dispatch:
+  - url: "api.globalforestwatch.org/*"
+    module: default
+
+  - url: "api-staging.globalforestwatch.org/*"
+    module: staging
+  - url: "staging.api-staging.globalforestwatch.org/*"
+    module: staging
