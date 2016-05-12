@@ -25,7 +25,9 @@ from google.appengine.api import urlfetch
 
 from dateutil.parser import parse as parseDate
 
-LABELS = ["Snow / ice","Agriculture","Mixed agriculture and forest", "Secondary forest", "Primary forest", "Mixed forest and grassland", "Grassland / shrub", "Swamp", "Settlements","Bare land","Water bodies"]
+LABELS = [ "Snow / ice", "Agriculture", "Mixed agriculture and forest",
+    "Secondary forest", "Primary forest", "Mixed forest and grassland",
+    "Grassland / shrub", "Swamp", "Settlements", "Bare land", "Water bodies" ]
 
 def _generate_rendering_rule(period):
     start_year = period[0]
