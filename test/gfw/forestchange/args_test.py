@@ -21,6 +21,7 @@ from test import common
 
 import unittest
 import json
+import datetime
 
 from gfw.forestchange import args
 
@@ -49,11 +50,12 @@ class ArgsTest(common.BaseTest):
 
     def test_period(self):
         f = args.ArgProcessor.period
-        begin = '2000-01-01'
+        begin = '2001-01-01'
         end = '2014-01-01'
+
         for x in ['%s,%s' % (begin, end)]:
-            self.assertEqual(f(x)['begin'], begin)
-            self.assertEqual(f(x)['end'], end)
+            self.assertEqual(f(x)['begin'].strftime('%Y-%m-%d'), begin)
+            self.assertEqual(f(x)['end'].strftime('%Y-%m-%d'), end)
 
         with self.assertRaises(args.PeriodArgError):
             f('2000-01-02')
