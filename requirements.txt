@@ -12,3 +12,4 @@ apiclient==1.0.2
 urllib3==1.12
 oauth==1.0.1
 regex
+sparkpost==1.0.5
