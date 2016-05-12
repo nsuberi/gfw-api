@@ -5,5 +5,5 @@ cron:
   target: ah-builtin-python-bundle
 - description: VIIRS
   url: /manage/pubsub/automatic?topic=alerts/viirs&send=true
-  schedule: every day 00:00
-  target: testingadrian
+  schedule: every day 00:01
+  target: default

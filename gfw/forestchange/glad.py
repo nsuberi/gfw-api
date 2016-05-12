@@ -48,11 +48,11 @@ class GladSql(Sql):
         """
 
     ID1 = """
-        WITH r as (SELECT name_1,iso, id_1, the_geom_webmercator 
+        WITH r as (SELECT name_1,iso, id_1, ST_RemoveRepeatedPoints(the_geom_webmercator, 1000) the_geom_webmercator
                    FROM gadm2_provinces_simple 
                    WHERE iso = UPPER('{iso}') 
                    AND id_1 = {id1} )
-        SELECT COUNT(r.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
+        SELECT COUNT(f.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
         FROM umd_alerts_agg_analysis f INNER JOIN r ON st_intersects(r.the_geom_webmercator,f.the_geom_webmercator)
         WHERE date >= '{begin}'::date 
         AND date <= '{end}'::date

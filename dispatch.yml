@@ -1,9 +1,6 @@
 application: gfw-apis
 
 dispatch:
-  - url: '*/manage/pubsub/automatic*'
-    module: staging
-
   - url: "api.globalforestwatch.org/*"
     module: default
 
