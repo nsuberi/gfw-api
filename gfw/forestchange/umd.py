@@ -100,7 +100,7 @@ class UmdSql(Sql):
 
     ISO = """
         SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
-               loss, loss_perc, gain, gain*12 as total_gain, gain_perc
+               loss, loss_perc, gain, gain*12 as total_gain, gain_perc, land as area_ha
         FROM umd_nat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
@@ -109,7 +109,7 @@ class UmdSql(Sql):
     ID1 = """
         SELECT iso, country, region, year, thresh, extent_2000 as extent,
                extent_perc, loss, loss_perc, gain, gain*12 as total_gain,
-               gain_perc, id1
+               gain_perc, id1, land as area_ha
         FROM umd_subnat_final_1
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
@@ -249,14 +249,14 @@ def _execute_geojson(args):
     hansen_all = _ee(geojson, thresh, config.assets['hansen_all_thresh'])
     # gain (UMD doesn't permit disaggregation of forest gain by threshold).
     gain = hansen_all['gain']
-    logging.info('GAIN: %s' % gain)
+    # logging.info('GAIN: %s' % gain)
     # tree extent in 2000
     tree_extent = hansen_all['tree']
-    logging.info('TREE_EXTENT: %s' % tree_extent)
-
+    # logging.info('TREE_EXTENT: %s' % tree_extent)
+    area_ha = hansen_all['tree']
     # Loss by year
     loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
-    logging.info('LOSS_RESULTS: %s' % loss_by_year)
+    # logging.info('LOSS_RESULTS: %s' % loss_by_year)
 
     # Reduce loss by year for supplied begin and end year
     begin = args.get('begin').split('-')[0]
