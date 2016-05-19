@@ -84,7 +84,9 @@ def _ee(geom, thresh, asset_id):
     area_results = area_stats.getInfo()
 
     return area_results
-
+def _ee_area_ha(geom):
+    region = _get_region(geom)
+    return region.area(0.5,'EPSG:3857').divide(10000).getInfo()
 
 def _loss_area(row):
     """Return hectares of loss."""
@@ -257,7 +259,8 @@ def _execute_geojson(args):
     # Loss by year
     loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
     # logging.info('LOSS_RESULTS: %s' % loss_by_year)
-
+    land = _ee_area_ha(geojson)
+    # logging.info('LOSS_RESULTS: %s' % loss_by_year)
     # Reduce loss by year for supplied begin and end year
     begin = args.get('begin').split('-')[0]
     end = args.get('end').split('-')[0]
@@ -270,6 +273,7 @@ def _execute_geojson(args):
     result['gain'] = gain
     result['loss'] = loss
     result['tree-extent'] = tree_extent
+    result['area_ha'] = land
 
     return 'respond', result
 
