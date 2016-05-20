@@ -38,6 +38,12 @@ def summary_for_topic(topic):
             ". Available data from " + meta['timescale'] + ", updated " + \
             lower_first(meta['updates'])
 
+def template_for_topic(topic):
+    if topic.id == 'alerts/viirs':
+        return 'fires-notification'
+    else:
+        return 'forest-change-notification'
+
 class SubscriptionMailer:
     def __init__(self, subscription):
         self.subscription = subscription
@@ -68,7 +74,7 @@ class SubscriptionMailer:
 
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
-                template='forest-change-notification',
+                template=template_for_topic(topic),
                 substitution_data={
                     'selected_area': topic_result.area_name(),
                     'alert_count': topic_result.formatted_value(),
