@@ -63,6 +63,10 @@ class TesterSpreadsheet:
             new_row_index = number_of_rows+1
             is_new_row = True
 
+        if is_new_row:
+            if (not hasattr(profile, 'sign_up')) or (profile.sign_up != 'yes'):
+                return
+
         cell_range = 'A{0}:{1}{2}'.format(new_row_index, last_column_index, new_row_index)
         cell_list = self.worksheet.range(cell_range)
 
@@ -70,10 +74,14 @@ class TesterSpreadsheet:
             cell_name = self.worksheet.cell(1, cell.col).value
 
             if cell_name == 'agreed_to_test':
-                if (not hasattr(profile, 'sign_up')) or (profile.sign_up != 'yes'):
-                    cell.value = 'no'
+                if is_new_row:
+                    if hasattr(profile, 'sign_up') and (profile.sign_up == 'yes'):
+                        cell.value = 'yes'
                 else:
-                    cell.value = 'yes'
+                    if ((not hasattr(profile, 'sign_up')) or (profile.sign_up != 'yes')):
+                        cell.value = 'no'
+                    else:
+                        cell.value = 'yes'
                 continue
 
             if cell_name == 'user_key':

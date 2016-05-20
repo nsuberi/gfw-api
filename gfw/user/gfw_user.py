@@ -33,7 +33,7 @@ class GFWUser(models.User):
         self.admin = True
         self.put()
 
-    def _pre_put_hook(self):
+    def _post_put_hook(self, future):
         taskqueue.add(url='/user/tasks/tester',
             queue_name='user-tester-sign-up',
             params={'id': self.auth_ids[0]})
