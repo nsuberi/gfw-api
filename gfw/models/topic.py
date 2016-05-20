@@ -101,7 +101,7 @@ TOPICS = [
         'analysis_class': viirs,
         'template': '{} NASA Active Fires Alerts',
         'baselayer': 'viirs_fires_alerts',
-        'parser': TopicResultParsers.simple
+        'parser': TopicResultParsers.viirs
     }
 ]
 
@@ -112,6 +112,7 @@ class Topic():
         self.metadata = api.META[self.meta_id]['meta']
 
     def execute(self, params):
+        params['for_subscription'] = True
         action, data = self.analysis_class.execute(params)
         return TopicResult(self, data)
 

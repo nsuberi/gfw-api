@@ -21,6 +21,13 @@ class TopicResultParsers:
         return [data.get('value')]
 
     @classmethod
+    def viirs(cls, data):
+        if data.get('value') != None:
+            return [data.get('value')]
+        else:
+            return [len(data.get('results')), data.get('results')]
+
+    @classmethod
     def sad(cls, data):
         a = data.get('value')[0]
         b = data.get('value')[1]

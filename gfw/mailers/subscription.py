@@ -72,20 +72,22 @@ class SubscriptionMailer:
             user_profile = self.subscription.user_id.get().get_profile()
             name = getattr(user_profile, 'name', email)
 
+            template_params = {
+                'selected_area': topic_result.area_name(),
+                'alert_count': topic_result.formatted_value(),
+                'alert_type': topic.description,
+                'alert_date': begin + " to " + end,
+                'alert_summary': summary_for_topic(topic),
+                'alert_name': self.subscription.formatted_name(),
+                'alert_link': alert_link,
+                'unsubscribe_url': unsubscribe_url,
+                'subscriptions_url': subscriptions_url
+            }
+
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
                 template=template_for_topic(topic),
-                substitution_data={
-                    'selected_area': topic_result.area_name(),
-                    'alert_count': topic_result.formatted_value(),
-                    'alert_type': topic.description,
-                    'alert_date': begin + " to " + end,
-                    'alert_summary': summary_for_topic(topic),
-                    'alert_name': self.subscription.formatted_name(),
-                    'alert_link': alert_link,
-                    'unsubscribe_url': unsubscribe_url,
-                    'subscriptions_url': subscriptions_url
-                }
+                substitution_data=template_params
             )
 
             logging.info("Send Subscription Email Result: %s" % response)

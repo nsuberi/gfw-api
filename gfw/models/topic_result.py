@@ -21,7 +21,10 @@ class TopicResult:
         self.data = data
 
     def is_zero(self):
-        return all(float(v or 0) == 0 for v in self.value())
+        if 'results' in self.data:
+            return len(self.data.get('results')) == 0
+        else:
+            return all(float(v or 0) == 0 for v in self.value())
 
     def value(self):
         return self.topic.parser(self.data)

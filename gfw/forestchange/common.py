@@ -218,6 +218,10 @@ class CartoDbExecutor():
     def execute(cls, args, sql):
         try:
             query, download_query = sql.process(args)
+
+            if 'for_subscription' in args and args['for_subscription'] == True:
+                query = download_query
+
             download_url = cdb.get_url(download_query, args)
             if 'format' in args:
                 return 'redirect', download_url
