@@ -92,19 +92,17 @@ def _get_histogram(period, esri_json):
     }
 
     form_data = urllib.urlencode(form_fields)
-    result = urlfetch.fetch(url="http://gis-gfw.wri.org/arcgis/rest/services/GFW/analysis/ImageServer/computeHistograms",
+    result = urlfetch.fetch(url="http://gis-gfw.wri.org/arcgis/rest/services/image_services/analysis/ImageServer/computeHistograms",
         payload=form_data,
         method=urlfetch.POST,
         deadline=60,
         headers={'Content-Type': 'application/x-www-form-urlencoded'})
-
     histograms = json.loads(result.content)['histograms']
 
     return histograms[0] if len(histograms) > 0 else None
 
 def _aggregate_histogram_by_year(period, histogram):
     """Groups the given histogram value by year and land type"""
-    print histogram
     years = {}
 
     if histogram is not None:
