@@ -101,7 +101,7 @@ TOPICS = [
         'analysis_class': viirs,
         'template': '{} NASA Active Fires Alerts',
         'baselayer': 'viirs_fires_alerts',
-        'parser': TopicResultParsers.viirs
+        'parser': TopicResultParsers.simple
     }
 ]
 

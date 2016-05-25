@@ -18,10 +18,6 @@
 class TopicResultParsers:
     @classmethod
     def simple(cls, data):
-        return [data.get('value')]
-
-    @classmethod
-    def viirs(cls, data):
         if data.get('value') != None:
             return [data.get('value')]
         else:
