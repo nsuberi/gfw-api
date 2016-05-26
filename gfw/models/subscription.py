@@ -51,6 +51,7 @@ class Subscription(ndb.Model):
     created   = ndb.DateTimeProperty(auto_now_add=True)
     new       = ndb.BooleanProperty(default=True)
     geostore  = ndb.StringProperty()
+    overview_image = ndb.BlobProperty()
 
     kind = 'Subscription'
 

@@ -21,6 +21,7 @@ import webapp2
 from gfw.middlewares.user import UserAuthMiddleware
 from gfw.models.subscription import Subscription
 from gfw.common import gfw_url
+from gfw.lib.subscription_overview_service import SubscriptionOverviewService
 
 class SubscriptionsApi(UserAuthMiddleware):
     def index(self):
@@ -82,6 +83,19 @@ class SubscriptionsApi(UserAuthMiddleware):
             subscription.put()
 
             self.complete('respond', subscription.to_dict())
+        else:
+            self.write_error(404, 'Not found')
+
+    def overview(self, subscription_id):
+        subscription = Subscription.get_by_id(int(subscription_id))
+
+        if subscription:
+            if (not hasattr(subscription, 'overview_image')) or (subscription.overview_image is None):
+                subscription.overview_image = SubscriptionOverviewService.overview_image(subscription)
+                subscription.put()
+
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(subscription.overview_image)
         else:
             self.write_error(404, 'Not found')
 
