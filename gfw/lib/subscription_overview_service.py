@@ -2,6 +2,7 @@ import os
 import json
 from google.appengine.api import urlfetch
 from string import Template
+from datetime import date, timedelta
 
 from google.appengine.ext import ndb
 from gfw.models.subscription import Subscription
@@ -30,7 +31,8 @@ class SubscriptionOverviewService():
         extent_str = extent(subscription.params['geom'])
         geojson = json.dumps(subscription.params['geom'])
 
-        config = { 'date': '2016-05-25', 'geojson': geojson.replace('"', '\\"')}
+        begin = date.today() - timedelta(days=1)
+        config = { 'date': begin.strftime('%Y-%m-%d'), 'geojson': geojson.replace('"', '\\"')}
         template_file = open(os.path.join(os.path.dirname(__file__), 'templates', 'viirs.json'))
         map_config = Template(template_file.read()).substitute(config)
 

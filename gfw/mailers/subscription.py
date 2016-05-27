@@ -84,6 +84,11 @@ class SubscriptionMailer:
                 'subscriptions_url': subscriptions_url
             }
 
+            if topic.id == 'alerts/viirs':
+                map_image = '%s/v2/subscriptions/%s/overview.png' % \
+                (runtime_config['APP_BASE_URL'], str(self.subscription.key.id()))
+                template_params['map_image'] = map_image
+
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
                 template=template_for_topic(topic),
