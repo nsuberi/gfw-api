@@ -88,6 +88,7 @@ class SubscriptionMailer:
                 map_image = '%s/v2/subscriptions/%s/overview.png' % \
                 (runtime_config['APP_BASE_URL'], str(self.subscription.key.id()))
                 template_params['map_image'] = map_image
+                template_params['fire_alerts'] = topic_result.value()[1][:10]
 
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
