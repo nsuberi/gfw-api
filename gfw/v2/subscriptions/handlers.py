@@ -24,6 +24,10 @@ from gfw.common import gfw_url
 from gfw.lib.subscription_overview_service import SubscriptionOverviewService
 
 class SubscriptionsApi(UserAuthMiddleware):
+    routes_without_authorisation = [
+        'overview'
+    ]
+
     def index(self):
         subscriptions = Subscription.query(Subscription.user_id==self.user.key).fetch()
         subscriptions = [s.to_dict() for s in subscriptions]

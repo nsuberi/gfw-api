@@ -72,6 +72,7 @@ routes = [
 
   webapp2.Route(
     r'/v2/subscriptions/<subscription_id>/overview.png',
+    name='overview',
     handler=SubscriptionsApi,
     handler_method='overview',
     methods=['GET']
