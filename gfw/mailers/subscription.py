@@ -92,7 +92,9 @@ class SubscriptionMailer:
                 fire_alerts = topic_result.value()[1][:10]
                 for alert in fire_alerts:
                     alert['acq_date'] = alert['acq_date'].split('T')[0]
-                    alert['acq_time'] = alert['acq_time'][:2] + ':' + alert['acq_time'][2:]
+                    alert['acq_time'] = alert['acq_time'][:2] + ':' + alert['acq_time'][2:] + ' UTC'
+                    alert['latitude'] = "{0:.4f}".format(alert['latitude'])
+                    alert['longitude'] = "{0:.4f}".format(alert['longitude'])
 
                 template_params['fire_alerts'] = fire_alerts
 
