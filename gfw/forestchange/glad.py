@@ -16,105 +16,106 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports accessing UMD/GLAD data."""
-import math
-import arrow
-import logging
 
-from gfw.forestchange.common import CartoDbExecutor
-from gfw.forestchange.common import Sql
+import datetime
+import json
+import urllib
+from google.appengine.api import urlfetch
 
-class GladSql(Sql):
+IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_analysis/ImageServer/computeHistograms"
 
-    WORLD = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM  umd_alerts_agg_analysis f
-        WHERE date >= '{begin}'::date
-          AND date <= '{end}'::date
-          AND ST_INTERSECTS(
-                ST_Transform(
-                  ST_SetSRID(
-                    ST_GeomFromGeoJSON('{geojson}'),
-                  4326),
-                3857),
-              f.the_geom_webmercator)
-        """
+START_YEAR = 2015
 
-    ISO = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM umd_alerts_agg_analysis f
-        WHERE iso = UPPER('{iso}')
-            AND date >= '{begin}'::date
-            AND date <= '{end}'::date
-        """
+MOSAIC_RULE = {
+    "mosaicMethod": "esriMosaicLockRaster",
+    "ascending": True,
+    "mosaicOperation": "MT_FIRST"
+}
 
-    ID1 = """
-        WITH r as (SELECT name_1,iso, id_1, ST_RemoveRepeatedPoints(the_geom_webmercator, 1000) the_geom_webmercator
-                   FROM gadm2_provinces_simple 
-                   WHERE iso = UPPER('{iso}') 
-                   AND id_1 = {id1} )
-        SELECT COUNT(f.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
-        FROM umd_alerts_agg_analysis f INNER JOIN r ON st_intersects(r.the_geom_webmercator,f.the_geom_webmercator)
-        WHERE date >= '{begin}'::date 
-        AND date <= '{end}'::date
-        """
+def generateMosaicRule(raster):
+    mosaicRule = MOSAIC_RULE
+    mosaicRule['lockRasterIds'] = [raster]
+    return mosaicRule
 
-    WDPA = """
-        WITH p as (SELECT CASE when marine::numeric = 2 then null
-        when ST_NPoints(the_geom)<=18000 THEN the_geom_webmercator
-       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom_webmercator, 100)
-      ELSE ST_RemoveRepeatedPoints(the_geom_webmercator, 1000)
-       END as the_geom_webmercator FROM wdpa_protected_areas where wdpaid={wdpaid})
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM umd_alerts_agg_analysis f, p
-        WHERE ST_Intersects(f.the_geom_webmercator, p.the_geom_webmercator)
-              AND date >= '{begin}'::date
-              AND date <= '{end}'::date
-        """
+def geojsonToEsriJson(geojson):
+    geojson = json.loads(geojson)
+    geojson['type'] = 'polygon'
+    geojson['rings'] = geojson.pop('coordinates')
+    geojson['spatialReference'] = { 'wkid': 4326 }
 
-    USE = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM {use_table} u, umd_alerts_agg_analysis f
-        WHERE u.cartodb_id = {pid}
-              AND ST_Intersects(f.the_geom_webmercator, u.the_geom_webmercator)
-              AND date >= '{begin}'::date
-              AND date <= '{end}'::date
-        """
+    return geojson
 
-    LATEST = """
-        SELECT DISTINCT date
-        FROM umd_alerts_agg_analysis
-        ORDER BY date DESC
-        LIMIT {limit}"""
+def dateToGridCode(date):
+    return date.timetuple().tm_yday + (365 * (date.year - START_YEAR))
 
-    @classmethod
-    def download(cls, sql):
-        return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", " f.date, st_transform(f.the_geom_webmercator, 4326) as the_geom, ST_Y(st_transform(the_geom_webmercator, 4326)) as lat, ST_X(st_transform(the_geom_webmercator, 4326)) as long")
+def rasterForDate(date):
+    return (date.year - START_YEAR) + 1
 
-def _processResults(action, data):
-    if 'rows' in data:
-        results = data.pop('rows')
-        result = results[0]
-        if not result.get('value'):
-            data['results'] = results
-    else:
-        result = dict(value=None)
+def rastersForPeriod(startDate, endDate):
+    rasters = set([])
+    rasters.update([rasterForDate(startDate)])
+    rasters.update([rasterForDate(endDate)])
 
-    data['value'] = result.get('value')
-    data['min_date'] = result.get('min_date')
-    data['max_date'] = result.get('max_date')
+    return list(rasters)
 
-    return action, data
+def getHistogram(rasters, esri_json):
+    # esri_json = {
+      # "type": "polygon",
+      # "rings": [ [ [12473969, -229999], [12473985, -229101], [12467938, -229083], [12466906, -224960], [12467378, -224828], [12468799, -225243], [12469676, -224640], [12472019, -223848], [12473324, -222685], [12473969, -221497], [12473280, -220781], [12473152, -219744], [12473907, -219493], [12473970, -218400], [12473596, -218258], [12473671, -216842], [12474477, -216363], [12474225, -217285], [12474691, -218229], [12476053, -218949], [12475514, -219645], [12475807, -220220], [12478711, -220244], [12480163, -222465], [12480843, -222391], [12481148, -223069], [12481813, -222758], [12481637, -223111], [12482266, -224104], [12481236, -224112], [12483424, -227510], [12479852, -229496], [12478617, -228545], [12478030, -229179], [12477498, -228847], [12476894, -229905], [12473969, -229999] ] ],
+      # "spatialReference": {
+        # "wkid": 102100,
+        # "latestWkid": 3857
+      # }
+    # }
 
+    form_fields = {
+        "geometry": json.dumps(esri_json),
+        "geometryType": "esriGeometryPolygon",
+        "pixelSize": 30,
+        "f": "pjson"
+    }
+
+    results = []
+    for raster in rasters:
+        print form_fields
+        form_fields['mosaicRule'] = generateMosaicRule(raster)
+        form_data = urllib.urlencode(form_fields)
+        result = urlfetch.fetch(url=IMAGE_SERVER,
+            payload=form_data,
+            method=urlfetch.POST,
+            deadline=60,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        result = json.loads(result.content)
+        if 'error' not in result:
+            results.append(result)
+
+    return results
+
+def alertCount(begin, end, histograms):
+    print histograms
+    counts = reduce(lambda t, histogram: t + histogram['histograms'][0]['counts'], histograms, [])
+    beginIndex = dateToGridCode(begin) - 1
+    endIndex = dateToGridCode(end) - 1
+    counts_for_period = counts[beginIndex:endIndex]
+
+    return sum(counts_for_period)
+
+def decorateWithArgs(dictionary, args):
+    dictionary['params'] = args
+    dictionary['params']['geojson'] = json.loads(dictionary['params']['geojson'])
+
+    return dictionary
 
 def execute(args):
-    args['version'] = 'v2'
+    begin = args.get('begin')
+    end = args.get('end')
+    rasters = rastersForPeriod(begin, end)
+    esri_json = geojsonToEsriJson(args.get('geojson'))
+    alert_count = alertCount(begin, end, getHistogram(rasters, esri_json))
 
-    if 'begin' in args:
-        args['begin'] = args['begin'].strftime('%Y-%m-%d')
-    if 'end' in args:
-        args['end'] = args['end'].strftime('%Y-%m-%d')
-
-    action, data = CartoDbExecutor.execute(args, GladSql)
-    if action == 'redirect' or action == 'error':
-        return action, data
-    return _processResults(action, data)
+    return 'respond', decorateWithArgs({
+        "min_date": begin.isoformat(),
+        "max_date": end.isoformat(),
+        "value": alert_count
+    }, args)
