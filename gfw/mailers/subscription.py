@@ -19,6 +19,7 @@ import copy
 import json
 import datetime
 import logging
+from google.appengine.api import urlfetch
 
 from appengine_config import runtime_config
 
@@ -88,6 +89,7 @@ class SubscriptionMailer:
                 map_image = '%s/v2/subscriptions/%s/overview.png' % \
                 (runtime_config['APP_BASE_URL'], str(self.subscription.key.id()))
                 template_params['map_image'] = map_image
+                urlfetch.fetch(map_image, method=urlfetch.GET)
 
                 fire_alerts = topic_result.value()[1][:10]
                 for alert in fire_alerts:
