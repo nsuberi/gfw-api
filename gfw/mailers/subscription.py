@@ -28,7 +28,7 @@ from gfw.models.topic import Topic
 from gfw.lib.urls import map_url
 
 from sparkpost import SparkPost
-sparkpost = SparkPost(runtime_config.get('sparkpost_api_key'))
+sparkpost = SparkPost(runtime_config.get('sparkpost_api_key') or 'sparkpostapikey')
 
 def summary_for_topic(topic):
     meta = topic.metadata
