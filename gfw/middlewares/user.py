@@ -22,8 +22,10 @@ from gfw.middlewares.cors import CORSRequestHandler
 class UserAuthMiddleware(CORSRequestHandler):
     def dispatch(self):
         route = self.request.route.name
-        if (self.routes_without_authorisation is not None) and (route in self.routes_without_authorisation):
-            webapp2.RequestHandler.dispatch(self)
+        if (hasattr(self, 'routes_without_authorisation')) and \
+            (self.routes_without_authorisation is not None) and \
+            (route in self.routes_without_authorisation):
+            return webapp2.RequestHandler.dispatch(self)
 
         options_request = (self.request.method == "OPTIONS")
         self.user = self.request.user if self.request.user else None

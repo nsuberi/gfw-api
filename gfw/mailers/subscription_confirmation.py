@@ -23,7 +23,7 @@ from gfw.common import gfw_url
 from gfw.models.topic import Topic
 
 from sparkpost import SparkPost
-sparkpost = SparkPost(runtime_config.get('sparkpost_api_key'))
+sparkpost = SparkPost(runtime_config.get('sparkpost_api_key') or 'sparkpostapikey')
 
 class SubscriptionConfirmationMailer:
     def __init__(self, subscription):

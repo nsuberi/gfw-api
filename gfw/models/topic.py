@@ -99,7 +99,7 @@ TOPICS = [
         'name': 'VIIRS Active fires',
         'meta_id': 'viirs-active-fires',
         'analysis_class': viirs,
-        'template': '{} NASA Active Fires Alerts',
+        'template': '{}',
         'baselayer': 'viirs_fires_alerts',
         'parser': TopicResultParsers.simple
     }
