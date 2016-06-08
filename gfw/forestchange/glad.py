@@ -22,7 +22,45 @@ import json
 import urllib
 from google.appengine.api import urlfetch
 
+from gfw.forestchange.common import CartoDbExecutor
+from gfw.forestchange.common import Sql
+
+class GeometrySql(Sql):
+    ISO = """
+        SELECT ST_AsGeoJSON(the_geom) AS geojson
+        FROM gadm2_countries_simple
+        WHERE iso = UPPER('{iso}')"""
+
+    ID1 = """
+        SELECT ST_AsGeoJSON(the_geom) AS geojson
+        FROM gadm2_provinces_simple
+        WHERE iso = UPPER('{iso}')
+          AND id_1 = {id1}"""
+
+    WDPA = """
+        SELECT ST_AsGeoJSON(p.the_geom) AS geojson
+        FROM (
+          SELECT CASE
+          WHEN marine::numeric = 2 THEN NULL
+            WHEN ST_NPoints(the_geom)<=18000 THEN the_geom
+            WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
+            ELSE ST_RemoveRepeatedPoints(the_geom, 0.005)
+            END AS the_geom
+          FROM wdpa_protected_areas
+          WHERE wdpaid={wdpaid}
+        ) p"""
+
+    USE = """
+        SELECT ST_AsGeoJSON(the_geom) AS geojson
+        FROM {use_table}
+        WHERE cartodb_id = {pid}"""
+
+    @classmethod
+    def download(cls, sql):
+        return sql
+
 IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_analysis/ImageServer/computeHistograms"
+CONFIRMED_IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_con_analysis/ImageServer/computeHistograms"
 
 START_YEAR = 2015
 
@@ -39,9 +77,12 @@ def generateMosaicRule(raster):
 
 def geojsonToEsriJson(geojson):
     geojson = json.loads(geojson)
-    geojson['type'] = 'polygon'
-    geojson['rings'] = geojson.pop('coordinates')
+    if geojson['type'] == 'Polygon':
+        geojson['rings'] = geojson.pop('coordinates')
+    elif geojson['type'] == 'MultiPolygon':
+        geojson['rings'] = geojson.pop('coordinates')[0]
 
+    geojson['type'] = 'polygon'
     return geojson
 
 def dateToGridCode(date):
@@ -57,19 +98,22 @@ def rastersForPeriod(startDate, endDate):
 
     return list(rasters)
 
-def getHistogram(rasters, esri_json):
+def getHistogram(rasters, esri_json, confirmed_only):
     form_fields = {
         "geometry": json.dumps(esri_json),
         "geometryType": "esriGeometryPolygon",
         "f": "pjson"
     }
 
+    image_server = IMAGE_SERVER
+    if confirmed_only:
+        image_server = CONFIRMED_IMAGE_SERVER
+
     results = []
     for raster in rasters:
-        print form_fields
         form_fields['mosaicRule'] = generateMosaicRule(raster)
         form_data = urllib.urlencode(form_fields)
-        result = urlfetch.fetch(url=IMAGE_SERVER,
+        result = urlfetch.fetch(url=image_server,
             payload=form_data,
             method=urlfetch.POST,
             deadline=60,
@@ -81,9 +125,14 @@ def getHistogram(rasters, esri_json):
 
     return results
 
+def sum_histogram(t, histogram):
+    if len(histogram['histograms']) > 0:
+        return t + histogram['histograms'][0]['counts']
+    else:
+        return t
+
 def alertCount(begin, end, histograms):
-    print histograms
-    counts = reduce(lambda t, histogram: t + histogram['histograms'][0]['counts'], histograms, [])
+    counts = reduce(sum_histogram, histograms, [])
     beginIndex = dateToGridCode(begin) - 1
     endIndex = dateToGridCode(end) - 1
     counts_for_period = counts[beginIndex:endIndex]
@@ -100,8 +149,17 @@ def execute(args):
     begin = args.get('begin')
     end = args.get('end')
     rasters = rastersForPeriod(begin, end)
+
+    if 'geojson' not in args:
+        action, data = CartoDbExecutor.execute(args, GeometrySql)
+        args['geojson'] = data['rows'][0]['geojson']
+
+    confirmed_only = False
+    if 'glad_confirmed_only' in args:
+        confirmed_only = True
+
     esri_json = geojsonToEsriJson(args.get('geojson'))
-    alert_count = alertCount(begin, end, getHistogram(rasters, esri_json))
+    alert_count = alertCount(begin, end, getHistogram(rasters, esri_json, confirmed_only))
 
     return 'respond', decorateWithArgs({
         "min_date": begin.isoformat(),
