@@ -95,6 +95,7 @@ class Subscription(ndb.Model):
     def to_dict(self):
         result = super(Subscription,self).to_dict()
         result['key'] = self.key.id()
+        result.pop('overview_image', None)
         return result
 
     def formatted_name(self):
