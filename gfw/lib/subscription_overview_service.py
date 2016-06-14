@@ -28,8 +28,11 @@ def extent(geojson):
 class SubscriptionOverviewService():
     @classmethod
     def overview_image(cls, subscription):
-        extent_str = extent(subscription.params['geom'])
-        geojson = json.dumps(subscription.params['geom'])
+        geom = subscription.params['geom']
+        if 'geometry' in geom:
+            geom = geom['geometry']
+        extent_str = extent(geom)
+        geojson = json.dumps(geom)
 
         begin = date.today() - timedelta(days=1)
         config = { 'date': begin.strftime('%Y-%m-%d'), 'geojson': geojson.replace('"', '\\"')}
