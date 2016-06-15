@@ -14,7 +14,7 @@ from gfw.models.subscription import Subscription
 class Sql(object):
     @classmethod
     def clean(cls, sql):
-        return ' '.join(sql.split())
+        return ' '.join(sql.split()).replace('"', '\\"')
 
     @classmethod
     def process(cls, args):
@@ -30,7 +30,7 @@ class Sql(object):
         return cls.clean(query)
 
     @classmethod
-    def use(cls, params, args):
+    def use(cls, args):
         concessions = {
             'mining': 'gfw_mining',
             'oilpalm': 'gfw_oil_palm',
@@ -38,8 +38,8 @@ class Sql(object):
             'logging': 'gfw_logging'
         }
 
-        params['use_table'] = concessions.get(args['use']) or args['use']
-        params['pid'] = args['useid']
+        args['use_table'] = concessions.get(args['use']) or args['use']
+        args['pid'] = args['useid']
 
         return cls.USE.format(**args)
 
@@ -79,22 +79,22 @@ class GeometrySql(Sql):
 
 class BoundingSql(CartoDbSql):
     WORLD = """
-      SELECT ST_AsGeojson(ST_Extent(ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'),4326)))
+      SELECT ST_AsGeojson(ST_Expand(ST_Extent(ST_SetSRID(ST_GeomFromGeoJSON('{geojson}'),4326)),1))
       AS bbox"""
 
     ISO = """
-        SELECT ST_AsGeojson(ST_Extent(the_geom)) AS bbox
+        SELECT ST_AsGeojson(ST_Expand(ST_Extent(the_geom),1)) AS bbox
         FROM gadm2_countries_simple
         WHERE iso = UPPER('{iso}')"""
 
     ID1 = """
-        SELECT ST_AsGeojson(ST_Extent(the_geom)) AS bbox
+        SELECT ST_AsGeojson(ST_Expand(ST_Extent(the_geom),1)) AS bbox
         FROM gadm2_provinces_simple
         WHERE iso = UPPER('{iso}')
           AND id_1 = {id1}"""
 
     WDPA = """
-        SELECT ST_AsGeojson(ST_Extent(p.the_geom)) AS bbox
+        SELECT ST_AsGeojson(ST_Expand(ST_Extent(p.the_geom),1)) AS bbox
         FROM (
           SELECT CASE
           WHEN marine::numeric = 2 THEN NULL
@@ -107,7 +107,7 @@ class BoundingSql(CartoDbSql):
         ) p"""
 
     USE = """
-        SELECT ST_AsGeojson(ST_Extent(the_geom)) AS bbox
+        SELECT ST_AsGeojson(ST_Expand(ST_Extent(the_geom),1)) AS bbox
         FROM {use_table}
         WHERE cartodb_id = {pid}"""
 
@@ -143,8 +143,7 @@ class SubscriptionOverviewService():
             geom = subscription.params['geom']
             if 'geometry' in geom:
                 geom = geom['geometry']
-            geojson = json.dumps(geom).replace('"', '\\"')
-            args['geojson'] = geojson
+            args['geojson'] = json.dumps(geom)
 
         args = dict((k, v) for k, v in args.iteritems() if v)
 
