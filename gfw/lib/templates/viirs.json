@@ -18,7 +18,7 @@
     "options": {
       "cartocss_version": "2.1.1",
       "cartocss": "#layer{polygon-opacity: 0; line-color: #A2BC28; line-width: 3; line-opacity: 1;}",
-      "sql": "SELECT ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON('$geojson'),4326),3857) AS the_geom_webmercator"
+      "sql": "$query"
     }
   }, {
     "type": "http",
