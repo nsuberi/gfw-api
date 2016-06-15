@@ -29,6 +29,12 @@ routes = [
     methods=['POST']
   ),
 
+  webapp2.Route(
+    r'/emails<:/?.*>',
+    handler=EmailApi,
+    methods=['OPTIONS']
+  ),
+
   webapp2.Route(r'/emails/tasks/send',
     handler=EmailTaskApi,
     handler_method='send_contact_form',
