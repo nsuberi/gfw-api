@@ -1,5 +1,5 @@
 # Global Forest Watch API
-# Copyright (C) 2015 World Resource Institute
+# Copyright (C) 2013 World Resource Institute
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,23 +15,25 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-total_storage_limit: 120M
-queue:
-- name: story-new-emails
-  rate: 35/s
-- name: contact-form-emails
-  rate: 35/s
-- name: pubsub-confirmation
-  rate: 35/s
-- name: pubsub-publish-sub
-  rate: 35/s
-- name: pubsub-publish-subs
-  rate: 35/s
-- name: user-tester-sign-up
-  rate: 35/s
-- name: user-profile
-  rate: 35/s
-- name: log
-  rate: 35/s
-- name: feedback-tester
-  rate: 35/s
+import webapp2
+
+from gfw.email.handlers import EmailApi
+from gfw.email.tasks import EmailTaskApi
+
+routes = [
+
+  webapp2.Route(
+    r'/emails',
+    handler=EmailApi,
+    handler_method='send',
+    methods=['POST']
+  ),
+
+  webapp2.Route(r'/emails/tasks/send',
+    handler=EmailTaskApi,
+    handler_method='send_contact_form',
+    methods=['POST'])
+
+]
+
+handlers = webapp2.WSGIApplication(routes, debug=False)
