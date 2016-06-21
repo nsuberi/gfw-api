@@ -25,6 +25,8 @@ from google.appengine.api import urlfetch
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import Sql
 
+request_notes = []
+
 class GeometrySql(Sql):
     ISO = """
         SELECT ST_AsGeoJSON(the_geom) AS geojson
@@ -91,6 +93,9 @@ def dateToGridCode(date):
 def rasterForDate(date):
     return (date.year - START_YEAR) + 1
 
+def yearForRaster(raster):
+    return (raster - 1) + START_YEAR
+
 def rastersForPeriod(startDate, endDate):
     rasters = set([])
     rasters.update([rasterForDate(startDate)])
@@ -109,6 +114,8 @@ def getHistogram(rasters, esri_json, confirmed_only):
     if confirmed_only:
         image_server = CONFIRMED_IMAGE_SERVER
 
+    request_notes.append('Rasters IDs:')
+    request_notes.append(rasters)
     results = []
     for raster in rasters:
         form_fields['mosaicRule'] = generateMosaicRule(raster)
@@ -121,23 +128,42 @@ def getHistogram(rasters, esri_json, confirmed_only):
 
         result = json.loads(result.content)
         if 'error' not in result:
-            results.append(result)
+            results.append([raster, result])
 
     return results
 
-def sum_histogram(t, histogram):
-    if len(histogram['histograms']) > 0:
-        return t + histogram['histograms'][0]['counts']
+def datesToGridCodes(begin, end, raster):
+    rasterYear = yearForRaster(raster)
+
+    indexes = []
+    if begin.year == rasterYear:
+        indexes.append(begin.timetuple().tm_yday - 1)
     else:
-        return t
+        indexes.append(datetime.date(rasterYear, 1, 1).timetuple().tm_yday - 1)
+
+    if end.year == rasterYear:
+        indexes.append(end.timetuple().tm_yday - 1)
+    else:
+        indexes.append(datetime.date(rasterYear, 12, 31).timetuple().tm_yday - 1)
+
+    return indexes
 
 def alertCount(begin, end, histograms):
-    counts = reduce(sum_histogram, histograms, [])
-    beginIndex = dateToGridCode(begin) - 1
-    endIndex = dateToGridCode(end) - 1
-    counts_for_period = counts[beginIndex:endIndex]
+    total_count = 0
+    for raster, histogram in histograms:
+        counts = []
+        if len(histogram['histograms']) > 0:
+            counts = histogram['histograms'][0]['counts']
 
-    return sum(counts_for_period)
+        indexes = datesToGridCodes(begin, end, raster)
+
+        request_notes.append('Counts:')
+        request_notes.append(counts)
+        request_notes.append('Getting Indexes:')
+        request_notes.append(indexes)
+        total_count += sum(counts[indexes[0]:indexes[1]])
+
+    return total_count
 
 def decorateWithArgs(dictionary, args):
     dictionary['params'] = args
@@ -164,5 +190,6 @@ def execute(args):
     return 'respond', decorateWithArgs({
         "min_date": begin.isoformat(),
         "max_date": end.isoformat(),
-        "value": alert_count
+        "value": alert_count,
+        "notes": request_notes
     }, args)
