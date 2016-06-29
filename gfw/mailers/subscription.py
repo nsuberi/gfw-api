@@ -62,12 +62,19 @@ class SubscriptionMailer:
             begin = event.begin.strftime('%d %b %Y')
             end = event.end.strftime('%d %b %Y')
 
+            utm_config = {
+                'utm_source': 'subscription',
+                'utm_medium': 'email',
+                'utm_campaign': topic.id,
+                'utm_content': self.subscription.email
+            }
+
             url_params = self.subscription.params
             url_params['begin'] = event.begin
             url_params['end'] = event.end
             url_params['fit_to_geom'] = 'true'
             url_params['tab'] = 'analysis-tab'
-            alert_link = map_url(self.subscription.params)
+            alert_link = map_url(self.subscription.params, utm_config)
 
             email = self.subscription.email
             user_profile = self.subscription.user_id.get().get_profile()

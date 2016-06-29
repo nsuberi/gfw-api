@@ -41,7 +41,7 @@ def iso(params):
 
     return iso
 
-def map_url(params):
+def map_url(params, utm={}):
     if not params: return BASE_PATH
 
     if 'begin' in params:
@@ -65,6 +65,8 @@ def map_url(params):
     baselayer = topic.baselayer
 
     url_params = {k: params[k] for k in ALLOWED_PARAMS if k in params}
+    url_params = dict(url_params.items() + utm.items())
+
     query_string = urllib.urlencode(url_params, doseq=True)
 
     return BASE_URL + BASE_PATH + '/-1/0/0/' + iso(params) + '/grayscale/' + \
