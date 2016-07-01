@@ -196,13 +196,13 @@ META = {
         },
         'apis': {
             'world': '%s{?period,geojson,download,bust,dev}' % TERRAI_API,
-            'ifl_national': '%s/admin/ifl/{/iso}{?bust,dev,thresh}' %
+            'ifl_national': '%s/admin/ifl/{/iso}{?period,bust,dev,thresh}' %
             BIOMASS_LOSS_API,
-            'ifl_subnational': '%s/admin/ifl/{/iso}{/id1}{?bust,dev,thresh}' %
+            'ifl_subnational': '%s/admin/ifl/{/iso}{/id1}{?period,bust,dev,thresh}' %
             BIOMASS_LOSS_API,
-            'national': '%s/admin{/iso}{?bust,dev,thresh}' %
+            'national': '%s/admin{/iso}{?period,bust,dev,thresh}' %
             BIOMASS_LOSS_API,
-            'subnational': '%s/admin{/iso}{/id1}{?bust,dev,thresh}' %
+            'subnational': '%s/admin{/iso}{/id1}{?period,bust,dev,thresh}' %
             BIOMASS_LOSS_API,
         }
     },

@@ -74,7 +74,7 @@ def _ee_biomass(geom, thresh, asset_id1, asset_id2):
         'scale': 90
     }
 
-    # Calculate stats 10000 ha, 10^6 to transform from Mg (10^6g) to Tg(10^12g) and 255 as is the pixel value when true.
+    # Calculate stats 10000 ha, 10^6 to transform to Mg (10^6g) from Tg(10^12g) and 255 as is the pixel value when true.
     area_stats = image2.multiply(image1) \
         .divide(10000 * 255.0 * 1000000) \
         .multiply(ee.Image.pixelArea()) \
@@ -137,33 +137,60 @@ def _dates_selector(data,begin,end):
 class BiomasLossSql(Sql):
 
     ISO = """
-        SELECT iso,boundary,admin0_name as country,  year, thresh, indicator_id, value
+        WITH r as (
+        SELECT iso_and_sub_nat, iso,boundary,admin0_name as country,  year, thresh, indicator_id, value*1000000 as value
         FROM indicators_values
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND iso_and_sub_nat = UPPER('{iso}')
               AND boundary = 'admin'
-              AND (indicator_id = 1 
-                OR indicator_id = 4
+              AND (indicator_id = 4
                 OR indicator_id= 12
                 OR indicator_id= 13
                 OR indicator_id= 14)
-        ORDER BY year, indicator_id"""
+        ORDER BY year, indicator_id),
+            s as (SELECT iso_and_sub_nat, iso,boundary,admin0_name as country,  year, thresh, indicator_id, value as value
+        FROM indicators_values
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+              AND iso_and_sub_nat = UPPER('{iso}')
+              AND boundary = 'admin'
+              AND indicator_id = 1 
+         ORDER BY year, indicator_id)
+        select * from s
+        union all
+        select * from r 
+        ORDER BY year, indicator_id
+        """
 
     ID1 = """
-        SELECT iso, boundary, admin0_name, sub_nat_id as id1,  year, thresh, indicator_id, value
+        WITH r as (
+        SELECT sub_nat_id as id1, iso,boundary,admin0_name as country,  year, thresh, indicator_id, value*1000000 as value
         FROM indicators_values
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND sub_nat_id = {id1}
-              AND boundary = 'admin' 
-              AND (indicator_id = 1 
-                OR indicator_id = 4
+              AND iso_and_sub_nat = UPPER('{iso}')
+              AND boundary = 'admin'
+              AND (indicator_id = 4
                 OR indicator_id= 12
                 OR indicator_id= 13
                 OR indicator_id= 14)
-              
-        ORDER BY year"""
+        ORDER BY year, indicator_id),
+            s as (SELECT sub_nat_id as id1, iso,boundary,admin0_name as country,  year, thresh, indicator_id, value as value
+        FROM indicators_values
+        WHERE iso = UPPER('{iso}')
+              AND thresh = {thresh}
+              AND sub_nat_id = {id1}
+              AND iso_and_sub_nat = UPPER('{iso}')
+              AND boundary = 'admin'
+              AND indicator_id = 1 
+         ORDER BY year, indicator_id)
+        select * from s
+        union all
+        select * from r 
+        ORDER BY year, indicator_id
+        """
 
     IFL = """
         SELECT ST_AsGeoJson(the_geom) AS geojson, type
@@ -400,6 +427,10 @@ def execute(args):
     # Set default threshold
     if 'thresh' not in args:
         args['thresh'] = 30
+    if 'begin' not in args:
+        args['begin'] = '2001-01-01'
+    if 'end' not in args:
+        args['end'] = '2015-01-01'
 
     if query_type == 'iso':
         return _executeIso(args)
