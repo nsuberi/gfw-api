@@ -52,9 +52,9 @@ RASTERS = {
 }
 
 YEAR_FOR_RASTERS = {
-    1: '2015',
-    4: '2016',
-    5: '2016'
+    1: 2015,
+    4: 2016,
+    5: 2016
 }
 
 def generateMosaicRule(raster):
