@@ -20,49 +20,17 @@
 import datetime
 import json
 import urllib
+import collections
 from google.appengine.api import urlfetch
 
 from gfw.forestchange.common import CartoDbExecutor
-from gfw.forestchange.common import Sql
+from gfw.forestchange.common import classify_query
+from gfw.lib.geometry_sql import GeometrySql
 
 request_notes = []
 
-class GeometrySql(Sql):
-    ISO = """
-        SELECT ST_AsGeoJSON(the_geom) AS geojson
-        FROM gadm2_countries_simple
-        WHERE iso = UPPER('{iso}')"""
-
-    ID1 = """
-        SELECT ST_AsGeoJSON(the_geom) AS geojson
-        FROM gadm2_provinces_simple
-        WHERE iso = UPPER('{iso}')
-          AND id_1 = {id1}"""
-
-    WDPA = """
-        SELECT ST_AsGeoJSON(p.the_geom) AS geojson
-        FROM (
-          SELECT CASE
-          WHEN marine::numeric = 2 THEN NULL
-            WHEN ST_NPoints(the_geom)<=18000 THEN the_geom
-            WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom, 0.001)
-            ELSE ST_RemoveRepeatedPoints(the_geom, 0.005)
-            END AS the_geom
-          FROM wdpa_protected_areas
-          WHERE wdpaid={wdpaid}
-        ) p"""
-
-    USE = """
-        SELECT ST_AsGeoJSON(the_geom) AS geojson
-        FROM {use_table}
-        WHERE cartodb_id = {pid}"""
-
-    @classmethod
-    def download(cls, sql):
-        return sql
-
-IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_analysis/ImageServer/computeHistograms"
-CONFIRMED_IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_con_analysis/ImageServer/computeHistograms"
+IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_analysis/ImageServer/"
+CONFIRMED_IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_con_analysis/ImageServer/"
 
 START_YEAR = 2015
 
@@ -70,6 +38,23 @@ MOSAIC_RULE = {
     "mosaicMethod": "esriMosaicLockRaster",
     "ascending": True,
     "mosaicOperation": "MT_FIRST"
+}
+
+RASTERS = {
+    'all': {
+        '2015': 1,
+        '2016': 4
+    },
+    'confirmed_only': {
+        '2015': 1,
+        '2016': 5
+    }
+}
+
+YEAR_FOR_RASTERS = {
+    1: '2015',
+    4: '2016',
+    5: '2016'
 }
 
 def generateMosaicRule(raster):
@@ -90,16 +75,19 @@ def geojsonToEsriJson(geojson):
 def dateToGridCode(date):
     return date.timetuple().tm_yday + (365 * (date.year - START_YEAR))
 
-def rasterForDate(date):
-    return (date.year - START_YEAR) + 1
+def rasterForDate(date, confirmed=False):
+    if confirmed:
+        return RASTERS['confirmed_only'][str(date.year)]
+    else:
+        return RASTERS['all'][str(date.year)]
 
 def yearForRaster(raster):
-    return (raster - 1) + START_YEAR
+    return YEAR_FOR_RASTERS[raster]
 
-def rastersForPeriod(startDate, endDate):
+def rastersForPeriod(startDate, endDate, confirmed=False):
     rasters = set([])
-    rasters.update([rasterForDate(startDate)])
-    rasters.update([rasterForDate(endDate)])
+    rasters.update([rasterForDate(startDate, confirmed)])
+    rasters.update([rasterForDate(endDate, confirmed)])
 
     return list(rasters)
 
@@ -120,7 +108,7 @@ def getHistogram(rasters, esri_json, confirmed_only):
     for raster in rasters:
         form_fields['mosaicRule'] = generateMosaicRule(raster)
         form_data = urllib.urlencode(form_fields)
-        result = urlfetch.fetch(url=image_server,
+        result = urlfetch.fetch(url=image_server+'computeHistograms',
             payload=form_data,
             method=urlfetch.POST,
             deadline=60,
@@ -167,14 +155,16 @@ def alertCount(begin, end, histograms):
 
 def decorateWithArgs(dictionary, args):
     dictionary['params'] = args
-    dictionary['params']['geojson'] = json.loads(dictionary['params']['geojson'])
+
+    if 'geojson' in dictionary['params']:
+        dictionary['params']['geojson'] = json.loads(dictionary['params']['geojson'])
 
     return dictionary
 
-def execute(args):
+def getAlertCount(args):
     begin = args.get('begin')
     end = args.get('end')
-    rasters = rastersForPeriod(begin, end)
+    rasters = rastersForPeriod(begin, end, True)
 
     if 'geojson' not in args:
         action, data = CartoDbExecutor.execute(args, GeometrySql)
@@ -193,3 +183,39 @@ def execute(args):
         "value": alert_count,
         "notes": request_notes
     }, args)
+
+def getMaxDateFromHistograms(histograms):
+    year = (len(histograms) - 1) + START_YEAR
+    day_number = len(histograms.values()[-1])
+    return datetime.datetime(year, 1, 1) + datetime.timedelta(day_number-1)
+
+def getFullHistogram(args):
+    begin = datetime.datetime.strptime(str(START_YEAR), '%Y')
+    end = datetime.datetime.now()
+    rasters = rastersForPeriod(begin, end)
+
+    results = collections.OrderedDict()
+    for raster in rasters:
+        result = urlfetch.fetch(
+            url=IMAGE_SERVER+str(raster)+'/info/histograms?f=pjson',
+            method=urlfetch.GET,
+            deadline=60,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        result = json.loads(result.content)
+        if 'error' not in result:
+            results[yearForRaster(raster)] = result['histograms'][0]['counts']
+
+    return 'respond', decorateWithArgs({
+        'min_date': begin.strftime('%Y-%m-%d'),
+        'max_date': getMaxDateFromHistograms(results).strftime('%Y-%m-%d'),
+        'counts': results
+    }, args)
+
+def execute(args):
+    query_type = classify_query(args)
+
+    if query_type == 'latest':
+        return getFullHistogram(args)
+    else:
+        return getAlertCount(args)
