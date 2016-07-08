@@ -164,7 +164,6 @@ def decorateWithArgs(dictionary, args):
 def getAlertCount(args):
     begin = args.get('begin')
     end = args.get('end')
-    rasters = rastersForPeriod(begin, end, True)
 
     if 'geojson' not in args:
         action, data = CartoDbExecutor.execute(args, GeometrySql)
@@ -173,6 +172,8 @@ def getAlertCount(args):
     confirmed_only = False
     if 'glad_confirmed_only' in args:
         confirmed_only = True
+
+    rasters = rastersForPeriod(begin, end, confirmed_only)
 
     esri_json = geojsonToEsriJson(args.get('geojson'))
     alert_count = alertCount(begin, end, getHistogram(rasters, esri_json, confirmed_only))
