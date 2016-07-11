@@ -42,17 +42,18 @@ MOSAIC_RULE = {
 
 RASTERS = {
     'all': {
-        '2015': 1,
+        '2015': 6,
         '2016': 4
     },
     'confirmed_only': {
-        '2015': 1,
+        '2015': 7,
         '2016': 5
     }
 }
 
 YEAR_FOR_RASTERS = {
-    1: 2015,
+    6: 2015,
+    7: 2015,
     4: 2016,
     5: 2016
 }
@@ -187,7 +188,8 @@ def getAlertCount(args):
 
 def getMaxDateFromHistograms(histograms):
     year = (len(histograms) - 1) + START_YEAR
-    day_number = len(histograms.values()[-1])
+    latest_histogram_key = max(histograms.keys())
+    day_number = len(histograms[latest_histogram_key])
     return datetime.datetime(year, 1, 1) + datetime.timedelta(day_number-1)
 
 def getFullHistogram(args):
@@ -195,7 +197,7 @@ def getFullHistogram(args):
     end = datetime.datetime.now()
     rasters = rastersForPeriod(begin, end)
 
-    results = collections.OrderedDict()
+    results = {}
     for raster in rasters:
         result = urlfetch.fetch(
             url=IMAGE_SERVER+str(raster)+'/info/histograms?f=pjson',
