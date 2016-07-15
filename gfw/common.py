@@ -34,7 +34,10 @@ ALLOWED_DOMAINS = [
     'staging.globalforestwatch.org', 'localhost:5000'
     'fires.globalforestwatch.org', 'www.fires.globalforestwatch.org',
     'commodities.globalforestwatch.org', 'www.commodities.globalforestwatch.org'
-    'climate.globalforestwatch.org', 'www.climate.globalforestwatch.org'
+    'climate.globalforestwatch.org', 'www.climate.globalforestwatch.org',
+    'data.globalforestwatch.org', 'www.data.globalforestwatch.org',
+    'developers.globalforestwatch.org', 'www.developers.globalforestwatch.org',
+    'blog.globalforestwatch.org', 'www.blog.globalforestwatch.org'
 ]
 APP_VERSION = runtime_config.get('APP_VERSION')
 APP_BASE_URL = runtime_config.get('APP_BASE_URL')
