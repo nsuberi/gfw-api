@@ -109,5 +109,8 @@ handlers:
 - url: /email.*
   script: gfw.email.api.handlers
 
+- url: /migrations.*
+  script: gfw.migrations.api.handlers
+
 - url: /.*
   script: gfw.urthecast.handler.app
