@@ -31,7 +31,7 @@ from appengine_config import runtime_config
 ALLOWED_DOMAINS = [
     'api-gateway-staging.globalforestwatch.org',
     'www.globalforestwatch.org', 'globalforestwatch.org',
-    'staging.globalforestwatch.org', 'localhost:5000'
+    'staging.globalforestwatch.org', 'localhost:5000',
     'fires.globalforestwatch.org', 'www.fires.globalforestwatch.org',
     'commodities.globalforestwatch.org', 'www.commodities.globalforestwatch.org'
     'climate.globalforestwatch.org', 'www.climate.globalforestwatch.org'

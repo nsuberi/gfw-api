@@ -107,9 +107,10 @@ class SubscriptionMailer:
 
                 template_params['fire_alerts'] = fire_alerts
 
+            language = (self.subscription.language or 'EN').lower()
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
-                template=template_for_topic(topic),
+                template=template_for_topic(topic) + '-' + language,
                 substitution_data=template_params
             )
 
