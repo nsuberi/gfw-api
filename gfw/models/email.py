@@ -47,6 +47,10 @@ TOPICS = {
         'name': 'GFW Climate inquiry',
         'emailTo': 'gfwclimate@wri.org'
     },
+    'gfw-water-inquiry': {
+        'name': 'GFW Water inquiry',
+        'emailTo': 'GFWwater@wri.org'
+    },
     'general-inquiry': {
         'name': 'General inquiry',
         'emailTo': 'gfw@wri.org'
