@@ -37,6 +37,7 @@ PER_PAGE = 10
 def user_to_dict(u):
     profile = u.get_profile().to_dict();
     d = u.to_dict();
+    d['user_id'] = u.key.id()
     d['profile'] = profile;
     return d
 
