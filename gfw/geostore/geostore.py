@@ -48,6 +48,7 @@ class Geostore(ndb.Model):
             result = super(Geostore, self).to_dict()
             result['id'] = self.key.urlsafe()
             result['geojson'] = json.loads(self.get_combined_geojson())
+            result.pop('next_id', None)
             return result
         except Exception as e:
             return None
