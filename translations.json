@@ -1,0 +1,61 @@
+{
+  "EN": {
+    "subscription.summary": "{} at a {} resolution. Coverage of {}. Source is {}. Available data from {}, updated {}",
+    "subscription.custom_area": "Custom area",
+    "subscription.date_join": "to",
+
+    "topic.glad-alerts.description": "weekly GLAD tree cover loss alerts",
+    "topic.glad-alerts.alert_template": "{} alerts",
+    "topic.glad-alerts.metadata": {
+      "description": "Identifies areas of likely tree cover loss in near-real time",
+      "resolution": "30 × 30 meters (Landsat)",
+      "coverage": "Peru, Republic of Congo, and Kalimantan (Indonesia), eventually to cover the humid tropics",
+      "timescale": "January 1, 2015-present",
+      "updates": "Weekly",
+      "source": "UMD/GLAD",
+      "name": "GLAD tree cover loss alerts"
+    },
+
+    "topic.viirs-active-fires.description": "daily VIIRS active fires alerts",
+    "topic.viirs-active-fires.alert_template": "{}",
+    "topic.viirs-active-fires.metadata": {
+      "description": "Displays fire alert data for the past 7 days.",
+      "resolution": "1 x 1 kilometer",
+      "coverage": "Global",
+      "timescale": "Last 7 days",
+      "updates": "Daily",
+      "source": "MODIS",
+      "units": "Alerts",
+      "name": "NASA Active Fires Alerts"
+    }
+  },
+  "PT": {
+    "subscription.summary": "{} em uma {} resolução. Cobertura de {}. A fonte é {}. Dados disponíveis de {}, atualizado {}.",
+    "subscription.custom_area": "Região personalizada",
+    "subscription.date_join": "para",
+
+    "topic.glad-alerts.description": "alertas semanais de perda de cobertura arbórea do GLAD",
+    "topic.glad-alerts.alert_template": "{} alertas",
+    "topic.glad-alerts.metadata": {
+      "description": "Identifica áreas de provável perda de cobertura arbórea em tempo quase real",
+      "resolution": "30 × 30 metros (Landsat)",
+      "coverage": "Peru, República do Congo e Kalimantan (Indonésia), eventualmente cobrirão os trópicos úmidos",
+      "timescale": "1 de janeiro de 2015-presente",
+      "updates": "Semanal",
+      "source": "UMD/GLAD",
+      "name": "Alertas de perda de cobertura arbórea do GLAD"
+    },
+
+    "topic.viirs-active-fires.description": "incêndios ativos do VIIRS diários",
+    "topic.viirs-active-fires.alert_template": "{}",
+    "topic.viirs-active-fires.metadata": {
+      "description": "Exibe dados de incêndios das últimas 24 horas, 48 horas, 72 horas ou 7 dias",
+      "resolution": "375 x 375 metros",
+      "coverage": "global",
+      "timescale": "últimos 7 dias",
+      "updates": "duas vezes por dia",
+      "source": "NASA/NOAA",
+      "name": "NASA Active Fires Alerts"
+    }
+  }
+}

@@ -15,6 +15,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from appengine_config import load_translation as t
+
 class TopicResult:
     def __init__(self, topic, data):
         self.topic = topic
@@ -29,11 +31,12 @@ class TopicResult:
     def value(self):
         return self.topic.parser(self.data)
 
-    def formatted_value(self):
+    def formatted_value(self, language='EN'):
         value = map(str, self.value())
-        return self.topic.template.format(*value)
+        template = t(language, 'topic.' + self.topic.meta_id + '.alert_template')
+        return template.format(*value)
 
-    def area_name(self):
+    def area_name(self, language='EN'):
         params = self.data['params']
 
         if 'id1' in params.keys():
@@ -43,4 +46,4 @@ class TopicResult:
         elif 'wdpaid' in params.keys():
             return "WDPA ID: " + str(params.get('wdpaid'))
         else:
-            return "Custom area"
+            return t(language, 'subscription.custom_area')
