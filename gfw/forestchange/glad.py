@@ -22,10 +22,17 @@ import json
 import urllib
 import collections
 from google.appengine.api import urlfetch
+from google.appengine.api.urlfetch_errors import DeadlineExceededError
 
 from gfw.forestchange.common import CartoDbExecutor
 from gfw.forestchange.common import classify_query
 from gfw.lib.geometry_sql import GeometrySql
+
+class HistogramError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 request_notes = []
 
@@ -118,6 +125,9 @@ def getHistogram(rasters, esri_json, confirmed_only):
         result = json.loads(result.content)
         if 'error' not in result:
             results.append([raster, result])
+        else:
+            raise HistogramError(result)
+
 
     return results
 
@@ -176,15 +186,24 @@ def getAlertCount(args):
 
     rasters = rastersForPeriod(begin, end, confirmed_only)
 
-    esri_json = geojsonToEsriJson(args.get('geojson'))
-    alert_count = alertCount(begin, end, getHistogram(rasters, esri_json, confirmed_only))
+    try:
+        esri_json = geojsonToEsriJson(args.get('geojson'))
+        alert_count = alertCount(begin, end, getHistogram(rasters, esri_json, confirmed_only))
 
-    return 'respond', decorateWithArgs({
-        "min_date": begin.isoformat(),
-        "max_date": end.isoformat(),
-        "value": alert_count,
-        "notes": request_notes
-    }, args)
+        return 'respond', decorateWithArgs({
+            "min_date": begin.isoformat(),
+            "max_date": end.isoformat(),
+            "value": alert_count,
+            "notes": request_notes
+        }, args)
+    except HistogramError as e:
+        return 'error', decorateWithArgs(e.value, args)
+    except DeadlineExceededError as e:
+        return 'error', decorateWithArgs({
+            "error": {
+                "code": 408,
+                "message": "Request timed out"
+            }}, args)
 
 def getMaxDateFromHistograms(histograms):
     year = (len(histograms) - 1) + START_YEAR
