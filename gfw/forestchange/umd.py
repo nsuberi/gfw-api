@@ -101,7 +101,7 @@ class UmdSql(Sql):
     ISO = """
         SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
                loss, loss_perc, gain, gain*12 as total_gain, gain_perc
-        FROM umd_nat_final_1
+        FROM umd_nat_staging
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
         ORDER BY year"""
@@ -110,7 +110,7 @@ class UmdSql(Sql):
         SELECT iso, country, region, year, thresh, extent_2000 as extent,
                extent_perc, loss, loss_perc, gain, gain*12 as total_gain,
                gain_perc, id1
-        FROM umd_subnat_final_1
+        FROM umd_subnat_staging
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND id1 = {id1}
@@ -134,7 +134,7 @@ class UmdSql(Sql):
         SELECT CASE when ST_NPoints(the_geom)<=8000 THEN ST_AsGeoJson(the_geom)
        WHEN ST_NPoints(the_geom) BETWEEN 8000 AND 20000 THEN ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.001))
       ELSE ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.01))
-       END as geojson 
+       END as geojson
         FROM {use_table}
         WHERE cartodb_id = {pid}"""
 
