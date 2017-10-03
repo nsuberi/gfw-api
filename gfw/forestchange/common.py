@@ -100,7 +100,7 @@ class Sql(object):
     @classmethod
     def process(cls, args):
         begin = args['begin'] if 'begin' in args else '2014-01-01'
-        end = args['end'] if 'end' in args else '2015-01-01'
+        end = args['end'] if 'end' in args else '2016-01-01'
         params = dict(begin=begin, end=end)
         classification = classify_query(args)
         if hasattr(cls, classification):
