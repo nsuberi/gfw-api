@@ -131,7 +131,7 @@ class CountrySql(object):
         WHERE iso = UPPER('{iso}')"""
 
     LOSS_OUTSIDE_PLANTATION = """
-        select loss_outside,perc_loss_outside,iso, threshold, year 
+        select loss_outside,perc_loss_outside,iso, threshold, year
         FROM loss_outside_plantations
         WHERE iso = UPPER('{iso}')
         AND threshold = {thresh}
@@ -241,7 +241,7 @@ def _getIfl(args):
     args['ifl'] = True
     ifl = umd.execute(args)
     args['ifl'] = False
-        
+
     return dict(ifl=ifl)
 
 def execute(args):

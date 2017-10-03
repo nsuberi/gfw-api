@@ -31,6 +31,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/engineauth'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'lib/sparkpost'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'gfw'))
 
+def load_translation(language, id):
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'translations.json')
+    try:
+        return json.loads(open(path, "r").read())[language][id]
+    except:
+        return ''
+
 def _load_config(name):
     """Return dev config environment as dictionary."""
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), name)

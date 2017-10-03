@@ -22,6 +22,7 @@ import logging
 from google.appengine.api import urlfetch
 
 from appengine_config import runtime_config
+from appengine_config import load_translation as t
 
 from gfw.common import gfw_url
 from gfw.models.topic import Topic
@@ -30,20 +31,27 @@ from gfw.lib.urls import map_url
 from sparkpost import SparkPost
 sparkpost = SparkPost(runtime_config.get('sparkpost_api_key') or 'sparkpostapikey')
 
-def summary_for_topic(topic):
-    meta = topic.metadata
-    lower_first = func = lambda s: s[:1].lower() + s[1:] if s else ''
-    return meta['description'] + " at a " + meta['resolution'] + " resolution."  \
-            " Coverage of " + meta['coverage'] + \
-            ". Source is " + meta['source'] + \
-            ". Available data from " + meta['timescale'] + ", updated " + \
-            lower_first(meta['updates'])
+def description_for_topic(topic, language):
+    return t(language, 'topic.' + topic.meta_id + '.description')
 
-def template_for_topic(topic):
+def summary_for_topic(topic, language):
+    meta = t(language, 'topic.' + topic.meta_id + '.metadata')
+    lower_first = func = lambda s: s[:1].lower() + s[1:] if s else ''
+    return t(language, 'subscription.summary').encode('utf-8').format(
+        meta['description'].encode('utf-8'),
+        meta['resolution'].encode('utf-8'),
+        meta['coverage'].encode('utf-8'),
+        meta['source'].encode('utf-8'),
+        meta['timescale'].encode('utf-8'),
+        lower_first(meta['updates'].encode('utf-8')))
+
+def template_for_topic(topic, language):
     if topic.id == 'alerts/viirs':
-        return 'fires-notification'
+        template = 'fires-notification'
     else:
-        return 'forest-change-notification'
+        template = 'forest-change-notification'
+
+    return template + '-' + language.lower()
 
 class SubscriptionMailer:
     def __init__(self, subscription):
@@ -62,23 +70,31 @@ class SubscriptionMailer:
             begin = event.begin.strftime('%d %b %Y')
             end = event.end.strftime('%d %b %Y')
 
+            utm_config = {
+                'utm_source': 'subscription',
+                'utm_medium': 'email',
+                'utm_campaign': topic.id,
+                'utm_content': self.subscription.email
+            }
+
             url_params = self.subscription.params
             url_params['begin'] = event.begin
             url_params['end'] = event.end
             url_params['fit_to_geom'] = 'true'
             url_params['tab'] = 'analysis-tab'
-            alert_link = map_url(self.subscription.params)
+            alert_link = map_url(self.subscription.params, utm_config)
 
             email = self.subscription.email
             user_profile = self.subscription.user_id.get().get_profile()
             name = getattr(user_profile, 'name', email)
+            language = self.subscription.language or 'EN'
 
             template_params = {
-                'selected_area': topic_result.area_name(),
-                'alert_count': topic_result.formatted_value(),
-                'alert_type': topic.description,
-                'alert_date': begin + " to " + end,
-                'alert_summary': summary_for_topic(topic),
+                'selected_area': topic_result.area_name(language),
+                'alert_count': topic_result.formatted_value(language),
+                'alert_type': description_for_topic(topic, language),
+                'alert_date': "{} {} {}".format(begin, t(language, 'subscription.date_join'), end),
+                'alert_summary': summary_for_topic(topic, language),
                 'alert_name': self.subscription.formatted_name(),
                 'alert_link': alert_link,
                 'unsubscribe_url': unsubscribe_url,
@@ -102,7 +118,7 @@ class SubscriptionMailer:
 
             response = sparkpost.transmissions.send(
                 recipients=[{'address': { 'email': email, 'name': name }}],
-                template=template_for_topic(topic),
+                template=template_for_topic(topic, language),
                 substitution_data=template_params
             )
 

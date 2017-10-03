@@ -84,7 +84,9 @@ def _ee(geom, thresh, asset_id):
     area_results = area_stats.getInfo()
 
     return area_results
-
+def _ee_area_ha(geom):
+    region = _get_region(geom)
+    return region.area(0.5,'EPSG:3857').divide(10000).getInfo()
 
 def _loss_area(row):
     """Return hectares of loss."""
@@ -100,8 +102,8 @@ class UmdSql(Sql):
 
     ISO = """
         SELECT iso, country, year, thresh, extent_2000 as extent, extent_perc,
-               loss, loss_perc, gain, gain*12 as total_gain, gain_perc
-        FROM umd_nat_final_1
+               loss, loss_perc, gain, gain*12 as total_gain, gain_perc, land as area_ha
+        FROM umd_nat_staging
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
         ORDER BY year"""
@@ -109,8 +111,8 @@ class UmdSql(Sql):
     ID1 = """
         SELECT iso, country, region, year, thresh, extent_2000 as extent,
                extent_perc, loss, loss_perc, gain, gain*12 as total_gain,
-               gain_perc, id1
-        FROM umd_subnat_final_1
+               gain_perc, id1, land as area_ha
+        FROM umd_subnat_staging
         WHERE iso = UPPER('{iso}')
               AND thresh = {thresh}
               AND id1 = {id1}
@@ -134,7 +136,7 @@ class UmdSql(Sql):
         SELECT CASE when ST_NPoints(the_geom)<=8000 THEN ST_AsGeoJson(the_geom)
        WHEN ST_NPoints(the_geom) BETWEEN 8000 AND 20000 THEN ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.001))
       ELSE ST_AsGeoJson(ST_RemoveRepeatedPoints(the_geom, 0.01))
-       END as geojson 
+       END as geojson
         FROM {use_table}
         WHERE cartodb_id = {pid}"""
 
@@ -249,15 +251,16 @@ def _execute_geojson(args):
     hansen_all = _ee(geojson, thresh, config.assets['hansen_all_thresh'])
     # gain (UMD doesn't permit disaggregation of forest gain by threshold).
     gain = hansen_all['gain']
-    logging.info('GAIN: %s' % gain)
+    # logging.info('GAIN: %s' % gain)
     # tree extent in 2000
     tree_extent = hansen_all['tree']
-    logging.info('TREE_EXTENT: %s' % tree_extent)
-
+    # logging.info('TREE_EXTENT: %s' % tree_extent)
+    area_ha = hansen_all['tree']
     # Loss by year
     loss_by_year = _ee(geojson, thresh, config.assets['hansen_loss_thresh'])
-    logging.info('LOSS_RESULTS: %s' % loss_by_year)
-
+    # logging.info('LOSS_RESULTS: %s' % loss_by_year)
+    land = _ee_area_ha(geojson)
+    # logging.info('LOSS_RESULTS: %s' % loss_by_year)
     # Reduce loss by year for supplied begin and end year
     begin = args.get('begin').split('-')[0]
     end = args.get('end').split('-')[0]
@@ -270,6 +273,7 @@ def _execute_geojson(args):
     result['gain'] = gain
     result['loss'] = loss
     result['tree-extent'] = tree_extent
+    result['area_ha'] = land
 
     return 'respond', result
 
@@ -285,7 +289,7 @@ def _executeWdpa(args):
     if rows[0]['geojson']==None:
         args['geojson'] = rows[0]['geojson']
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
-        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        args['end'] = args['end'] if 'end' in args else '2016-01-01'
         data['params'].pop('geojson')
         data['gain'] = 0
         data['loss'] = 0
@@ -293,7 +297,7 @@ def _executeWdpa(args):
     elif rows:
         args['geojson'] = rows[0]['geojson']
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
-        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        args['end'] = args['end'] if 'end' in args else '2016-01-01'
         action, data = _execute_geojson(args)
         data['params'].pop('geojson')
     return action, data
@@ -310,7 +314,7 @@ def _executeUse(args):
     if rows:
         args['geojson'] = rows[0]['geojson']
         args['begin'] = args['begin'] if 'begin' in args else '2001-01-01'
-        args['end'] = args['end'] if 'end' in args else '2013-01-01'
+        args['end'] = args['end'] if 'end' in args else '2016-01-01'
         action, data = _execute_geojson(args)
         data['params'].pop('geojson')
     return action, data

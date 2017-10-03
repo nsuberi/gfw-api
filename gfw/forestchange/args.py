@@ -105,6 +105,12 @@ class ThreshArgError(ArgError):
         msg = 'Invalid wdpaid parameter! Usage: %s' % self.USAGE
         super(ThreshArgError, self).__init__(msg)
 
+class LayerOptionArgError(ArgError):
+    USAGE = """layer options must be a stringified JSON object"""
+
+    def __init__(self):
+        msg = 'Invalid layer_options parameter! Usage: %s' % self.USAGE
+        super(LayerOptionArgError, self).__init__(msg)
 
 class PathProcessor():
     @classmethod
@@ -187,6 +193,16 @@ class ArgProcessor():
     @classmethod
     def aggregate_by(cls, value):
         return {'aggregate_by': value}
+
+    @classmethod
+    def layer_options(cls, value):
+        try:
+            options = {}
+            for layer_option in json.loads(value):
+                options[layer_option] = True
+            return options
+        except:
+            raise LayerOptionArgError()
 
     @classmethod
     def thresh(cls, value):

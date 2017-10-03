@@ -16,105 +16,228 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """This module supports accessing UMD/GLAD data."""
-import math
-import arrow
-import logging
+
+import datetime
+import json
+import urllib
+import collections
+from google.appengine.api import urlfetch
+from google.appengine.api.urlfetch_errors import DeadlineExceededError
 
 from gfw.forestchange.common import CartoDbExecutor
-from gfw.forestchange.common import Sql
+from gfw.forestchange.common import classify_query
+from gfw.lib.geometry_sql import GeometrySql
 
-class GladSql(Sql):
+class HistogramError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
-    WORLD = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM  umd_alerts_agg_analysis f
-        WHERE date >= '{begin}'::date
-          AND date <= '{end}'::date
-          AND ST_INTERSECTS(
-                ST_Transform(
-                  ST_SetSRID(
-                    ST_GeomFromGeoJSON('{geojson}'),
-                  4326),
-                3857),
-              f.the_geom_webmercator)
-        """
+request_notes = []
 
-    ISO = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM umd_alerts_agg_analysis f
-        WHERE iso = UPPER('{iso}')
-            AND date >= '{begin}'::date
-            AND date <= '{end}'::date
-        """
+IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_analysis/ImageServer/"
+CONFIRMED_IMAGE_SERVER = "http://gis-gfw.wri.org/arcgis/rest/services/image_services/glad_alerts_con_analysis/ImageServer/"
 
-    ID1 = """
-        WITH r as (SELECT name_1,iso, id_1, ST_RemoveRepeatedPoints(the_geom_webmercator, 1000) the_geom_webmercator
-                   FROM gadm2_provinces_simple 
-                   WHERE iso = UPPER('{iso}') 
-                   AND id_1 = {id1} )
-        SELECT COUNT(f.iso) AS value, MIN(date) as min_date, MAX(date) as max_date  
-        FROM umd_alerts_agg_analysis f INNER JOIN r ON st_intersects(r.the_geom_webmercator,f.the_geom_webmercator)
-        WHERE date >= '{begin}'::date 
-        AND date <= '{end}'::date
-        """
+START_YEAR = 2015
 
-    WDPA = """
-        WITH p as (SELECT CASE when marine::numeric = 2 then null
-        when ST_NPoints(the_geom)<=18000 THEN the_geom_webmercator
-       WHEN ST_NPoints(the_geom) BETWEEN 18000 AND 50000 THEN ST_RemoveRepeatedPoints(the_geom_webmercator, 100)
-      ELSE ST_RemoveRepeatedPoints(the_geom_webmercator, 1000)
-       END as the_geom_webmercator FROM wdpa_protected_areas where wdpaid={wdpaid})
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM umd_alerts_agg_analysis f, p
-        WHERE ST_Intersects(f.the_geom_webmercator, p.the_geom_webmercator)
-              AND date >= '{begin}'::date
-              AND date <= '{end}'::date
-        """
+MOSAIC_RULE = {
+    "mosaicMethod": "esriMosaicLockRaster",
+    "ascending": True,
+    "mosaicOperation": "MT_FIRST"
+}
 
-    USE = """
-        SELECT COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date
-        FROM {use_table} u, umd_alerts_agg_analysis f
-        WHERE u.cartodb_id = {pid}
-              AND ST_Intersects(f.the_geom_webmercator, u.the_geom_webmercator)
-              AND date >= '{begin}'::date
-              AND date <= '{end}'::date
-        """
+RASTERS = {
+    'all': {
+        '2015': 6,
+        '2016': 4
+    },
+    'confirmed_only': {
+        '2015': 7,
+        '2016': 5
+    }
+}
 
-    LATEST = """
-        SELECT DISTINCT date
-        FROM umd_alerts_agg_analysis
-        ORDER BY date DESC
-        LIMIT {limit}"""
+YEAR_FOR_RASTERS = {
+    6: 2015,
+    7: 2015,
+    4: 2016,
+    5: 2016
+}
 
-    @classmethod
-    def download(cls, sql):
-        return sql.replace("COUNT(iso) AS value, MIN(date) as min_date, MAX(date) as max_date", " f.date, st_transform(f.the_geom_webmercator, 4326) as the_geom, ST_Y(st_transform(the_geom_webmercator, 4326)) as lat, ST_X(st_transform(the_geom_webmercator, 4326)) as long")
+def generateMosaicRule(raster):
+    mosaicRule = MOSAIC_RULE
+    mosaicRule['lockRasterIds'] = [raster]
+    return mosaicRule
 
-def _processResults(action, data):
-    if 'rows' in data:
-        results = data.pop('rows')
-        result = results[0]
-        if not result.get('value'):
-            data['results'] = results
+def geojsonToEsriJson(geojson):
+    geojson = json.loads(geojson)
+    if geojson['type'] == 'Polygon':
+        geojson['rings'] = geojson.pop('coordinates')
+    elif geojson['type'] == 'MultiPolygon':
+        geojson['rings'] = geojson.pop('coordinates')[0]
+
+    geojson['type'] = 'polygon'
+    return geojson
+
+def dateToGridCode(date):
+    return date.timetuple().tm_yday + (365 * (date.year - START_YEAR))
+
+def rasterForDate(date, confirmed=False):
+    if confirmed:
+        return RASTERS['confirmed_only'][str(date.year)]
     else:
-        result = dict(value=None)
+        return RASTERS['all'][str(date.year)]
 
-    data['value'] = result.get('value')
-    data['min_date'] = result.get('min_date')
-    data['max_date'] = result.get('max_date')
+def yearForRaster(raster):
+    return YEAR_FOR_RASTERS[raster]
 
-    return action, data
+def rastersForPeriod(startDate, endDate, confirmed=False):
+    rasters = set([])
+    rasters.update([rasterForDate(startDate, confirmed)])
+    rasters.update([rasterForDate(endDate, confirmed)])
 
+    return list(rasters)
+
+def getHistogram(rasters, esri_json, confirmed_only):
+    form_fields = {
+        "geometry": json.dumps(esri_json),
+        "geometryType": "esriGeometryPolygon",
+        "f": "pjson"
+    }
+
+    image_server = IMAGE_SERVER
+    if confirmed_only:
+        image_server = CONFIRMED_IMAGE_SERVER
+
+    request_notes.append('Rasters IDs:')
+    request_notes.append(rasters)
+    results = []
+    for raster in rasters:
+        form_fields['mosaicRule'] = generateMosaicRule(raster)
+        form_data = urllib.urlencode(form_fields)
+        result = urlfetch.fetch(url=image_server+'computeHistograms',
+            payload=form_data,
+            method=urlfetch.POST,
+            deadline=60,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        result = json.loads(result.content)
+        if 'error' not in result:
+            results.append([raster, result])
+        else:
+            raise HistogramError(result)
+
+
+    return results
+
+def datesToGridCodes(begin, end, raster):
+    rasterYear = yearForRaster(raster)
+
+    indexes = []
+    if begin.year == rasterYear:
+        indexes.append(begin.timetuple().tm_yday - 1)
+    else:
+        indexes.append(datetime.date(rasterYear, 1, 1).timetuple().tm_yday - 1)
+
+    if end.year == rasterYear:
+        indexes.append(end.timetuple().tm_yday - 1)
+    else:
+        indexes.append(datetime.date(rasterYear, 12, 31).timetuple().tm_yday - 1)
+
+    return indexes
+
+def alertCount(begin, end, histograms):
+    total_count = 0
+    for raster, histogram in histograms:
+        counts = []
+        if len(histogram['histograms']) > 0:
+            counts = histogram['histograms'][0]['counts']
+
+        indexes = datesToGridCodes(begin, end, raster)
+
+        request_notes.append('Counts:')
+        request_notes.append(counts)
+        request_notes.append('Getting Indexes:')
+        request_notes.append(indexes)
+        total_count += sum(counts[indexes[0]:indexes[1]])
+
+    return total_count
+
+def decorateWithArgs(dictionary, args):
+    dictionary['params'] = args
+
+    if 'geojson' in dictionary['params']:
+        dictionary['params']['geojson'] = json.loads(dictionary['params']['geojson'])
+
+    return dictionary
+
+def getAlertCount(args):
+    begin = args.get('begin')
+    end = args.get('end')
+
+    if 'geojson' not in args:
+        action, data = CartoDbExecutor.execute(args, GeometrySql)
+        args['geojson'] = data['rows'][0]['geojson']
+
+    confirmed_only = False
+    if 'glad_confirmed_only' in args:
+        confirmed_only = True
+
+    rasters = rastersForPeriod(begin, end, confirmed_only)
+
+    try:
+        esri_json = geojsonToEsriJson(args.get('geojson'))
+        alert_count = alertCount(begin, end, getHistogram(rasters, esri_json, confirmed_only))
+
+        return 'respond', decorateWithArgs({
+            "min_date": begin.isoformat(),
+            "max_date": end.isoformat(),
+            "value": alert_count,
+            "notes": request_notes
+        }, args)
+    except HistogramError as e:
+        return 'error', decorateWithArgs(e.value, args)
+    except DeadlineExceededError as e:
+        return 'error', decorateWithArgs({
+            "error": {
+                "code": 408,
+                "message": "Request timed out"
+            }}, args)
+
+def getMaxDateFromHistograms(histograms):
+    year = (len(histograms) - 1) + START_YEAR
+    latest_histogram_key = max(histograms.keys())
+    day_number = len(histograms[latest_histogram_key])
+    return datetime.datetime(year, 1, 1) + datetime.timedelta(day_number-1)
+
+def getFullHistogram(args):
+    begin = datetime.datetime.strptime(str(START_YEAR), '%Y')
+    end = datetime.datetime.now()
+    rasters = rastersForPeriod(begin, end)
+
+    results = {}
+    for raster in rasters:
+        result = urlfetch.fetch(
+            url=IMAGE_SERVER+str(raster)+'/info/histograms?f=pjson',
+            method=urlfetch.GET,
+            deadline=60,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        result = json.loads(result.content)
+        if 'error' not in result:
+            results[yearForRaster(raster)] = result['histograms'][0]['counts']
+
+    return 'respond', decorateWithArgs({
+        'min_date': begin.strftime('%Y-%m-%d'),
+        'max_date': getMaxDateFromHistograms(results).strftime('%Y-%m-%d'),
+        'counts': results
+    }, args)
 
 def execute(args):
-    args['version'] = 'v2'
+    query_type = classify_query(args)
 
-    if 'begin' in args:
-        args['begin'] = args['begin'].strftime('%Y-%m-%d')
-    if 'end' in args:
-        args['end'] = args['end'].strftime('%Y-%m-%d')
-
-    action, data = CartoDbExecutor.execute(args, GladSql)
-    if action == 'redirect' or action == 'error':
-        return action, data
-    return _processResults(action, data)
+    if query_type == 'latest':
+        return getFullHistogram(args)
+    else:
+        return getAlertCount(args)
