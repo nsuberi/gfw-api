@@ -7,3 +7,7 @@ cron:
   url: /manage/pubsub/automatic?topic=alerts/viirs&send=true
   schedule: every day 00:01
   target: default
+- description: GLAD
+  url: /manage/pubsub/automatic?topic=alerts/glad&send=true
+  schedule: every day 00:01
+  target: default
