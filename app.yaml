@@ -15,9 +15,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-application: gfw-apis
+# change target from staging to master
+# gcloud app deploy
+
 runtime: python27
 threadsafe: true
+service: staging  #default
 api_version: 1
 
 inbound_services:
