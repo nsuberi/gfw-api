@@ -101,8 +101,9 @@ class CORSRequestHandler(webapp2.RequestHandler):
 
         result = {}
         for key, val in raw.iteritems():
-            if only and key in only:
-                result[key] = val
+            if only:
+                if key in only:
+                    result[key] = val
             else:
                 result[key] = val
 
